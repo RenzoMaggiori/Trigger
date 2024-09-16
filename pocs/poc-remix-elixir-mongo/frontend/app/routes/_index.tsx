@@ -24,11 +24,18 @@ interface Task {
   status: string;
 }
 
+
 export default function Index() {
   const [tasks, setTasks] = useState<Task[]>([]); // Updated to use tasks state
   const [task, setTask] = useState("");
   const [date, setDate] = useState("");
   const [status, setStatus] = useState("pending");
+
+  const taskInput = [
+    {label: "Task", placeholder: "Enter your task", value: task, onchange: setTask},
+    {label: "Date", placeholder: "Due date", value: date, onchange: setDate, type: "date"},
+    {label: "Status", placeholder: "Set status", value: status, onchange: setStatus},
+  ]
 
   const addTask = () => {
     if (task.trim() && date.trim()) {
@@ -47,34 +54,18 @@ export default function Index() {
     <div className="flex h-screen items-center justify-center p-4">
       <div className="w-full max-w-2xl">
         <div className="flex flex-row justify-end items-end py-2 h-full gap-2">
-          <Input
-            label="Task"
-            placeholder="Enter your task"
-            className="flex-1"
-            value={task}
-            onChange={(e) => setTask(e.target.value)}
-            size="lg"
-            required
-          />
-          <Input
-            label="Date"
-            placeholder="Due date"
-            type="date"
-            className="flex-1"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            size="lg"
-            required
-          />
-          <Input
-            label="Status"
-            placeholder="Task status"
-            className="flex-1"
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            size="lg"
-            required
-          />
+          {taskInput.map((item) => (
+            <Input
+              label={item.label}
+              placeholder={item.placeholder}
+              type={item.type ? item.type : undefined}
+              className="flex-1"
+              value={item.value}
+              onChange={(e) => item.onchange(e.target.value)}
+              size="lg"
+              required
+            />
+          ))}
           <Button
             color="primary"
             className="flex-1 h-[64px]"
