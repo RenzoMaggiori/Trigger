@@ -11,9 +11,15 @@
     "typecheck": "tsc"
   },
   "dependencies": {
+    "@nextui-org/button": "^2.0.38",
+    "@nextui-org/input": "^2.2.5",
+    "@nextui-org/system": "^2.2.6",
+    "@nextui-org/table": "^2.0.40",
+    "@nextui-org/theme": "^2.2.11",
     "@remix-run/node": "^2.12.0",
     "@remix-run/react": "^2.12.0",
     "@remix-run/serve": "^2.12.0",
+    "framer-motion": "^11.5.4",
     "isbot": "^4.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
