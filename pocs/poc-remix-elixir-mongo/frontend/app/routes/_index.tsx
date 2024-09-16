@@ -76,9 +76,8 @@ export default function Index() {
             required
           />
           <Button
-            variant="bordered"
-            color="success"
-            className="flex-1"
+            color="primary"
+            className="flex-1 h-[64px]"
             onClick={addTask}
             size="lg"
           >
