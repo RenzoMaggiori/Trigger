@@ -8,7 +8,7 @@ const HOST = process.env.MYSQL_HOST;
 const USER = process.env.MYSQL_USER;
 const PASSWORD = process.env.MYSQL_ROOT_PASSWORD;
 
-const connection = mysql.createConnection({
+export const dbConnection = mysql.createConnection({
     database: DATABASE,
     host: HOST,
     user: USER,
@@ -16,7 +16,7 @@ const connection = mysql.createConnection({
 });
 
 export const handleConnection = () => {
-    connection.connect((error) => {
+    dbConnection.connect((error) => {
         if (error) {
             console.error('Error connecting to database:', error);
             setTimeout(handleConnection, 2000);
