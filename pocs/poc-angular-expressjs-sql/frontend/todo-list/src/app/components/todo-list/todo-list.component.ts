@@ -1,44 +1,45 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
+import { TodoService, Todo } from '../../todo.service';
 import { TaskFormComponent } from '../task-form/task-form.component';
 import { TaskTableComponent } from '../task-table/task-table.component';
-
-interface Todo {
-  id: number;
-  title: string;
-  description: string;
-  status: 'todo' | 'doing' | 'done';
-  due_date: Date;
-  created_at: Date;
-  updated_at: Date;
-}
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-todo-list',
   standalone: true,
-  imports: [CommonModule, TaskFormComponent, TaskTableComponent],
+  imports: [CommonModule, HttpClientModule, TaskFormComponent, TaskTableComponent],
+  providers: [TodoService, DatePipe],
   templateUrl: './todo-list.component.html',
   styleUrls: ['./todo-list.component.css']
 })
-export class TodoListComponent {
-  todos: Todo[] = [];
+export class TodoListComponent implements OnInit {
+  todos$: Observable<Todo[]>;
+
+  constructor(private todoService: TodoService, private datePipe: DatePipe) {
+    this.todos$ = this.todoService.todos$;
+  }
+
+  ngOnInit() {
+    this.todoService.loadTodos().subscribe();
+  }
 
   addTask(newTask: Partial<Todo>) {
-    const newTodo: Todo = {
-      ...newTask,
-      id: this.todos.length + 1,
-      created_at: new Date(),
-      updated_at: new Date(),
-    } as Todo;
-    this.todos.push(newTodo);
+    this.todoService.addTodo(newTask).subscribe();
   }
 
   deleteTask(index: number) {
-    this.todos.splice(index, 1);
+    this.todos$.subscribe(todos => {
+      const todoId = todos[index].id;
+      this.todoService.deleteTodo(todoId).subscribe();
+    });
   }
 
   changeTaskStatus({ index, status }: { index: number, status: 'todo' | 'doing' | 'done' }) {
-    this.todos[index].status = status;
-    this.todos[index].updated_at = new Date();
+    this.todos$.subscribe(todos => {
+      const todo = todos[index];
+      this.todoService.updateTodoStatus(todo.id, status).subscribe();
+    });
   }
 }

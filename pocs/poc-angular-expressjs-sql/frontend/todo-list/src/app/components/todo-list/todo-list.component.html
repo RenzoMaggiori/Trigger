@@ -1,4 +1,12 @@
 <div class="todo-list-container">
     <app-task-form (add)="addTask($event)"></app-task-form>
-    <app-task-table [todos]="todos" (delete)="deleteTask($event)" (statusChange)="changeTaskStatus($event)"></app-task-table>
+
+    <ng-container *ngIf="todos$ | async as todos; else loading">
+        <app-task-table [todos]="todos" (delete)="deleteTask($event)"
+            (statusChange)="changeTaskStatus($event)"></app-task-table>
+    </ng-container>
+
+    <ng-template #loading>
+        <p>Loading tasks...</p>
+    </ng-template>
 </div>
