@@ -26,7 +26,7 @@ interface Task {
 
 
 export default function Index() {
-  const [tasks, setTasks] = useState<Task[]>([]); // Updated to use tasks state
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [task, setTask] = useState("");
   const [date, setDate] = useState("");
   const [status, setStatus] = useState("pending");
@@ -35,6 +35,10 @@ export default function Index() {
     {label: "Task", placeholder: "Enter your task", value: task, onchange: setTask},
     {label: "Date", placeholder: "Due date", value: date, onchange: setDate, type: "date"},
     {label: "Status", placeholder: "Set status", value: status, onchange: setStatus},
+  ];
+
+  const taskColumn = [
+    "Task", "Date", "Status", "Actions"
   ]
 
   const addTask = () => {
@@ -78,10 +82,9 @@ export default function Index() {
 
         <Table>
           <TableHeader>
-            <TableColumn>Task</TableColumn>
-            <TableColumn>Date</TableColumn>
-            <TableColumn>Status</TableColumn>
-            <TableColumn>Actions</TableColumn>
+            {taskColumn.map((item) => (
+              <TableColumn>{item}</TableColumn>
+            ))}
           </TableHeader>
           <TableBody emptyContent={"No rows to display."}>
             {tasks.map((item, index) => (
