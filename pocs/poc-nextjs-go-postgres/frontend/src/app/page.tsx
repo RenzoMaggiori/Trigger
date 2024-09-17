@@ -1,101 +1,94 @@
-import Image from "next/image";
+"use client"
+import { Button } from "@nextui-org/button";
+import { Input } from "@nextui-org/input";
+import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@nextui-org/table";
+import React from "react";
+
+interface Task {
+  task: string;
+  date: string;
+  status: string;
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [tasks, setTasks] = React.useState<Task[]>([]);
+  const [task, setTask] = React.useState("");
+  const [date, setDate] = React.useState("");
+  const [status, setStatus] = React.useState("pending");
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  const taskInput = [
+    {label: "Task", placeholder: "Enter your task", value: task, onchange: setTask},
+    {label: "Date", placeholder: "Due date", value: date, onchange: setDate, type: "date"},
+    {label: "Status", placeholder: "Set status", value: status, onchange: setStatus},
+  ]
+
+  const addTask = () => {
+    if (task.trim() && date.trim()) {
+      setTasks([...tasks, { task, date, status }]);
+      setTask("");
+      setDate("");
+      setStatus("")
+    }
+  };
+
+  const removeTask = (index: number) => {
+    setTasks(tasks.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="flex h-screen items-center justify-center p-4">
+      <div className="w-full max-w-2xl">
+        <div className="flex flex-row justify-end items-end py-2 h-full gap-2">
+          {taskInput.map((item) => (
+            <Input
+              label={item.label}
+              placeholder={item.placeholder}
+              type={item.type ? item.type : undefined}
+              className="flex-1"
+              value={item.value}
+              onChange={(e) => item.onchange(e.target.value)}
+              size="lg"
+              required
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          ))}
+          <Button
+            color="primary"
+            className="flex-1 h-[64px]"
+            onClick={addTask}
+            size="lg"
           >
-            Read our docs
-          </a>
+            Add Task
+          </Button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        <Table>
+          <TableHeader>
+            <TableColumn>Task</TableColumn>
+            <TableColumn>Date</TableColumn>
+            <TableColumn>Status</TableColumn>
+            <TableColumn>Actions</TableColumn>
+          </TableHeader>
+          <TableBody emptyContent={"No rows to display."}>
+            {tasks.map((item, index) => (
+              <TableRow key={index}>
+                <TableCell>{item.task}</TableCell>
+                <TableCell>{item.date}</TableCell>
+                <TableCell>{item.status}</TableCell>
+                <TableCell>
+                  <Button
+                    color="danger"
+                    size="sm"
+                    onClick={() => removeTask(index)}
+                  >
+                    Delete
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
+
   );
 }
