@@ -1,0 +1,11 @@
+services:
+  frontend:
+    container_name: frontend-container
+    build:
+      context: ./
+      target: dev
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    ports:
+      - "3000:3000"
