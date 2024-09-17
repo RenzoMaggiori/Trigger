@@ -1,0 +1,43 @@
+<div class="todo-list-container">
+    <div class="task-form">
+        <input type="text" [(ngModel)]="newTask.title" placeholder="Enter your task" class="input-field" />
+        <input type="text" [(ngModel)]="newTask.description" placeholder="Enter your task description" class="input-field" />
+        <input type="date" [(ngModel)]="newTask.due_date" class="input-field" />
+        <select [(ngModel)]="newTask.status" class="input-field">
+            <option value="todo">To Do</option>
+            <option value="doing">Doing</option>
+            <option value="done">Done</option>
+        </select>
+        <button (click)="addTask()" class="add-task-button">Add Task</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Task</th>
+                <th>Description</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let todo of todos; let i = index">
+                <td>{{ todo.title }}</td>
+                <td>{{ todo.description }}</td>
+                <td>{{ todo.due_date | date: 'MMM d, y' }}</td>
+                <td [ngClass]="{
+            'status-todo': todo.status === 'todo',
+            'status-doing': todo.status === 'doing',
+            'status-done': todo.status === 'done'
+            }">{{ todo.status | uppercase }}</td>
+                <td>
+                    <button (click)="deleteTask(i)" class="delete-button">Delete</button>
+                </td>
+            </tr>
+            <tr *ngIf="todos.length === 0">
+                <td colspan="4" class="no-tasks">No rows to display.</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
