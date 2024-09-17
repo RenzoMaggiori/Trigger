@@ -1,4 +1,4 @@
 <div class="todo-list-container">
     <app-task-form (add)="addTask($event)"></app-task-form>
-    <app-task-table [todos]="todos" (delete)="deleteTask($event)"></app-task-table>
+    <app-task-table [todos]="todos" (delete)="deleteTask($event)" (statusChange)="changeTaskStatus($event)"></app-task-table>
 </div>

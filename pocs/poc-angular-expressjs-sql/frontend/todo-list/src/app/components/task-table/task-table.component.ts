@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 interface Todo {
   id: number;
@@ -14,15 +15,31 @@ interface Todo {
 @Component({
   selector: 'app-task-table',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './task-table.component.html',
   styleUrls: ['./task-table.component.css']
 })
 export class TaskTableComponent {
   @Input() todos: Todo[] = [];
   @Output() delete = new EventEmitter<number>();
+  @Output() statusChange = new EventEmitter<{ index: number, status: 'todo' | 'doing' | 'done' }>();
+
+  editingStatusIndex: number | null = null;
 
   onDelete(index: number) {
     this.delete.emit(index);
+  }
+
+  toggleStatusEdit(index: number) {
+    if (this.editingStatusIndex === index) {
+      this.editingStatusIndex = null;
+    } else {
+      this.editingStatusIndex = index;
+    }
+  }
+
+  changeStatus(index: number, newStatus: 'todo' | 'doing' | 'done') {
+    this.statusChange.emit({ index, status: newStatus });
+    this.editingStatusIndex = null;
   }
 }

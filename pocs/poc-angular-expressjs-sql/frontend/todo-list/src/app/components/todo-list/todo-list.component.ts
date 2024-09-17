@@ -36,4 +36,9 @@ export class TodoListComponent {
   deleteTask(index: number) {
     this.todos.splice(index, 1);
   }
+
+  changeTaskStatus({ index, status }: { index: number, status: 'todo' | 'doing' | 'done' }) {
+    this.todos[index].status = status;
+    this.todos[index].updated_at = new Date();
+  }
 }
