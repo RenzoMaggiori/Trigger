@@ -1,8 +1,7 @@
-
-
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { TaskFormComponent } from '../task-form/task-form.component';
+import { TaskTableComponent } from '../task-table/task-table.component';
 
 interface Todo {
   id: number;
@@ -17,26 +16,21 @@ interface Todo {
 @Component({
   selector: 'app-todo-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, TaskFormComponent, TaskTableComponent],
   templateUrl: './todo-list.component.html',
   styleUrls: ['./todo-list.component.css']
 })
 export class TodoListComponent {
   todos: Todo[] = [];
-  newTask: Partial<Todo> = { title: '', due_date: new Date(), status: 'todo' };
 
-  addTask() {
-    if (this.newTask.title?.trim()) {
-      const newTodo: Todo = {
-        ...this.newTask,
-        id: this.todos.length + 1,
-        created_at: new Date(),
-        updated_at: new Date(),
-      } as Todo;
-
-      this.todos.push(newTodo);
-      this.newTask = { title: '', due_date: new Date(), status: 'todo' };
-    }
+  addTask(newTask: Partial<Todo>) {
+    const newTodo: Todo = {
+      ...newTask,
+      id: this.todos.length + 1,
+      created_at: new Date(),
+      updated_at: new Date(),
+    } as Todo;
+    this.todos.push(newTodo);
   }
 
   deleteTask(index: number) {
