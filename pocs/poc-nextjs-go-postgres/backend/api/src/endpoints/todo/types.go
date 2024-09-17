@@ -37,6 +37,10 @@ type Todos interface {
 	Remove(int) error
 }
 
-type TodosModel struct {
+type Handler struct {
+	Todos
+}
+
+type Model struct {
 	db *sql.DB
 }

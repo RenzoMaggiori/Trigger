@@ -1,6 +1,8 @@
 package server
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,6 +10,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"trigger.com/api/src/database"
 	"trigger.com/api/src/router"
 )
 
@@ -15,17 +18,22 @@ type Server struct {
 	wrapper *http.Server
 }
 
-func Create(port int64) *Server {
-	router := router.Create()
+func Create(port int64, db *sql.DB) (*Server, error) {
+	ctx := context.WithValue(context.Background(), database.CtxKey, db)
+	router, err := router.Create(ctx)
+	if err != nil {
+		return nil, err
+	}
 	return &Server{
 		wrapper: &http.Server{
 			Addr:    fmt.Sprintf(":%d", port),
 			Handler: router,
 		},
-	}
+	}, nil
 }
 
 func (s *Server) Start() {
+	fmt.Printf("Listening on %s\n", s.wrapper.Addr)
 	if err := s.wrapper.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Could not listen on %s: %v\n", s.wrapper.Addr, err)
 	}

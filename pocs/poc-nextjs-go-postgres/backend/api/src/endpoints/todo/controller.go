@@ -7,12 +7,8 @@ import (
 	"strconv"
 )
 
-type Model struct {
-	Todos
-}
-
-func (m *Model) GetAll(res http.ResponseWriter, _ *http.Request) {
-	todos, err := m.Todos.FindAll()
+func (h *Handler) GetAll(res http.ResponseWriter, _ *http.Request) {
+	todos, err := h.Todos.FindAll()
 	if err != nil {
 		http.Error(res, "Internal server error", http.StatusInternalServerError)
 		log.Println(err)
@@ -27,7 +23,7 @@ func (m *Model) GetAll(res http.ResponseWriter, _ *http.Request) {
 	}
 }
 
-func (m *Model) GetById(res http.ResponseWriter, req *http.Request) {
+func (h *Handler) GetById(res http.ResponseWriter, req *http.Request) {
 	id, err := strconv.Atoi(req.PathValue("id"))
 	if err != nil {
 		http.Error(res, "Invalid ID format", http.StatusBadRequest)
@@ -35,7 +31,7 @@ func (m *Model) GetById(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	todo, err := m.Todos.FindByID(id)
+	todo, err := h.Todos.FindByID(id)
 	if err != nil {
 		http.Error(res, "Todo not found", http.StatusNotFound)
 		log.Println(err)
@@ -50,7 +46,7 @@ func (m *Model) GetById(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (m *Model) Add(res http.ResponseWriter, req *http.Request) {
+func (h *Handler) Add(res http.ResponseWriter, req *http.Request) {
 	var body AddTodo
 	err := json.NewDecoder(req.Body).Decode(&body)
 	if err != nil {
@@ -59,7 +55,7 @@ func (m *Model) Add(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	todo, err := m.Todos.Create(&body)
+	todo, err := h.Todos.Create(&body)
 	if err != nil {
 		http.Error(res, "Unable to add todo", http.StatusBadRequest)
 		log.Println(err)
@@ -74,7 +70,7 @@ func (m *Model) Add(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (m *Model) Patch(res http.ResponseWriter, req *http.Request) {
+func (h *Handler) Patch(res http.ResponseWriter, req *http.Request) {
 	id, err := strconv.Atoi(req.PathValue("id"))
 	if err != nil {
 		http.Error(res, "Invalid ID format", http.StatusBadRequest)
@@ -90,7 +86,7 @@ func (m *Model) Patch(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	todo, err := m.Todos.Update(id, &body)
+	todo, err := h.Todos.Update(id, &body)
 	if err != nil {
 		http.Error(res, "Unable to update todo", http.StatusBadRequest)
 		log.Println(err)
@@ -105,7 +101,7 @@ func (m *Model) Patch(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (m *Model) Delete(res http.ResponseWriter, req *http.Request) {
+func (h *Handler) Delete(res http.ResponseWriter, req *http.Request) {
 	id, err := strconv.Atoi(req.PathValue("id"))
 	if err != nil {
 		http.Error(res, "Invalid ID format", http.StatusBadRequest)
@@ -113,7 +109,7 @@ func (m *Model) Delete(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = m.Todos.Remove(id)
+	err = h.Todos.Remove(id)
 	if err != nil {
 		http.Error(res, "Unable to delete todo", http.StatusBadRequest)
 		log.Println(err)

@@ -6,6 +6,8 @@ import (
 	"os"
 )
 
+const CtxKey string = "ctxDatabaseKey"
+
 func Open(connectionString string) (*sql.DB, error) {
 	database, err := sql.Open("postgres", connectionString)
 

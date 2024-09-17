@@ -1,11 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"os"
 
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 	"trigger.com/api/src/database"
 	"trigger.com/api/src/parser"
 	"trigger.com/api/src/server"
@@ -17,13 +16,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("args", args)
 
 	err = godotenv.Load(*args.EnvPath)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(os.Environ())
 
 	database, err := database.Open(database.ConnectionString())
 	if err != nil {
@@ -31,7 +28,11 @@ func main() {
 	}
 	defer database.Close()
 
-	server := server.Create(*args.Port)
+	server, err := server.Create(*args.Port, database)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	go server.Start()
 	defer server.Stop()
 }

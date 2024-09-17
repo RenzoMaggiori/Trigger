@@ -1,7 +1,9 @@
 services:
   db:
-    image: postgres:15
-    container_name: db-instance
+    build:
+      context: .
+      dockerfile: ./dockerfiles/db.Dockerfile
+    container_name: nextjs-go-postgres-db-instance
     ports:
       - "5432:5432"
     volumes:
@@ -17,7 +19,7 @@ services:
     build:
       context: .
       dockerfile: ./dockerfiles/api.Dockerfile
-    container_name: api-instance
+    container_name: nextjs-go-postgres-api-instance
     ports:
       - "8000:8000"
     networks:
@@ -25,10 +27,25 @@ services:
     depends_on:
       - db
 
+  web:
+    container_name: nextjs-go-postgres-web-instance
+    build:
+      context: .
+      target: dev
+      dockerfile: ./dockerfiles/web.Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - trigger
+    depends_on:
+      - api
+
 volumes:
   postgres-data:
-    driver: local
-  mongo-data:
     driver: local
 
 networks:
