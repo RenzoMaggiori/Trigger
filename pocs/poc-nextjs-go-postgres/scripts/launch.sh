@@ -6,5 +6,6 @@ docker compose build
 docker compose up --no-start
 docker compose start db
 docker compose start api
+docker compose start web
 docker compose logs -f
 

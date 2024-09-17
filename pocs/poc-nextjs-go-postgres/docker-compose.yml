@@ -31,7 +31,6 @@ services:
     container_name: nextjs-go-postgres-web-instance
     build:
       context: .
-      target: dev
       dockerfile: ./dockerfiles/web.Dockerfile
     ports:
       - "3000:3000"
