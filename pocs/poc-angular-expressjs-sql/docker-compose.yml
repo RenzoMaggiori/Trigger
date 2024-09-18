@@ -1,0 +1,11 @@
+services:
+  frontend:
+    container_name: frontend-container-poc-angular
+    build:
+      context: ./frontend/todo-list/
+      target: dev
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend/todo-list:/app
+    ports:
+      - "4200:4200"
