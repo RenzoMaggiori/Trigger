@@ -1,6 +1,6 @@
 services:
   frontend:
-    container_name: frontend-container
+    container_name: frontend-container-poc-remix
     build:
       context: ./frontend/
       target: dev
