@@ -86,7 +86,7 @@ export function NewTodoDialog() {
             <DialogHeader>
               <DialogTitle>New Todo</DialogTitle>
               <DialogDescription>
-                Add a new todo here. Click save when you're done.
+                {"Add a new todo here. Click save when you're done."}
               </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col gap-4 py-4">

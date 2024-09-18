@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 
 	"github.com/joho/godotenv"
@@ -22,13 +23,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	database, err := database.Open(database.ConnectionString())
+	db, err := database.Open(database.ConnectionString())
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer database.Close()
+	defer db.Close()
 
-	server, err := server.Create(*args.Port, database)
+	ctx := context.WithValue(context.Background(), database.CtxKey, db)
+	server, err := server.Create(*args.Port, ctx)
 	if err != nil {
 		log.Fatal(err)
 	}

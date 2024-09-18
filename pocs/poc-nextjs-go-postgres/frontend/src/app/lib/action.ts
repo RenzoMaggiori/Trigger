@@ -6,19 +6,22 @@ import { AddTodo, todo, Todo, UpdateTodo } from "@/app/lib/types";
 import { env } from "@/lib/env";
 
 export async function getTodos(): Promise<Todo[]> {
-  const response = await fetch(`${env.NEXT_PUBLIC_API_URL}/todo`, {
+  const response = await fetch(`${env.NEXT_PUBLIC_API_URL}/api/todo`, {
         method: "GET"
     })
     if (!response.ok) throw new Error("Could not retrieve todos")
     const body = await response.json()
     const responseSchema = z.array(todo)
     const { data, error} = responseSchema.safeParse(body)
-    if (error) throw new Error("Could not parse data")
+    if (error) {
+        console.error(error)
+throw new Error("Could not parse data")
+    }
     return data;
 }
 
 export async function getTodoById(id: number): Promise<Todo> {
-  const response = await fetch(`${env.NEXT_PUBLIC_API_URL}/todo/${id}`, {
+  const response = await fetch(`${env.NEXT_PUBLIC_API_URL}/api/todo/${id}`, {
         method: "GET"
     })
     if (!response.ok) throw new Error(`Could not retrieve todo with id ${id}`)
@@ -29,7 +32,7 @@ export async function getTodoById(id: number): Promise<Todo> {
 }
 
 export async function addTodo(newTodo: AddTodo): Promise<Todo> {
-  const response = await fetch(`${env.NEXT_PUBLIC_API_URL}/todo`, {
+  const response = await fetch(`${env.NEXT_PUBLIC_API_URL}/api/todo`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -47,7 +50,7 @@ export async function patchTodo(
   id: number,
   updates: UpdateTodo,
 ): Promise<Todo> {
-  const response = await fetch(`${env.NEXT_PUBLIC_API_URL}/todo/${id}`, {
+  const response = await fetch(`${env.NEXT_PUBLIC_API_URL}/api/todo/${id}`, {
         method: "PATCH",
         headers: {
             "Content-Type": "application/json"
@@ -62,7 +65,7 @@ export async function patchTodo(
 }
 
 export async function deleteTodo(id: number): Promise<void> {
-  const response = await fetch(`${env.NEXT_PUBLIC_API_URL}/todo/${id}`, {
+  const response = await fetch(`${env.NEXT_PUBLIC_API_URL}/api/todo/${id}`, {
         method: "DELETE",
     })
     if (!response.ok) throw new Error(`Could not delete todo with id ${id}`)

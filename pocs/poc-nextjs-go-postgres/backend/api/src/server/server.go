@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,7 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"trigger.com/api/src/database"
+	"trigger.com/api/src/middleware"
 	"trigger.com/api/src/router"
 )
 
@@ -18,16 +17,19 @@ type Server struct {
 	wrapper *http.Server
 }
 
-func Create(port int64, db *sql.DB) (*Server, error) {
-	ctx := context.WithValue(context.Background(), database.CtxKey, db)
+func Create(port int64, ctx context.Context) (*Server, error) {
+	middleware := middleware.Create(
+		middleware.Cors,
+	)
 	router, err := router.Create(ctx)
 	if err != nil {
 		return nil, err
 	}
+
 	return &Server{
 		wrapper: &http.Server{
 			Addr:    fmt.Sprintf(":%d", port),
-			Handler: router,
+			Handler: middleware(router),
 		},
 	}, nil
 }
