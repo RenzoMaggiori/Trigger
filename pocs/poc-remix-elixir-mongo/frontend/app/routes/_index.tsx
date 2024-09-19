@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { MetaFunction } from "@remix-run/node";
+import { ActionFunction, json, LoaderFunction, redirect, type MetaFunction } from "@remix-run/node";
 import {
   Table,
   TableBody,
@@ -10,6 +10,7 @@ import {
 } from "@nextui-org/table";
 import { Button } from "@nextui-org/button";
 import { Input } from "@nextui-org/input";
+import { Form, useLoaderData } from "@remix-run/react";
 
 export const meta: MetaFunction = () => {
   return [
@@ -18,7 +19,57 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export const loader: LoaderFunction = async () => {
+  const response = await fetch("http://localhost:8000/api/tasks");
+  if (!response.ok) {
+    throw new Response("Failed to fetch tasks", { status: 500 });
+  }
+  const tasks = await response.json();
+  return json(tasks);
+};
+
+export const action: ActionFunction = async ({ request }) => {
+  const formData = await request.formData();
+  const intent = formData.get("_method");
+
+  if (intent === "delete") {
+    const taskId = formData.get("taskId");
+
+    const response = await fetch(`http://localhost:8000/api/tasks/${taskId}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      throw new Response("Failed to delete task", { status: 500 });
+    }
+
+    return redirect("/");
+  }
+
+  const newTask = {
+    task: formData.get("task"),
+    date: formData.get("date"),
+    status: formData.get("status"),
+  };
+
+  const response = await fetch("http://localhost:8000/api/tasks", { 
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(newTask),
+  });
+
+  if (!response.ok) {
+    throw new Response("Failed to create task", { status: 500 });
+  }
+
+  return redirect("/");
+};
+
+
 interface Task {
+  id: number
   task: string;
   date: string;
   status: string;
@@ -26,33 +77,20 @@ interface Task {
 
 
 export default function Index() {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const tasks = useLoaderData<Task[]>();
   const [task, setTask] = useState("");
   const [date, setDate] = useState("");
   const [status, setStatus] = useState("pending");
 
   const taskInput = [
-    {label: "Task", placeholder: "Enter your task", value: task, onchange: setTask},
-    {label: "Date", placeholder: "Due date", value: date, onchange: setDate, type: "date"},
-    {label: "Status", placeholder: "Set status", value: status, onchange: setStatus},
+    { label: "Task", placeholder: "Enter your task", value: task, onchange: setTask },
+    { label: "Date", placeholder: "Due date", value: date, onchange: setDate, type: "date" },
+    { label: "Status", placeholder: "Set status", value: status, onchange: setStatus },
   ];
 
   const taskColumn = [
     "Task", "Date", "Status", "Actions"
   ]
-
-  const addTask = () => {
-    if (task.trim() && date.trim()) {
-      setTasks([...tasks, { task, date, status }]);
-      setTask("");
-      setDate("");
-      setStatus("")
-    }
-  };
-
-  const removeTask = (index: number) => {
-    setTasks(tasks.filter((_, i) => i !== index));
-  };
 
   return (
     <div className="flex h-screen items-center justify-center p-4">
@@ -73,7 +111,7 @@ export default function Index() {
           <Button
             color="primary"
             className="flex-1 h-[64px]"
-            onClick={addTask}
+            type="submit"
             size="lg"
           >
             Add Task
@@ -93,13 +131,16 @@ export default function Index() {
                 <TableCell>{item.date}</TableCell>
                 <TableCell>{item.status}</TableCell>
                 <TableCell>
-                  <Button
-                    color="danger"
-                    size="sm"
-                    onClick={() => removeTask(index)}
-                  >
-                    Delete
-                  </Button>
+                  <Form>
+                    <input type="hidden" name="_method" value="delete" />
+                    <input type="hidden" name="taskId" value={item.id} />
+                    <Button
+                      color="danger"
+                      size="sm"
+                    >
+                      Delete
+                    </Button>
+                  </Form>
                 </TableCell>
               </TableRow>
             ))}
