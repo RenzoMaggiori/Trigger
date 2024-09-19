@@ -20,7 +20,7 @@ export const meta: MetaFunction = () => {
 };
 
 export const loader: LoaderFunction = async () => {
-  const response = await fetch("http://localhost:8000/api/tasks");
+  const response = await fetch("http://backend:4000/api/tasks/");
   if (!response.ok) {
     throw new Response("Failed to fetch tasks", { status: 500 });
   }
@@ -35,7 +35,7 @@ export const action: ActionFunction = async ({ request }) => {
   if (intent === "delete") {
     const taskId = formData.get("taskId");
 
-    const response = await fetch(`http://localhost:8000/api/tasks/${taskId}`, {
+    const response = await fetch(`http://backend:4000/api/tasks/${taskId}`, {
       method: "DELETE",
     });
 
@@ -52,7 +52,7 @@ export const action: ActionFunction = async ({ request }) => {
     status: formData.get("status"),
   };
 
-  const response = await fetch("http://localhost:8000/api/tasks", { 
+  const response = await fetch("http://backend:4000/api/tasks/", { 
     method: "POST",
     headers: {
       "Content-Type": "application/json",
