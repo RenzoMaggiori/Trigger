@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  # Node.js Express App
+  app:
+    build: .
+    ports:
+      - "4000:4000"
+    container_name: backend-poc-express
+    environment:
+      - MYSQL_HOST=localhost
+      - MYSQL_USER=diana
+      - MYSQL_PASSWORD=diana123
+      - MYSQL_DATABASE=todos_db
+    depends_on:
+      - mysql-db
+    networks:
+      - app-network
+
+  # MySQL Database
+  mysql-db:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: diana123
+      MYSQL_DATABASE: todos_db
+    container_name: db-poc-mysql
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - app-network
+
+# Networks
+networks:
+  app-network:
+    driver: bridge
+
+# Volumes for MySQL data persistence
+volumes:
+  mysql-data:
