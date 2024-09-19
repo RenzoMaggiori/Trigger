@@ -12,6 +12,8 @@ COPY --from=deps /app/node_modules ./node_modules
 ADD package.json ./
 RUN npm prune --omit=dev
 RUN npm update
+RUN npm install -g remix
+
 
 FROM base as build
 

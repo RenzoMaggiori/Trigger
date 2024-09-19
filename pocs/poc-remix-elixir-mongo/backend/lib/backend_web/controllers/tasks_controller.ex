@@ -31,8 +31,6 @@ defmodule BackendWeb.TasksController do
 		end
 	end
 
-
-
 	def create(conn, %{"date" => _date, "description" => _description, "status" => _status, "task_name" => _task_name} = task_params) do
 		case Tasks.create_task(task_params) do
 			{:ok, task} ->
