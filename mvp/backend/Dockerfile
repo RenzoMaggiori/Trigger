@@ -1,4 +1,5 @@
 FROM mongo:7.0
 
-COPY db/mongo-init.js /docker-entrypoint-initdb.d/
+# Uncomment the following line to run the mongo-init.js script
+# COPY db/mongo-init.js /docker-entrypoint-initdb.d/
  
