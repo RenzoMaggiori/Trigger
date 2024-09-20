@@ -19,23 +19,35 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+interface Task {
+  id: number
+  task_name: string;
+  date: string;
+  description: string,
+  status: string;
+}
+
 export const loader: LoaderFunction = async () => {
-  const response = await fetch("http://backend:4000/api/tasks/");
+  const response = await fetch("http://localhost:4000/api/tasks");
+
   if (!response.ok) {
-    throw new Response("Failed to fetch tasks", { status: 500 });
+    throw new Response("Failed to fetch tasks", { status: response.status });
   }
-  const tasks = await response.json();
-  return json(tasks);
+
+  const result = await response.json();
+  const tasks: Task[] = result.data || [];
+  return json(tasks || []);
 };
 
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
+  console.log('Form Data:', Object.fromEntries(formData));
   const intent = formData.get("_method");
 
   if (intent === "delete") {
-    const taskId = formData.get("taskId");
+    const taskId = formData.get("id");
 
-    const response = await fetch(`http://backend:4000/api/tasks/${taskId}`, {
+    const response = await fetch(`http://localhost:4000/api/tasks/${taskId}`, {
       method: "DELETE",
     });
 
@@ -47,12 +59,13 @@ export const action: ActionFunction = async ({ request }) => {
   }
 
   const newTask = {
-    task: formData.get("task"),
+    task_name: formData.get("task_name"),
     date: formData.get("date"),
+    description: formData.get("description"),
     status: formData.get("status"),
   };
 
-  const response = await fetch("http://backend:4000/api/tasks/", { 
+  const response = await fetch("http://localhost:4000/api/tasks", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -68,55 +81,55 @@ export const action: ActionFunction = async ({ request }) => {
 };
 
 
-interface Task {
-  id: number
-  task: string;
-  date: string;
-  status: string;
-}
-
-
 export default function Index() {
-  const tasks = useLoaderData<Task[]>();
+  const tasks = useLoaderData<Task[]>() || [];
+  console.log(tasks)
   const [task, setTask] = useState("");
   const [date, setDate] = useState("");
+  const [description, setDescription] = useState("");
   const [status, setStatus] = useState("pending");
 
   const taskInput = [
-    { label: "Task", placeholder: "Enter your task", value: task, onchange: setTask },
-    { label: "Date", placeholder: "Due date", value: date, onchange: setDate, type: "date" },
-    { label: "Status", placeholder: "Set status", value: status, onchange: setStatus },
+    { label: "Task", placeholder: "Enter your task", value: task, onchange: setTask, name: "task_name" },
+    { label: "Date", placeholder: "Due date", value: date, onchange: setDate, type: "date", name: "date" },
+    { label: "Description", placeholder: "task description", value: description, onchange: setDescription, name: "description" },
+    { label: "Status", placeholder: "Set status", value: status, onchange: setStatus, name: "status" },
   ];
 
   const taskColumn = [
-    "Task", "Date", "Status", "Actions"
+    "Task", "Date", "Description", "Status", "Actions"
   ]
 
   return (
     <div className="flex h-screen items-center justify-center p-4">
       <div className="w-full max-w-2xl">
-        <div className="flex flex-row justify-end items-end py-2 h-full gap-2">
-          {taskInput.map((item) => (
-            <Input
-              label={item.label}
-              placeholder={item.placeholder}
-              type={item.type ? item.type : undefined}
-              className="flex-1"
-              value={item.value}
-              onChange={(e) => item.onchange(e.target.value)}
+        <Form method="post">
+          <div className="flex flex-row justify-end items-end py-2 h-full gap-2">
+            {taskInput.map((item) => (
+              <Input
+                key={item.label}
+                label={item.label}
+                name={item.name}
+                placeholder={item.placeholder}
+                type={item.type ? item.type : undefined}
+                className="flex-1"
+                value={item.value}
+                onChange={(e) => item.onchange(e.target.value)}
+                size="lg"
+                required
+              />
+            ))}
+            <Button
+              color="primary"
+              className="flex-1 h-[64px]"
+              type="submit"
               size="lg"
-              required
-            />
-          ))}
-          <Button
-            color="primary"
-            className="flex-1 h-[64px]"
-            type="submit"
-            size="lg"
-          >
-            Add Task
-          </Button>
-        </div>
+            >
+              Add Task
+            </Button>
+          </div>
+        </Form>
+
 
         <Table>
           <TableHeader>
@@ -127,16 +140,18 @@ export default function Index() {
           <TableBody emptyContent={"No rows to display."}>
             {tasks.map((item, index) => (
               <TableRow key={index}>
-                <TableCell>{item.task}</TableCell>
+                <TableCell>{item.task_name}</TableCell>
                 <TableCell>{item.date}</TableCell>
+                <TableCell>{item.description}</TableCell>
                 <TableCell>{item.status}</TableCell>
                 <TableCell>
-                  <Form>
+                  <Form method="post">
                     <input type="hidden" name="_method" value="delete" />
-                    <input type="hidden" name="taskId" value={item.id} />
+                    <input type="hidden" name="id" value={item.id} />
                     <Button
                       color="danger"
                       size="sm"
+                      type="submit"
                     >
                       Delete
                     </Button>
