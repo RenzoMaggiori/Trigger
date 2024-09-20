@@ -24,8 +24,6 @@ services:
       - "8000:8000"
     networks:
       - trigger
-    depends_on:
-      - db
 
   web:
     container_name: nextjs-go-postgres-web-instance
@@ -36,8 +34,8 @@ services:
       - "3000:3000"
     networks:
       - trigger
-    depends_on:
-      - api
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 volumes:
   postgres-data:
