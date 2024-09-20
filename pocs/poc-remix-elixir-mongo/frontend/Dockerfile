@@ -1,33 +1,9 @@
-FROM node:21-bullseye-slim as base
+FROM node:19-alpine
+WORKDIR /usr/server/app
 
-FROM base as deps
-WORKDIR /app
-ADD package.json ./
-RUN npm install --include=dev
-
-
-FROM base as production-deps
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-ADD package.json ./
-RUN npm prune --omit=dev
-RUN npm update
-RUN npm install -g remix
-
-
-FROM base as build
-
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-ADD . .
+COPY ./package.json ./
+RUN npm install
+COPY ./ .
 RUN npm run build
-
-FROM base
-WORKDIR /app
-
-COPY --from=production-deps /app/node_modules ./node_modules
-COPY --from=build /app/build ./build
-COPY --from=build /app/public ./public
-ADD . .
-
-CMD npm run start
+ENV NODE_ENV=production
+CMD ["npm", "run", "start"]
