@@ -3,64 +3,14 @@ package gmail
 import (
 	"context"
 	"errors"
+	"os"
+
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 )
 
 var _ Gmail = Model{}
 
-/* "auth": {
-  "oauth2": {
-    "scopes": {
-      "https://mail.google.com/": {
-        "description": "Read, compose, send, and permanently delete all your email from Gmail"
-      },
-      "https://www.googleapis.com/auth/gmail.addons.current.action.compose": {
-        "description": "Manage drafts and send emails when you interact with the add-on"
-      },
-      "https://www.googleapis.com/auth/gmail.addons.current.message.action": {
-        "description": "View your email messages when you interact with the add-on"
-      },
-      "https://www.googleapis.com/auth/gmail.addons.current.message.metadata": {
-        "description": "View your email message metadata when the add-on is running"
-      },
-      "https://www.googleapis.com/auth/gmail.addons.current.message.readonly": {
-        "description": "View your email messages when the add-on is running"
-      },
-      "https://www.googleapis.com/auth/gmail.compose": {
-        "description": "Manage drafts and send emails"
-      },
-      "https://www.googleapis.com/auth/gmail.insert": {
-        "description": "Add emails into your Gmail mailbox"
-      },
-      "https://www.googleapis.com/auth/gmail.labels": {
-        "description": "See and edit your email labels"
-      },
-      "https://www.googleapis.com/auth/gmail.metadata": {
-        "description": "View your email message metadata such as labels and headers, but not the email body"
-      },
-      "https://www.googleapis.com/auth/gmail.modify": {
-        "description": "Read, compose, and send emails from your Gmail account"
-      },
-      "https://www.googleapis.com/auth/gmail.readonly": {
-        "description": "View your email messages and settings"
-      },
-      "https://www.googleapis.com/auth/gmail.send": {
-        "description": "Send email on your behalf"
-      },
-      "https://www.googleapis.com/auth/gmail.settings.basic": {
-        "description": "See, edit, create, or change your email settings and filters in Gmail"
-      },
-      "https://www.googleapis.com/auth/gmail.settings.sharing": {
-        "description": "Manage your sensitive mail settings, including who can manage your mail"
-      }
-    }
-  }
-} */
-
-func (m Model) Auth() error {
-	// POST /gmail/v1/users/{userId}/watch
-	// https://gmail.googleapis.com
-	return nil
-}
 
 /* "watch": {
 "id": "gmail.users.watch",
