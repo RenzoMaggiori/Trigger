@@ -3,6 +3,8 @@ package router
 import (
 	"context"
 	"net/http"
+
+	"trigger.com/api/src/endpoints/gmail"
 )
 
 type RouterFn func(context.Context) (*http.ServeMux, error)
@@ -10,7 +12,7 @@ type RouterFn func(context.Context) (*http.ServeMux, error)
 func Create(ctx context.Context) (*http.ServeMux, error) {
 	router := http.NewServeMux()
 	routers := []RouterFn{
-		// TODO: Add routers here <type>.Router
+		gmail.Router,
 	}
 
 	for _, routerFn := range routers {

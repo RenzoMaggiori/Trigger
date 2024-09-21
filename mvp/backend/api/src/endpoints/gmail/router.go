@@ -22,13 +22,13 @@ var googleAuthConfig = &oauth2.Config{
 		"https://www.googleapis.com/auth/gmail.modify",
 	},
 	Endpoint:    google.Endpoint,
-	RedirectURL: "http://localhost:8000/auth/google/callback",
+	RedirectURL: "http://localhost:8000/api/auth/google/callback",
 }
 
 func Router(ctx context.Context) (*http.ServeMux, error) {
 	database, ok := ctx.Value(database.CtxKey).(*mongo.Client)
 	if !ok {
-		return nil, fmt.Errorf("Could not get Database from Context")
+		return nil, fmt.Errorf("could not get Database from Context")
 	}
 
 	router := http.NewServeMux()
