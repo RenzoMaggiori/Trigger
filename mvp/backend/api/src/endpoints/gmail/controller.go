@@ -1,10 +1,14 @@
 package gmail
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"strings"
+	"time"
 )
 
 func (h *Handler) AuthProvider(res http.ResponseWriter, req *http.Request) {
@@ -13,20 +17,32 @@ func (h *Handler) AuthProvider(res http.ResponseWriter, req *http.Request) {
 }
 
 func (h *Handler) AuthCallback(res http.ResponseWriter, req *http.Request) {
+	// TODO: store refresh token in database
 	token, err := h.Gmail.Callback(req)
 	if err != nil {
 		log.Println(err)
-		http.Error(res, "Unable to authenticate", http.StatusUnauthorized)
+		http.Redirect(res, req, fmt.Sprintf("%s/", os.Getenv("WEB_URL")), http.StatusPermanentRedirect)
 		return
 	}
 
-	res.Header().Set("Authentication", fmt.Sprintf("Bearer %s", token.AccessToken))
-	res.WriteHeader(http.StatusOK)
+	authCookie := http.Cookie{Name: "access_token", Value: token.AccessToken, Expires: time.Unix(token.ExpiresIn, 0)}
+	http.SetCookie(res, &authCookie)
+	http.Redirect(res, req, fmt.Sprintf("%s/", os.Getenv("WEB_URL")), http.StatusPermanentRedirect)
 }
 
 func (h *Handler) Register(res http.ResponseWriter, req *http.Request) {
-	res.WriteHeader(http.StatusMethodNotAllowed)
-	// TODO: Register user to service
+	accessHeader := strings.Split(req.Header.Get("Authorization"), " ")
+	if len(accessHeader) < 2 {
+		http.Error(res, "could not retrieve access token from header", http.StatusBadRequest)
+		return
+	}
+
+	err := h.Gmail.Register(context.WithValue(req.Context(), gmailAccessTokenKey, accessHeader[1]))
+	if err != nil {
+		http.Error(res, "internal server error", http.StatusInternalServerError)
+		return
+	}
+	res.WriteHeader(http.StatusOK)
 }
 
 func (h *Handler) Webhook(res http.ResponseWriter, req *http.Request) {

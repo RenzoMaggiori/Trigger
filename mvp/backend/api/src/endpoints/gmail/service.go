@@ -3,6 +3,8 @@ package gmail
 import (
 	"context"
 	"errors"
+	"fmt"
+	"net/http"
 )
 
 var _ Gmail = Model{}
@@ -69,8 +71,29 @@ var _ Gmail = Model{}
 }
 }, */
 
+var gmailAccessTokenKey string = "gmailAccessTokenKey"
+
 func (m Model) Register(ctx context.Context) error {
-	return errors.New("Not implemented")
+	accessToken, ok := ctx.Value(gmailAccessTokenKey).(string)
+	if !ok {
+		return errors.New("could not retrieve access token")
+	}
+
+	req, err := http.NewRequest(http.MethodPost, "https://gmail.googleapis.com/gmail/v1/users/me/watch", nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+
+	client := http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("invalid response, got %s\n", res.Status)
+	}
+	return nil
 }
 
 func (m Model) Webhook() error {

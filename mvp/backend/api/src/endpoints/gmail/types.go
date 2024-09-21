@@ -10,8 +10,8 @@ type Email struct {
 }
 
 type Gmail interface {
-	services.Service
 	auth.Authenticator
+	services.Service
 	Webhook() error
 	Send(Email) error
 }
