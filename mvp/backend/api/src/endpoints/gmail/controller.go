@@ -9,17 +9,18 @@ import (
 
 func (h *Handler) AuthProvider(res http.ResponseWriter, req *http.Request) {
 	authUrl := h.Gmail.Provider(res)
+	fmt.Println(authUrl)
 	http.Redirect(res, req, authUrl, http.StatusTemporaryRedirect)
 }
 
 func (h *Handler) AuthCallback(res http.ResponseWriter, req *http.Request) {
-	// TODO: get authcode from request
-	token, err := h.Gmail.Callback(req.Context(), "")
-
+	token, err := h.Gmail.Callback(req)
 	if err != nil {
+		log.Println(err)
 		http.Error(res, "Unable to authenticate", http.StatusUnauthorized)
 		return
 	}
+
 	res.Header().Set("Authentication", fmt.Sprintf("Bearer %s", token.AccessToken))
 	res.WriteHeader(http.StatusOK)
 }
