@@ -1,10 +1,12 @@
 package gmail
 
+import "trigger.com/api/src/services"
+
 type Email struct {
 }
 
 type Gmail interface {
-	Register() error
+	services.Service
 	Webhook() error
 	Send(Email) error
 }

@@ -9,15 +9,18 @@ import (
 	"os/signal"
 	"syscall"
 
+	"trigger.com/api/src/endpoints/gmail"
 	"trigger.com/api/src/middleware"
 	"trigger.com/api/src/router"
+	"trigger.com/api/src/services"
 )
 
-type Server struct {
+type server struct {
 	wrapper *http.Server
+	ctx     context.Context
 }
 
-func Create(port int64, ctx context.Context) (*Server, error) {
+func Create(port int64, ctx context.Context) (*server, error) {
 	middleware := middleware.Create(
 		middleware.Cors,
 	)
@@ -26,22 +29,27 @@ func Create(port int64, ctx context.Context) (*Server, error) {
 		return nil, err
 	}
 
-	return &Server{
+	return &server{
 		wrapper: &http.Server{
 			Addr:    fmt.Sprintf(":%d", port),
 			Handler: middleware(router),
 		},
+		ctx: ctx,
 	}, nil
 }
 
-func (s *Server) Start() {
+func (s *server) Start() {
+	go services.New(
+		gmail.Model{},
+	).Register(s.ctx)
+
 	fmt.Printf("Listening on %s\n", s.wrapper.Addr)
 	if err := s.wrapper.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Could not listen on %s: %v\n", s.wrapper.Addr, err)
 	}
 }
 
-func (s *Server) Stop() {
+func (s *server) Stop() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
