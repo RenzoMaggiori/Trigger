@@ -33,12 +33,14 @@ func (h *Handler) AuthCallback(res http.ResponseWriter, req *http.Request) {
 func (h *Handler) Register(res http.ResponseWriter, req *http.Request) {
 	accessHeader := strings.Split(req.Header.Get("Authorization"), " ")
 	if len(accessHeader) < 2 {
+		log.Println("could not retrieve access token from header")
 		http.Error(res, "could not retrieve access token from header", http.StatusBadRequest)
 		return
 	}
 
 	err := h.Gmail.Register(context.WithValue(req.Context(), gmailAccessTokenKey, accessHeader[1]))
 	if err != nil {
+		log.Println(err)
 		http.Error(res, "internal server error", http.StatusInternalServerError)
 		return
 	}
