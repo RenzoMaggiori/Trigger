@@ -1,22 +1,34 @@
 package database
 
-import "log"
+import (
+	"context"
+	"fmt"
+	"os"
 
-type Database struct{}
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+)
 
 const CtxKey string = "ctxDatabaseKey"
 
-// TODO: replace all the functions with the actual database
-func Open(connectionString string) (*Database, error) {
-	log.Println("Mock database connection opened")
-	return &Database{}, nil
-}
+func Open(connectionString string) (*mongo.Client, context.Context, error) {
+	ctx := context.TODO()
+	db, err := mongo.Connect(ctx, options.Client().ApplyURI(connectionString))
 
-func (d *Database) Close() error {
-	log.Println("Mock database connection closed")
-	return nil
+	if err != nil {
+		return nil, nil, err
+	}
+	if err := db.Ping(ctx, nil); err != nil {
+		return nil, nil, err
+	}
+	return db, ctx, nil
 }
 
 func ConnectionString() string {
-	return "mock-db-string"
+	user := os.Getenv("MONGO_INITDB_ROOT_USERNAME")
+	pass := os.Getenv("MONGO_INITDB_ROOT_PASSWORD")
+	port := os.Getenv("MONGO_PORT")
+	host := os.Getenv("MONGO_HOST")
+
+	return fmt.Sprintf("mongodb://%s:%s@%s:%s/?maxPoolSize=20&w=majority", user, pass, host, port)
 }
