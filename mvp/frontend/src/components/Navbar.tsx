@@ -71,9 +71,9 @@ export const Navbar = () => {
     ]
 
     return (
-        <nav className="bg-white border-gray-500 dark:bg-zinc-950">
-            <div className="w-full flex flex-wrap items-center p-4">
-                <a href="/" className="flex items-center space-x-3 rtl:space-x-reverse">
+        <nav className="flex bg-white border-gray-500 dark:bg-zinc-950">
+            <div className="w-full flex flex-nowrap items-center p-4">
+                <a href="/" className="flex items-center space-x-3 rtl:space-x-reverse absolute">
                     <LogoIcon className="h-12 w-[200px] dark:fill-white" />
                 </a>
                 <button data-collapse-toggle="navbar-default" type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-default" aria-expanded="false">
