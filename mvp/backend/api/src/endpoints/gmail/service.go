@@ -3,14 +3,9 @@ package gmail
 import (
 	"context"
 	"errors"
-	"os"
-
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 )
 
 var _ Gmail = Model{}
-
 
 /* "watch": {
 "id": "gmail.users.watch",
