@@ -9,7 +9,6 @@ import (
 
 func (h *Handler) AuthProvider(res http.ResponseWriter, req *http.Request) {
 	authUrl := h.Gmail.Provider(res)
-	fmt.Println(authUrl)
 	http.Redirect(res, req, authUrl, http.StatusTemporaryRedirect)
 }
 

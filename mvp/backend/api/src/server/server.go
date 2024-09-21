@@ -43,7 +43,7 @@ func (s *server) Start() {
 		gmail.Model{},
 	).Register(s.ctx)
 
-	fmt.Printf("Listening on %s\n", s.wrapper.Addr)
+	log.Printf("Listening on %s\n", s.wrapper.Addr)
 	if err := s.wrapper.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Could not listen on %s: %v\n", s.wrapper.Addr, err)
 	}
