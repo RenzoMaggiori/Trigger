@@ -13,19 +13,18 @@ import (
 	"trigger.com/api/src/database"
 )
 
-var googleAuthConfig = &oauth2.Config{
-	Scopes: []string{
-		"https://mail.google.com/",
-		"https://www.googleapis.com/auth/gmail.send",
-		"https://www.googleapis.com/auth/gmail.modify",
-	},
-	Endpoint:    google.Endpoint,
-	RedirectURL: "http://localhost:8000/api/auth/google/callback",
-}
-
 func Router(ctx context.Context) (*http.ServeMux, error) {
-	googleAuthConfig.ClientID = os.Getenv("GOOGLE_CLIENT_ID")
-	googleAuthConfig.ClientSecret = os.Getenv("GOOGLE_CLIENT_SECRET")
+	googleAuthConfig := &oauth2.Config{
+		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
+		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
+		Scopes: []string{
+			"https://mail.google.com/",
+			"https://www.googleapis.com/auth/gmail.send",
+			"https://www.googleapis.com/auth/gmail.modify",
+		},
+		Endpoint:    google.Endpoint,
+		RedirectURL: fmt.Sprintf("%s/api/auth/gmail/callback", os.Getenv("API_URL")),
+	}
 
 	database, ok := ctx.Value(database.CtxKey).(*mongo.Client)
 	if !ok {

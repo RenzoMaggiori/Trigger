@@ -29,7 +29,7 @@ func main() {
 	}
 	defer db.Disconnect(ctx)
 
-	server, err := server.Create(*args.Port, context.WithValue(context.Background(), database.CtxKey, db))
+	server, err := server.Create(8000, context.WithValue(context.Background(), database.CtxKey, db))
 	if err != nil {
 		log.Fatal(err)
 	}
