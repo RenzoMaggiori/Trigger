@@ -14,8 +14,6 @@ import (
 )
 
 var googleAuthConfig = &oauth2.Config{
-	ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
-	ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
 	Scopes: []string{
 		"https://mail.google.com/",
 		"https://www.googleapis.com/auth/gmail.send",
@@ -26,6 +24,9 @@ var googleAuthConfig = &oauth2.Config{
 }
 
 func Router(ctx context.Context) (*http.ServeMux, error) {
+	googleAuthConfig.ClientID = os.Getenv("GOOGLE_CLIENT_ID")
+	googleAuthConfig.ClientSecret = os.Getenv("GOOGLE_CLIENT_SECRET")
+
 	database, ok := ctx.Value(database.CtxKey).(*mongo.Client)
 	if !ok {
 		return nil, fmt.Errorf("could not get Database from Context")
