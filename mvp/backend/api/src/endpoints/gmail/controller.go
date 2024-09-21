@@ -8,8 +8,8 @@ import (
 )
 
 func (h *Handler) AuthProvider(res http.ResponseWriter, req *http.Request) {
-	authUrl := h.Gmail.Provider()
-	http.Redirect(res, req, authUrl, http.StatusPermanentRedirect)
+	authUrl := h.Gmail.Provider(res)
+	http.Redirect(res, req, authUrl, http.StatusTemporaryRedirect)
 }
 
 func (h *Handler) AuthCallback(res http.ResponseWriter, req *http.Request) {
