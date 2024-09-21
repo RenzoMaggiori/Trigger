@@ -2,9 +2,27 @@ package gmail
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 )
+
+func (h *Handler) AuthProvider(res http.ResponseWriter, req *http.Request) {
+	authUrl := h.Gmail.Provider()
+	http.Redirect(res, req, authUrl, http.StatusPermanentRedirect)
+}
+
+func (h *Handler) AuthCallback(res http.ResponseWriter, req *http.Request) {
+	// TODO: get authcode from request
+	token, err := h.Gmail.Callback(req.Context(), "")
+
+	if err != nil {
+		http.Error(res, "Unable to authenticate", http.StatusUnauthorized)
+		return
+	}
+	res.Header().Set("Authentication", fmt.Sprintf("Bearer %s", token.AccessToken))
+	res.WriteHeader(http.StatusOK)
+}
 
 func (h *Handler) Register(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusMethodNotAllowed)
