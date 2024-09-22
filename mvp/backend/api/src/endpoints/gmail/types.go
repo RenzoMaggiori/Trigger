@@ -1,6 +1,8 @@
 package gmail
 
 import (
+	"time"
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"trigger.com/api/src/auth"
 	"trigger.com/api/src/service"
@@ -26,6 +28,14 @@ type GmailUser struct {
 	MessagesTotal int64  `json:"messagesTotal"`
 	ThreadsTotal  int64  `json:"threadsTotal"`
 	HistoryId     string `json:"historyId"`
+}
+
+type DbUser struct {
+	Email        string    `bson:"email"`
+	AccessToken  string    `bson:"access_token"`
+	RefreshToken string    `bson:"refresh_token"`
+	Expiry       time.Time `bson:"expiry"`
+	TokenType    string    `bson:"token_type"`
 }
 
 type Event struct {
