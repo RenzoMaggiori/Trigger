@@ -39,7 +39,7 @@ func Router(ctx context.Context) (*http.ServeMux, error) {
 	)
 	handler := Handler{Gmail: Model{
 		Authenticator: auth.New(AuthConfig()),
-		Database:      database,
+		Mongo:         database,
 	}}
 
 	router.HandleFunc("GET /auth/gmail/provider", handler.AuthProvider)

@@ -8,8 +8,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"golang.org/x/oauth2"
 	"trigger.com/api/src/lib"
 )
@@ -29,7 +31,16 @@ func (m Model) StoreToken(token *oauth2.Token) error {
 			"Authorization": fmt.Sprintf("Bearer %s", token.AccessToken),
 		},
 	))
-	// get the user email from google
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	user, err := lib.JsonDecode[GmailUser](res.Body)
+	userCollection := m.Mongo.Database(os.Getenv("MONGO_DB")).Collection("user")
+
+	result := userCollection.FindOne(context.TODO(), bson.D{{Key: "email", Value: user.EmailAddress}})
+
 	// store the token info and user in db
 	return nil
 }

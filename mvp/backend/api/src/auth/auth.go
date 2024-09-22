@@ -57,3 +57,7 @@ func (auth *oAuth2) Callback(req *http.Request) (*oauth2.Token, error) {
 	}
 	return token, nil
 }
+
+func (auth *oAuth2) StoreToken(token *oauth2.Token) error {
+	return errors.New("not implemented, you must implement your own version of StoreToken")
+}

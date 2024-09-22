@@ -18,11 +18,11 @@ type Handler struct {
 
 type Model struct {
 	auth.Authenticator
-	Database *mongo.Client
+	Mongo *mongo.Client
 }
 
 type GmailUser struct {
-	EmailAddress  string `json:"emailAddress"`
+	EmailAddress  string `json:"emailAddress" bson:"email"`
 	MessagesTotal int64  `json:"messagesTotal"`
 	ThreadsTotal  int64  `json:"threadsTotal"`
 	HistoryId     string `json:"historyId"`

@@ -50,7 +50,7 @@ func (s *server) Start() {
 	go service.New(
 		gmail.Model{
 			Authenticator: auth.New(gmail.AuthConfig()),
-			Database:      db,
+			Mongo:         db,
 		},
 	).Run(s.ctx)
 
