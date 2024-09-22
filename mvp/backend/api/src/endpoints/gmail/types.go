@@ -1,6 +1,7 @@
 package gmail
 
 import (
+	"net/http"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -13,7 +14,7 @@ import (
 type Service interface {
 	auth.Authenticator
 	service.Service
-	Send() error
+	Send(client *http.Client, from string, to string, subject string, body string) error
 	GetUserFromGoogle(*oauth2.Token) (*GmailUser, error)
 	GetUserFromDbByEmail(string) (*user.User, error)
 	AddUserToDb(string, *oauth2.Token) error

@@ -17,6 +17,14 @@ import (
 	"trigger.com/api/src/lib"
 )
 
+/**
+* ! If you are reading this, our deepest sympathies are with you.
+* ! What lies below is not code; it is a monument to our desperation, a relic of our darkest hour.
+* ! We sought to connect email with email, but in doing so, we lost ourselves in an abyss of complexity.
+* ! To the brave soul tasked with maintaining this, may you find the strength to endure where we could not.
+* ! Abandon all hope, ye who enter here.
+**/
+
 var (
 	_                   Service = Model{}
 	gmailAccessTokenKey string  = "gmailAccessTokenKey"
@@ -117,7 +125,7 @@ func (m Model) Register(ctx context.Context) error {
 	return nil
 }
 
-func fetchUserHistory(accessToken string, eventData EventData) (bool, error) {
+func fetchUserHistory(eventData EventData, client *http.Client) (bool, error) {
 	url := fmt.Sprintf("https://gmail.googleapis.com/gmail/v1/users/%s/history?startHistoryId=%d", eventData.EmailAddress, eventData.HistoryId)
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -125,8 +133,6 @@ func fetchUserHistory(accessToken string, eventData EventData) (bool, error) {
 		return false, fmt.Errorf("failed to fetch Gmail history: %v", err)
 	}
 
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
-	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		return false, fmt.Errorf("failed to fetch Gmail history: %v", err)
@@ -188,17 +194,64 @@ func (m Model) Webhook(ctx context.Context) error {
 	}
 	client := m.Authenticator.Config().Client(context.TODO(), &token)
 
-	newEmail, err := fetchUserHistory(user.AccessToken, eventData)
+	newEmail, err := fetchUserHistory(eventData, client)
 	if err != nil {
 		return err
 	}
-	if !newEmail {
-		return errors.New("no new emails on inbox")
+	// * If we have a new email we send an email as a response
+	if newEmail {
+		m.Send(client, eventData.EmailAddress, eventData.EmailAddress, "New Message", "You received a new email, go check it")
 	}
-	// TODO: call send
 	return nil
 }
 
-func (m Model) Send() error {
-	return errors.New("Not implemented")
+func createRawEmail(from string, to string, subject string, body string) (string, error) {
+	var email bytes.Buffer
+	email.WriteString(fmt.Sprintf("From: %s\r\n", from))
+	email.WriteString(fmt.Sprintf("To: %s\r\n", to))
+	email.WriteString(fmt.Sprintf("Subject: %s\r\n", subject))
+	email.WriteString("\r\n")
+	email.WriteString(body)
+
+	rawMessage := base64.StdEncoding.EncodeToString(email.Bytes())
+
+	// * Gmail's API requires the base64-encoded message to be in a URL-safe format without padding
+	// * So we replace this characters with safe ones for URL-safe base64 encoding
+	rawMessage = strings.ReplaceAll(rawMessage, "+", "-")
+	rawMessage = strings.ReplaceAll(rawMessage, "/", "_")
+	rawMessage = strings.TrimRight(rawMessage, "=")
+
+	return rawMessage, nil
+}
+
+// * Here we just create an email and send it to the user
+// ? Can you send an email through the user itself? (probably not)
+// TODO: test that all works as intended
+func (m Model) Send(client *http.Client, from string, to string, subject string, body string) error {
+	rawEmail, err := createRawEmail(from, to, subject, body)
+	if err != nil {
+		return fmt.Errorf("failed to create raw email: %v", err)
+	}
+
+	url := "https://gmail.googleapis.com/gmail/v1/users/me/messages/send"
+	requestBody := fmt.Sprintf(`{"raw": "%s"}`, rawEmail)
+
+	req, err := http.NewRequest("POST", url, strings.NewReader(requestBody))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %v", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send email: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to send email, got status: %s", resp.Status)
+	}
+
+	fmt.Println("Email sent successfully!")
+	return nil
 }

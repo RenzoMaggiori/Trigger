@@ -30,14 +30,9 @@ func (h *Handler) AuthCallback(res http.ResponseWriter, req *http.Request) {
 		http.Redirect(res, req, fmt.Sprintf("%s/", os.Getenv("WEB_URL")), http.StatusPermanentRedirect)
 		return
 	}
-	if err != nil {
-		log.Println(err)
-		http.Redirect(res, req, fmt.Sprintf("%s/", os.Getenv("WEB_URL")), http.StatusPermanentRedirect)
-		return
-	}
 
 	// Check if user exists
-	dbUser, _ := h.Service.GetUserFromDbByEmail(gmailUser.EmailAddress, token)
+	dbUser, _ := h.Service.GetUserFromDbByEmail(gmailUser.EmailAddress)
 	if dbUser != nil {
 		http.Redirect(res, req, fmt.Sprintf("%s/", os.Getenv("WEB_URL")), http.StatusPermanentRedirect)
 		return
