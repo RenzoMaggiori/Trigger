@@ -35,5 +35,5 @@ func main() {
 	}
 
 	go server.Start()
-	defer server.Stop()
+	server.Stop()
 }

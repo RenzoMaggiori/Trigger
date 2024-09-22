@@ -1,17 +1,23 @@
 package gmail
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"strings"
 
 	"trigger.com/api/src/lib"
 )
 
-var _ Gmail = Model{}
-
-var gmailAccessTokenKey string = "gmailAccessTokenKey"
+var (
+	_                   Gmail  = Model{}
+	gmailAccessTokenKey string = "gmailAccessTokenKey"
+	gmailEventKey       string = "gmailEventKey"
+)
 
 func (m Model) Register(ctx context.Context) error {
 	accessToken, ok := ctx.Value(gmailAccessTokenKey).(string)
@@ -41,10 +47,29 @@ func (m Model) Register(ctx context.Context) error {
 	return nil
 }
 
-func (m Model) Webhook() error {
-	return errors.New("Not implemented")
+func (m Model) Webhook(ctx context.Context) error {
+	// TODO: get access_token from db
+	event, ok := ctx.Value(gmailEventKey).(Event)
+	if !ok {
+		return errors.New("could not retrieve event")
+	}
+	fmt.Printf("event: %v\n", event)
+
+	data := make([]byte, len(event.Message.Data))
+	_, err := base64.NewDecoder(base64.StdEncoding, strings.NewReader(event.Message.Data)).Read(data)
+	if err != nil && err != io.EOF {
+		return err
+	}
+
+	eventData, err := lib.JsonDecode[EventData](bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+	fmt.Printf("eventData: %v\n", eventData)
+
+	return nil
 }
 
-func (m Model) Send(email Email) error {
+func (m Model) Send() error {
 	return errors.New("Not implemented")
 }
