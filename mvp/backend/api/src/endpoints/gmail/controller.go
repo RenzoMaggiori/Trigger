@@ -26,7 +26,7 @@ func (h *Handler) AuthCallback(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	authCookie := http.Cookie{Name: "access_token", Value: token.AccessToken, Expires: time.Unix(token.ExpiresIn, 0)}
+	authCookie := http.Cookie{Name: "access_token", Value: token.AccessToken, Expires: time.Now().Add(time.Duration(token.ExpiresIn) * time.Second)}
 	http.SetCookie(res, &authCookie)
 	http.Redirect(res, req, fmt.Sprintf("%s/", os.Getenv("WEB_URL")), http.StatusPermanentRedirect)
 }
