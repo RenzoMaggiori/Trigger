@@ -49,12 +49,13 @@ func (h *Handler) Register(res http.ResponseWriter, req *http.Request) {
 }
 
 func (h *Handler) Webhook(res http.ResponseWriter, req *http.Request) {
-	body, err := lib.JsonDecode(req.Body)
+	body, err := lib.JsonDecode[Event](req.Body)
 	if err != nil {
-		res.WriteHeader(http.StatusInternalServerError)
+		http.Error(res, "internal server error", http.StatusInternalServerError)
 		return
 	}
+
 	log.Printf("Webhook triggered, received body=%+v\n", body)
-	// TODO: Handle action
+	h.Gmail.Webhook(context.WithValue(req.Context(), gmailEventKey, body))
 	res.WriteHeader(http.StatusOK)
 }

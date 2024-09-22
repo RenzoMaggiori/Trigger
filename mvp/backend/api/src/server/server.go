@@ -9,10 +9,13 @@ import (
 	"os/signal"
 	"syscall"
 
+	"go.mongodb.org/mongo-driver/mongo"
+	"trigger.com/api/src/auth"
+	"trigger.com/api/src/database"
 	"trigger.com/api/src/endpoints/gmail"
 	"trigger.com/api/src/middleware"
 	"trigger.com/api/src/router"
-	"trigger.com/api/src/services"
+	"trigger.com/api/src/service"
 )
 
 type server struct {
@@ -39,11 +42,19 @@ func Create(port int64, ctx context.Context) (*server, error) {
 }
 
 func (s *server) Start() {
-	go services.New(
-		gmail.Model{},
-	).Register(s.ctx)
+	db, ok := s.ctx.Value(database.CtxKey).(*mongo.Client)
+	if !ok {
+		log.Fatal("could not retrieve db from context")
+	}
 
-	log.Printf("Listening on %s\n", s.wrapper.Addr)
+	go service.New(
+		gmail.Model{
+			Authenticator: auth.New(gmail.AuthConfig()),
+			Database:      db,
+		},
+	).Run(s.ctx)
+
+	log.Printf("Listening on http://localhost%s\n", s.wrapper.Addr)
 	if err := s.wrapper.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Could not listen on %s: %v\n", s.wrapper.Addr, err)
 	}

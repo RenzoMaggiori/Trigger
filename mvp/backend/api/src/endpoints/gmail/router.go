@@ -14,8 +14,8 @@ import (
 	"trigger.com/api/src/middleware"
 )
 
-func Router(ctx context.Context) (*http.ServeMux, error) {
-	googleAuthConfig := &oauth2.Config{
+func AuthConfig() *oauth2.Config {
+	return &oauth2.Config{
 		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
 		Scopes: []string{
@@ -27,6 +27,9 @@ func Router(ctx context.Context) (*http.ServeMux, error) {
 		RedirectURL: fmt.Sprintf("%s/api/auth/gmail/callback", os.Getenv("API_URL")),
 	}
 
+}
+
+func Router(ctx context.Context) (*http.ServeMux, error) {
 	database, ok := ctx.Value(database.CtxKey).(*mongo.Client)
 	if !ok {
 		return nil, fmt.Errorf("could not get Database from Context")
@@ -37,8 +40,8 @@ func Router(ctx context.Context) (*http.ServeMux, error) {
 		middleware.Auth,
 	)
 	handler := Handler{Gmail: Model{
-		Authenticator: auth.New(googleAuthConfig),
-		database:      database,
+		Authenticator: auth.New(AuthConfig()),
+		Database:      database,
 	}}
 
 	router.HandleFunc("GET /auth/gmail/provider", handler.AuthProvider)
