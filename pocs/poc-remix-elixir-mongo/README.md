@@ -62,7 +62,7 @@ This proof of concept (**POC**) demonstrates the integration of three technologi
 
 # Mongo
 
-Mongo was not used due to that Phoenix built-in ORM didn't support MongoDB natively. Instead SQLite has chosen
+Mongo was not used due to Phoenix built-in ORM (Ecto) didn't support MongoDB natively. Instead SQLite has chosen
 
 # SQLite
 
