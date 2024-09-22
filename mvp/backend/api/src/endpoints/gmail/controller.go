@@ -26,7 +26,17 @@ func (h *Handler) AuthCallback(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	authCookie := http.Cookie{Name: "access_token", Value: token.AccessToken, Expires: time.Now().Add(time.Duration(token.ExpiresIn) * time.Second)}
+	if err := h.Gmail.StoreToken(token); err != nil {
+		log.Println(err)
+		http.Redirect(res, req, fmt.Sprintf("%s/", os.Getenv("WEB_URL")), http.StatusPermanentRedirect)
+		return
+	}
+
+	authCookie := http.Cookie{
+		Name:    "access_token",
+		Value:   token.AccessToken,
+		Expires: time.Now().Add(time.Duration(token.ExpiresIn) * time.Second),
+	}
 	http.SetCookie(res, &authCookie)
 	http.Redirect(res, req, fmt.Sprintf("%s/", os.Getenv("WEB_URL")), http.StatusPermanentRedirect)
 }

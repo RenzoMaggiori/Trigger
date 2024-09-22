@@ -6,6 +6,28 @@ import (
 	"trigger.com/api/src/service"
 )
 
+type Gmail interface {
+	auth.Authenticator
+	service.Service
+	Send() error
+}
+
+type Handler struct {
+	Gmail
+}
+
+type Model struct {
+	auth.Authenticator
+	Database *mongo.Client
+}
+
+type GmailUser struct {
+	EmailAddress  string `json:"emailAddress"`
+	MessagesTotal int64  `json:"messagesTotal"`
+	ThreadsTotal  int64  `json:"threadsTotal"`
+	HistoryId     string `json:"historyId"`
+}
+
 type Event struct {
 	Message struct {
 		Data         string `json:"data"`
@@ -22,17 +44,67 @@ type EventData struct {
 	HistoryId    int64  `json:"historyId"`
 }
 
-type Gmail interface {
-	auth.Authenticator
-	service.Service
-	Send() error
+type HistoryList struct {
+	History       []History `json:"history"`
+	NextPageToken string    `json:"nextPageToken"`
+	HistoryId     string    `json:"historyId"`
 }
 
-type Handler struct {
-	Gmail
+type History struct {
+	Id              string           `json:"id"`
+	Messages        []Message        `json:"messages,omitempty"`
+	MessagesAdded   []MessageAdded   `json:"messagesAdded,omitempty"`
+	MessagesDeleted []MessageDeleted `json:"messagesDeleted,omitempty"`
+	LabelsAdded     []LabelAdded     `json:"labelsAdded,omitempty"`
+	LabelsRemoved   []LabelRemoved   `json:"labelsRemoved,omitempty"`
 }
 
-type Model struct {
-	auth.Authenticator
-	Database *mongo.Client
+type Message struct {
+	Id           string      `json:"id"`
+	ThreadId     string      `json:"threadId"`
+	LabelIds     []string    `json:"labelIds"`
+	Snippet      string      `json:"snippet"`
+	HistoryId    string      `json:"historyId"`
+	InternalDate string      `json:"internalDate"`
+	Payload      MessagePart `json:"payload"`
+	SizeEstimate int64       `json:"sizeEstimate"`
+	Raw          string      `json:"raw"`
+}
+
+type MessagePart struct {
+	PartId   string          `json:"partId"`
+	MimeType string          `json:"mimeType"`
+	Filename string          `json:"filename"`
+	Headers  []MessageHeader `json:"headers"`
+	Body     MessagePartBody `json:"body"`
+	Parts    []MessagePart   `json:"parts"`
+}
+
+type MessageHeader struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
+type MessagePartBody struct {
+	AttachmentId string `json:"attachmentId"`
+	Size         int64  `json:"size"`
+	Data         string `json:"data"`
+}
+
+type MessageAdded struct {
+	Message Message `json:"message"`
+}
+
+type MessageDeleted struct {
+	Message Message `json:"message"`
+}
+
+type LabelAdded struct {
+	Message  Message  `json:"message"`
+	LabelIds []string `json:"labelIds"`
+}
+
+type LabelRemoved struct {
+	Message  Message  `json:"message"`
+	LabelIds []string `json:"labelIds"`
 }

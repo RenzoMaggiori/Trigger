@@ -11,8 +11,9 @@ import (
 )
 
 type Authenticator interface {
-	Provider(res http.ResponseWriter) string
-	Callback(req *http.Request) (*oauth2.Token, error)
+	Provider(http.ResponseWriter) string
+	Callback(*http.Request) (*oauth2.Token, error)
+	StoreToken(*oauth2.Token) error
 }
 
 type oAuth2 struct {

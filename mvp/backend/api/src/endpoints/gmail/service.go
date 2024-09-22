@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strings"
 
+	"golang.org/x/oauth2"
 	"trigger.com/api/src/lib"
 )
 
@@ -18,6 +19,20 @@ var (
 	gmailAccessTokenKey string = "gmailAccessTokenKey"
 	gmailEventKey       string = "gmailEventKey"
 )
+
+func (m Model) StoreToken(token *oauth2.Token) error {
+	res, err := lib.Fetch(lib.NewFetchRequest(
+		http.MethodGet,
+		"https://gmail.googleapis.com/gmail/v1/users/me/profile",
+		nil,
+		map[string]string{
+			"Authorization": fmt.Sprintf("Bearer %s", token.AccessToken),
+		},
+	))
+	// get the user email from google
+	// store the token info and user in db
+	return nil
+}
 
 func (m Model) Register(ctx context.Context) error {
 	accessToken, ok := ctx.Value(gmailAccessTokenKey).(string)
@@ -48,12 +63,14 @@ func (m Model) Register(ctx context.Context) error {
 }
 
 func (m Model) Webhook(ctx context.Context) error {
-	// TODO: get access_token from db
 	event, ok := ctx.Value(gmailEventKey).(Event)
 	if !ok {
 		return errors.New("could not retrieve event")
 	}
 	fmt.Printf("event: %v\n", event)
+
+	// TODO: get access_token from db
+	// TODO: check access_token is valid else use refresh token
 
 	data := make([]byte, len(event.Message.Data))
 	_, err := base64.NewDecoder(base64.StdEncoding, strings.NewReader(event.Message.Data)).Read(data)
@@ -66,6 +83,8 @@ func (m Model) Webhook(ctx context.Context) error {
 		return err
 	}
 	fmt.Printf("eventData: %v\n", eventData)
+
+	// TODO: fetch history
 
 	return nil
 }

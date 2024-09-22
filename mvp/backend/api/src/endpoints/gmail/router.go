@@ -21,12 +21,10 @@ func AuthConfig() *oauth2.Config {
 		Scopes: []string{
 			"https://mail.google.com/",
 			"https://www.googleapis.com/auth/gmail.send",
-			"https://www.googleapis.com/auth/gmail.modify",
 		},
 		Endpoint:    google.Endpoint,
 		RedirectURL: fmt.Sprintf("%s/api/auth/gmail/callback", os.Getenv("API_URL")),
 	}
-
 }
 
 func Router(ctx context.Context) (*http.ServeMux, error) {
