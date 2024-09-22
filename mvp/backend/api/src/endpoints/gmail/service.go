@@ -1,12 +1,12 @@
 package gmail
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+
+	"trigger.com/api/src/lib"
 )
 
 var _ Gmail = Model{}
@@ -19,20 +19,17 @@ func (m Model) Register(ctx context.Context) error {
 		return errors.New("could not retrieve access token")
 	}
 
-	body, err := json.Marshal(map[string]any{"labelIds": []string{"INBOX"}, "topicName": "projects/trigger-436310/topics/Trigger"})
-	if err != nil {
-		return err
-	}
-
-	req, err := http.NewRequest(http.MethodPost, "https://gmail.googleapis.com/gmail/v1/users/me/watch", bytes.NewBuffer(body))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
-	req.Header.Set("Content-Type", "application/json")
-
-	client := http.Client{}
-	res, err := client.Do(req)
+	res, err := lib.Fetch(lib.NewFetchRequest(
+		http.MethodPost,
+		"https://gmail.googleapis.com/gmail/v1/users/me/watch",
+		map[string]any{
+			"labelIds":  []string{"INBOX"},
+			"topicName": "projects/trigger-436310/topics/Trigger",
+		},
+		map[string]string{
+			"Authorization": fmt.Sprintf("Bearer %s", accessToken),
+			"Content-Type":  "application/json",
+		}))
 	if err != nil {
 		return err
 	}

@@ -11,6 +11,7 @@ import (
 	"golang.org/x/oauth2/google"
 	"trigger.com/api/src/auth"
 	"trigger.com/api/src/database"
+	"trigger.com/api/src/middleware"
 )
 
 func Router(ctx context.Context) (*http.ServeMux, error) {
@@ -32,6 +33,9 @@ func Router(ctx context.Context) (*http.ServeMux, error) {
 	}
 
 	router := http.NewServeMux()
+	authMiddleware := middleware.Create(
+		middleware.Auth,
+	)
 	handler := Handler{Gmail: Model{
 		Authenticator: auth.New(googleAuthConfig),
 		database:      database,
@@ -39,6 +43,6 @@ func Router(ctx context.Context) (*http.ServeMux, error) {
 
 	router.HandleFunc("GET /auth/gmail/provider", handler.AuthProvider)
 	router.HandleFunc("GET /auth/gmail/callback", handler.AuthCallback)
-	router.HandleFunc("GET /gmail/register", handler.Register)
+	router.Handle("GET /gmail/register", authMiddleware(http.HandlerFunc(handler.Register)))
 	return router, nil
 }

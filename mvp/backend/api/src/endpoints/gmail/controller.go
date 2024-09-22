@@ -2,13 +2,14 @@ package gmail
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
+
+	"trigger.com/api/src/lib"
+	"trigger.com/api/src/middleware"
 )
 
 func (h *Handler) AuthProvider(res http.ResponseWriter, req *http.Request) {
@@ -31,14 +32,14 @@ func (h *Handler) AuthCallback(res http.ResponseWriter, req *http.Request) {
 }
 
 func (h *Handler) Register(res http.ResponseWriter, req *http.Request) {
-	accessHeader := strings.Split(req.Header.Get("Authorization"), " ")
-	if len(accessHeader) < 2 {
-		log.Println("could not retrieve access token from header")
-		http.Error(res, "could not retrieve access token from header", http.StatusBadRequest)
+	accessToken, ok := req.Context().Value(middleware.AuthHeaderCtxKey).(string)
+	if !ok {
+		log.Println("could not retrieve access token")
+		http.Error(res, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	err := h.Gmail.Register(context.WithValue(req.Context(), gmailAccessTokenKey, accessHeader[1]))
+	err := h.Gmail.Register(context.WithValue(req.Context(), gmailAccessTokenKey, accessToken))
 	if err != nil {
 		log.Println(err)
 		http.Error(res, "internal server error", http.StatusInternalServerError)
@@ -48,8 +49,8 @@ func (h *Handler) Register(res http.ResponseWriter, req *http.Request) {
 }
 
 func (h *Handler) Webhook(res http.ResponseWriter, req *http.Request) {
-	var body any
-	if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+	body, err := lib.JsonDecode(req.Body)
+	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
