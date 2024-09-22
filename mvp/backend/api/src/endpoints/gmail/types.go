@@ -4,18 +4,20 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
+	"golang.org/x/oauth2"
 	"trigger.com/api/src/auth"
 	"trigger.com/api/src/service"
 )
 
-type Gmail interface {
+type Service interface {
 	auth.Authenticator
 	service.Service
+	GetUser(*oauth2.Token) (*GmailUser, error)
 	Send() error
 }
 
 type Handler struct {
-	Gmail
+	Service
 }
 
 type Model struct {

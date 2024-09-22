@@ -6,38 +6,86 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
 
 	"trigger.com/api/src/lib"
 	"trigger.com/api/src/middleware"
 )
 
 func (h *Handler) AuthProvider(res http.ResponseWriter, req *http.Request) {
-	authUrl := h.Gmail.Provider(res)
+	authUrl := h.Service.Provider(res)
 	http.Redirect(res, req, authUrl, http.StatusTemporaryRedirect)
 }
 
 func (h *Handler) AuthCallback(res http.ResponseWriter, req *http.Request) {
-	// TODO: store refresh token in database
-	token, err := h.Gmail.Callback(req)
+	// Get token
+	token, err := h.Service.Callback(req)
 	if err != nil {
 		log.Println(err)
 		http.Redirect(res, req, fmt.Sprintf("%s/", os.Getenv("WEB_URL")), http.StatusPermanentRedirect)
 		return
 	}
 
-	if err := h.Gmail.StoreToken(token); err != nil {
+	// Get user from google
+	gmailUser, err := h.Service.GetUser(token)
+	if err != nil {
+		log.Println(err)
+		http.Redirect(res, req, fmt.Sprintf("%s/", os.Getenv("WEB_URL")), http.StatusPermanentRedirect)
+		return
+	}
+	if err != nil {
 		log.Println(err)
 		http.Redirect(res, req, fmt.Sprintf("%s/", os.Getenv("WEB_URL")), http.StatusPermanentRedirect)
 		return
 	}
 
-	authCookie := http.Cookie{
-		Name:    "access_token",
-		Value:   token.AccessToken,
-		Expires: time.Now().Add(time.Duration(token.ExpiresIn) * time.Second),
+	// Check if user exists
+	getUserRes, err := lib.Fetch(lib.NewFetchRequest(
+		"GET",
+		fmt.Sprintf("%s/user/%s", os.Getenv("API_URL"), gmailUser.EmailAddress),
+		nil,
+		map[string]string{
+			"Authorization": fmt.Sprintf("Bearer %s", token.AccessToken),
+		},
+	))
+	if err != nil {
+		log.Println(err)
+		http.Redirect(res, req, fmt.Sprintf("%s/", os.Getenv("WEB_URL")), http.StatusPermanentRedirect)
+		return
 	}
-	http.SetCookie(res, &authCookie)
+	defer getUserRes.Body.Close()
+	if getUserRes.StatusCode == http.StatusOK {
+		http.Redirect(res, req, fmt.Sprintf("%s/", os.Getenv("WEB_URL")), http.StatusPermanentRedirect)
+	}
+
+	// Add user to db
+	addUserRes, err := lib.Fetch(lib.NewFetchRequest(
+		"POST",
+		fmt.Sprintf("%s/user", os.Getenv("API_URL")),
+		map[string]any{
+			// TODO: add email
+			"email":        gmailUser.EmailAddress,
+			"accessToken":  token.AccessToken,
+			"refreshToken": token.RefreshToken,
+			"tokenType":    token.TokenType,
+			"expiry":       token.Expiry,
+		},
+		map[string]string{
+			"Authorization": fmt.Sprintf("Bearer %s", token.AccessToken),
+		},
+	))
+	if err != nil {
+		log.Println(err)
+		http.Redirect(res, req, fmt.Sprintf("%s/", os.Getenv("WEB_URL")), http.StatusPermanentRedirect)
+		return
+	}
+	defer addUserRes.Body.Close()
+	if addUserRes.StatusCode != http.StatusOK {
+		log.Printf("invalid status code, received %s\n", addUserRes.Status)
+		http.Redirect(res, req, fmt.Sprintf("%s/", os.Getenv("WEB_URL")), http.StatusPermanentRedirect)
+		return
+
+	}
+
 	http.Redirect(res, req, fmt.Sprintf("%s/", os.Getenv("WEB_URL")), http.StatusPermanentRedirect)
 }
 
@@ -49,7 +97,7 @@ func (h *Handler) Register(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err := h.Gmail.Register(context.WithValue(req.Context(), gmailAccessTokenKey, accessToken))
+	err := h.Service.Register(context.WithValue(req.Context(), gmailAccessTokenKey, accessToken))
 	if err != nil {
 		log.Println(err)
 		http.Error(res, "internal server error", http.StatusInternalServerError)
@@ -66,6 +114,6 @@ func (h *Handler) Webhook(res http.ResponseWriter, req *http.Request) {
 	}
 
 	log.Printf("Webhook triggered, received body=%+v\n", body)
-	h.Gmail.Webhook(context.WithValue(req.Context(), gmailEventKey, body))
+	h.Service.Webhook(context.WithValue(req.Context(), gmailEventKey, body))
 	res.WriteHeader(http.StatusOK)
 }

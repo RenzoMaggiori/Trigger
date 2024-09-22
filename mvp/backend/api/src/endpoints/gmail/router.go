@@ -37,7 +37,7 @@ func Router(ctx context.Context) (*http.ServeMux, error) {
 	authMiddleware := middleware.Create(
 		middleware.Auth,
 	)
-	handler := Handler{Gmail: Model{
+	handler := Handler{Service: Model{
 		Authenticator: auth.New(AuthConfig()),
 		Mongo:         database,
 	}}

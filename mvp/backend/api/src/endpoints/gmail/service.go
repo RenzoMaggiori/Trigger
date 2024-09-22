@@ -9,58 +9,22 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/oauth2"
 	"trigger.com/api/src/lib"
 )
 
 var (
-	_                   Gmail  = Model{}
-	gmailAccessTokenKey string = "gmailAccessTokenKey"
-	gmailEventKey       string = "gmailEventKey"
+	_                   Service = Model{}
+	gmailAccessTokenKey string  = "gmailAccessTokenKey"
+	gmailEventKey       string  = "gmailEventKey"
 )
 
-func addToDB(userCollection *mongo.Collection, user GmailUser, token *oauth2.Token) error {
-	var existingUser bson.M
-	err := userCollection.FindOne(context.TODO(), bson.D{{Key: "email", Value: user.EmailAddress}}).Decode(&existingUser)
-	if err == mongo.ErrNoDocuments {
-		newUser := bson.D{
-			{Key: "email", Value: user.EmailAddress},
-			{Key: "access_token", Value: token.AccessToken},
-			{Key: "refresh_token", Value: token.RefreshToken},
-			{Key: "token_expiry", Value: token.Expiry},
-			{Key: "token_type", Value: token.TokenType},
-		}
-
-		_, err := userCollection.InsertOne(context.TODO(), newUser)
-		if err != nil {
-			return err
-		}
-	} else if err == nil {
-		update := bson.D{
-			{Key: "$set", Value: bson.D{
-				{Key: "access_token", Value: token.AccessToken},
-				{Key: "refresh_token", Value: token.RefreshToken},
-				{Key: "token_expiry", Value: token.Expiry},
-				{Key: "token_type", Value: token.TokenType},
-			}},
-		}
-
-		_, err := userCollection.UpdateOne(context.TODO(), bson.D{{Key: "email", Value: user.EmailAddress}}, update)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (m Model) StoreToken(token *oauth2.Token) error {
+func (m Model) GetUser(token *oauth2.Token) (*GmailUser, error) {
 	res, err := lib.Fetch(lib.NewFetchRequest(
 		http.MethodGet,
 		"https://gmail.googleapis.com/gmail/v1/users/me/profile",
@@ -70,19 +34,15 @@ func (m Model) StoreToken(token *oauth2.Token) error {
 		},
 	))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer res.Body.Close()
 
 	user, err := lib.JsonDecode[GmailUser](res.Body)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	userCollection := m.Mongo.Database(os.Getenv("MONGO_DB")).Collection("user")
-	if err := addToDB(userCollection, user, token); err != nil {
-		return err
-	}
-	return nil
+	return &user, nil
 }
 
 func (m Model) Register(ctx context.Context) error {
@@ -111,31 +71,6 @@ func (m Model) Register(ctx context.Context) error {
 		return fmt.Errorf("invalid response, got %s", res.Status)
 	}
 	return nil
-}
-
-func refreshAccessToken(refreshToken string) (*oauth2.Token, error) {
-	clientID := os.Getenv("GOOGLE_CLIENT_ID")
-	clientSecret := os.Getenv("GOOGLE_CLIENT_SECRET")
-	tokenURL := "https://oauth2.googleapis.com/token"
-
-	values := url.Values{}
-	values.Set("client_id", clientID)
-	values.Set("client_secret", clientSecret)
-	values.Set("refresh_token", refreshToken)
-	values.Set("grant_type", "refresh_token")
-
-	resp, err := http.PostForm(tokenURL, values)
-	if err != nil {
-		return nil, fmt.Errorf("failed to refresh token: %v", err)
-	}
-	defer resp.Body.Close()
-
-	var newToken oauth2.Token
-	if err := json.NewDecoder(resp.Body).Decode(&newToken); err != nil {
-		return nil, fmt.Errorf("failed to decode new token: %v", err)
-	}
-
-	return &newToken, nil
 }
 
 func fetchUserHistory(accessToken string, eventData EventData) (bool, error) {
@@ -197,12 +132,13 @@ func (m Model) Webhook(ctx context.Context) error {
 	fmt.Printf("eventData: %v\n", eventData)
 
 	userCollection := m.Mongo.Database(os.Getenv("MONGO_DB")).Collection("user")
-	var user DbUser
 
+	var user DbUser
 	err = userCollection.FindOne(ctx, bson.D{{Key: "email", Value: eventData.EmailAddress}}).Decode(&user)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve user from DB: %v", err)
 	}
+
 	// * here we check if the token is valid
 	if time.Now().After(user.Expiry) {
 		newToken, err := refreshAccessToken(user.RefreshToken)
@@ -229,6 +165,7 @@ func (m Model) Webhook(ctx context.Context) error {
 	if !newEmail {
 		return errors.New("no new emails on inbox")
 	}
+	// TODO: call send
 	return nil
 }
 
