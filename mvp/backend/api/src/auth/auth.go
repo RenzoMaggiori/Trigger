@@ -13,7 +13,7 @@ import (
 type Authenticator interface {
 	Provider(http.ResponseWriter) string
 	Callback(*http.Request) (*oauth2.Token, error)
-	StoreToken(*oauth2.Token) error
+	Config() *oauth2.Config
 }
 
 type oAuth2 struct {
@@ -58,6 +58,6 @@ func (auth *oAuth2) Callback(req *http.Request) (*oauth2.Token, error) {
 	return token, nil
 }
 
-func (auth *oAuth2) StoreToken(token *oauth2.Token) error {
-	return errors.New("not implemented, you must implement your own version of StoreToken")
+func (auth *oAuth2) Config() *oauth2.Config {
+	return auth.config
 }

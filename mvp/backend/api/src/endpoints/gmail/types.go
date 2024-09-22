@@ -6,14 +6,17 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/oauth2"
 	"trigger.com/api/src/auth"
+	"trigger.com/api/src/endpoints/user"
 	"trigger.com/api/src/service"
 )
 
 type Service interface {
 	auth.Authenticator
 	service.Service
-	GetUser(*oauth2.Token) (*GmailUser, error)
 	Send() error
+	GetUserFromGoogle(*oauth2.Token) (*GmailUser, error)
+	GetUserFromDbByEmail(string) (*user.User, error)
+	AddUserToDb(string, *oauth2.Token) error
 }
 
 type Handler struct {

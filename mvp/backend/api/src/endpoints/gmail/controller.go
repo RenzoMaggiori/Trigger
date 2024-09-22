@@ -17,7 +17,6 @@ func (h *Handler) AuthProvider(res http.ResponseWriter, req *http.Request) {
 }
 
 func (h *Handler) AuthCallback(res http.ResponseWriter, req *http.Request) {
-	// Get token
 	token, err := h.Service.Callback(req)
 	if err != nil {
 		log.Println(err)
@@ -25,8 +24,7 @@ func (h *Handler) AuthCallback(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Get user from google
-	gmailUser, err := h.Service.GetUser(token)
+	gmailUser, err := h.Service.GetUserFromGoogle(token)
 	if err != nil {
 		log.Println(err)
 		http.Redirect(res, req, fmt.Sprintf("%s/", os.Getenv("WEB_URL")), http.StatusPermanentRedirect)
@@ -39,51 +37,18 @@ func (h *Handler) AuthCallback(res http.ResponseWriter, req *http.Request) {
 	}
 
 	// Check if user exists
-	getUserRes, err := lib.Fetch(lib.NewFetchRequest(
-		"GET",
-		fmt.Sprintf("%s/user/%s", os.Getenv("API_URL"), gmailUser.EmailAddress),
-		nil,
-		map[string]string{
-			"Authorization": fmt.Sprintf("Bearer %s", token.AccessToken),
-		},
-	))
-	if err != nil {
-		log.Println(err)
+	dbUser, _ := h.Service.GetUserFromDbByEmail(gmailUser.EmailAddress, token)
+	if dbUser != nil {
 		http.Redirect(res, req, fmt.Sprintf("%s/", os.Getenv("WEB_URL")), http.StatusPermanentRedirect)
 		return
-	}
-	defer getUserRes.Body.Close()
-	if getUserRes.StatusCode == http.StatusOK {
-		http.Redirect(res, req, fmt.Sprintf("%s/", os.Getenv("WEB_URL")), http.StatusPermanentRedirect)
 	}
 
 	// Add user to db
-	addUserRes, err := lib.Fetch(lib.NewFetchRequest(
-		"POST",
-		fmt.Sprintf("%s/user", os.Getenv("API_URL")),
-		map[string]any{
-			// TODO: add email
-			"email":        gmailUser.EmailAddress,
-			"accessToken":  token.AccessToken,
-			"refreshToken": token.RefreshToken,
-			"tokenType":    token.TokenType,
-			"expiry":       token.Expiry,
-		},
-		map[string]string{
-			"Authorization": fmt.Sprintf("Bearer %s", token.AccessToken),
-		},
-	))
+	err = h.Service.AddUserToDb(gmailUser.EmailAddress, token)
 	if err != nil {
 		log.Println(err)
 		http.Redirect(res, req, fmt.Sprintf("%s/", os.Getenv("WEB_URL")), http.StatusPermanentRedirect)
 		return
-	}
-	defer addUserRes.Body.Close()
-	if addUserRes.StatusCode != http.StatusOK {
-		log.Printf("invalid status code, received %s\n", addUserRes.Status)
-		http.Redirect(res, req, fmt.Sprintf("%s/", os.Getenv("WEB_URL")), http.StatusPermanentRedirect)
-		return
-
 	}
 
 	http.Redirect(res, req, fmt.Sprintf("%s/", os.Getenv("WEB_URL")), http.StatusPermanentRedirect)
