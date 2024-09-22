@@ -126,7 +126,7 @@ func (m Model) Register(ctx context.Context) error {
 }
 
 func fetchUserHistory(eventData EventData, client *http.Client) (bool, error) {
-	url := fmt.Sprintf("https://gmail.googleapis.com/gmail/v1/users/%s/history?startHistoryId=%d", eventData.EmailAddress, eventData.HistoryId)
+	url := fmt.Sprintf("https://gmail.googleapis.com/gmail/v1/users/me/history?startHistoryId=%d", eventData.HistoryId)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
