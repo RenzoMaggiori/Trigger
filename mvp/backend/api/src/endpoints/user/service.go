@@ -34,3 +34,17 @@ func (m Model) GetByEmail(email string) (*User, error) {
 
 	return &user, nil
 }
+
+func (m Model) UpdateByEmail(email string, updates UpdateUser) (*primitive.ObjectID, error) {
+	userCollection := m.Mongo.Database(os.Getenv("MONGO_DB")).Collection("user")
+	result, err := userCollection.UpdateOne(context.TODO(), bson.D{{Key: "email", Value: email}}, updates)
+	if err != nil {
+		return nil, err
+	}
+
+	id, ok := result.UpsertedID.(primitive.ObjectID)
+	if !ok {
+		return nil, errors.New("could not get id of user")
+	}
+	return &id, nil
+}

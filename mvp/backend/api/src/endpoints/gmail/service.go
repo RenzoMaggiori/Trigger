@@ -153,42 +153,40 @@ func (m Model) Register(ctx context.Context) error {
 	return nil
 }
 
-func fetchUserHistory(eventData EventData, client *http.Client) (bool, error) {
+func fetchUserHistory(user *user.User, client *http.Client) (*HistoryList, error) {
 	res, err := lib.Fetch(
 		client,
 		lib.NewFetchRequest(
 			"GET",
-			fmt.Sprintf("https://gmail.googleapis.com/gmail/v1/users/me/history?startHistoryId=%d", eventData.HistoryId),
+			fmt.Sprintf("https://gmail.googleapis.com/gmail/v1/users/me/history?startHistoryId=%d", user.LastHistoryId),
 			nil,
 			nil,
 		))
 	if err != nil {
-		return false, fmt.Errorf("failed to fetch Gmail history: %v", err)
+		return nil, fmt.Errorf("failed to fetch Gmail history: %v", err)
 	}
 	defer res.Body.Close()
-
 	if res.StatusCode != http.StatusOK {
-		return false, fmt.Errorf("failed to fetch Gmail history, got status: %s", res.Status)
+		return nil, fmt.Errorf("failed to fetch Gmail history, got status: %s", res.Status)
 	}
 
 	history, err := lib.JsonDecode[HistoryList](res.Body)
 	if err != nil {
-		return false, fmt.Errorf("failed to decode Gmail history response: %v", err)
+		return nil, fmt.Errorf("failed to decode Gmail history response: %v", err)
 	}
-
-	// * Here we check if the history list we got has at the start an Added message (new email received)
 	fmt.Printf("history %+v\n", history)
-	if len(history.History) > 0 {
-		firstHistoryItem := history.History[0]
-
-		if len(firstHistoryItem.MessagesAdded) > 0 {
-			return true, nil
-		} else {
-			return false, nil
-		}
-	}
-
-	return false, nil
+	return &history, nil
+	// * Here we check if the history list we got has at the start an Added message (new email received)
+	// if len(history.History) > 0 {
+	// 	firstHistoryItem := history.History[0]
+	//
+	// 	if len(firstHistoryItem.MessagesAdded) > 0 {
+	// 		return true, nil
+	// 	} else {
+	// 		return false, nil
+	// 	}
+	// }
+	//
 }
 
 func (m Model) Webhook(ctx context.Context) error {
@@ -210,30 +208,29 @@ func (m Model) Webhook(ctx context.Context) error {
 	}
 	fmt.Printf("eventData: %v\n", eventData)
 
-	user, err := m.GetUserFromDbByEmail(eventData.EmailAddress)
+	u, err := m.GetUserFromDbByEmail(eventData.EmailAddress)
 	if err != nil {
 		return err
 	}
+	fmt.Printf("user %v\n", u)
 
-	fmt.Printf("user %v\n", user)
+	_, err = user.Model{Mongo: m.Mongo}.UpdateByEmail(u.Email, user.UpdateUser{LastHistoryId: eventData.HistoryId})
+	if err != nil {
+		return err
+	}
 
 	token := oauth2.Token{
-		AccessToken:  user.AccessToken,
-		RefreshToken: user.RefreshToken,
-		TokenType:    user.TokenType,
-		Expiry:       user.Expiry,
+		AccessToken:  u.AccessToken,
+		RefreshToken: u.RefreshToken,
+		TokenType:    u.TokenType,
+		Expiry:       u.Expiry,
 	}
 	client := m.Authenticator.Config().Client(context.TODO(), &token)
-
-	newEmail, err := fetchUserHistory(eventData, client)
+	history, err := fetchUserHistory(u, client)
 	if err != nil {
 		return err
 	}
-	if !newEmail {
-		return nil
-	}
-
-	fmt.Printf("newEmail %v\n", newEmail)
+	fmt.Printf("history: %v\n", history)
 
 	// * If we have a new email we send an email as a response
 	err = m.Send(client, eventData.EmailAddress, eventData.EmailAddress, "New Message", "You received a new email, go check it")
