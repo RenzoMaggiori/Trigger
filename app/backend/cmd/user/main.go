@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/joho/godotenv"
 	"trigger.com/trigger/internal/user"
 	"trigger.com/trigger/pkg/arguments"
 	"trigger.com/trigger/pkg/middleware"
@@ -20,12 +19,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = godotenv.Load(*args.EnvPath)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = user.Env()
+	err = user.Env(*args.EnvPath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -39,7 +33,11 @@ func main() {
 	).Collection("user")
 
 	router, err := router.Create(
-		context.WithValue(context.TODO(), mongodb.CtxKey, userCollection),
+		context.WithValue(
+			context.TODO(),
+			mongodb.CtxKey,
+			userCollection,
+		),
 		user.Router,
 	)
 	if err != nil {
