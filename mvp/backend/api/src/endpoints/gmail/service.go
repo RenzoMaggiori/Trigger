@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -32,14 +31,16 @@ var (
 )
 
 func (m Model) GetUserFromGoogle(token *oauth2.Token) (*GmailUser, error) {
-	res, err := lib.Fetch(lib.NewFetchRequest(
-		http.MethodGet,
-		"https://gmail.googleapis.com/gmail/v1/users/me/profile",
-		nil,
-		map[string]string{
-			"Authorization": fmt.Sprintf("Bearer %s", token.AccessToken),
-		},
-	))
+	res, err := lib.Fetch(
+		&http.Client{},
+		lib.NewFetchRequest(
+			http.MethodGet,
+			"https://gmail.googleapis.com/gmail/v1/users/me/profile",
+			nil,
+			map[string]string{
+				"Authorization": fmt.Sprintf("Bearer %s", token.AccessToken),
+			},
+		))
 	if err != nil {
 		return nil, err
 	}
@@ -53,18 +54,20 @@ func (m Model) GetUserFromGoogle(token *oauth2.Token) (*GmailUser, error) {
 }
 
 func (m Model) GetUserFromDbByEmail(email string) (*user.User, error) {
-	res, err := lib.Fetch(lib.NewFetchRequest(
-		"GET",
-		fmt.Sprintf("%s/user/%s", os.Getenv("API_URL"), email),
-		nil,
-		nil,
-	))
+	res, err := lib.Fetch(
+		&http.Client{},
+		lib.NewFetchRequest(
+			"GET",
+			fmt.Sprintf("%s/user/%s", os.Getenv("API_URL"), email),
+			nil,
+			nil,
+		))
 	if err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("invalid status code, received %s\n", res.Status)
+		return nil, fmt.Errorf("invalid status code, received %s", res.Status)
 	}
 
 	user, err := lib.JsonDecode[user.User](res.Body)
@@ -75,24 +78,26 @@ func (m Model) GetUserFromDbByEmail(email string) (*user.User, error) {
 }
 
 func (m Model) AddUserToDb(email string, token *oauth2.Token) error {
-	res, err := lib.Fetch(lib.NewFetchRequest(
-		"POST",
-		fmt.Sprintf("%s/user", os.Getenv("API_URL")),
-		map[string]any{
-			"email":        email,
-			"accessToken":  token.AccessToken,
-			"refreshToken": token.RefreshToken,
-			"tokenType":    token.TokenType,
-			"expiry":       token.Expiry,
-		},
-		nil,
-	))
+	res, err := lib.Fetch(
+		&http.Client{},
+		lib.NewFetchRequest(
+			"POST",
+			fmt.Sprintf("%s/user", os.Getenv("API_URL")),
+			map[string]any{
+				"email":        email,
+				"accessToken":  token.AccessToken,
+				"refreshToken": token.RefreshToken,
+				"tokenType":    token.TokenType,
+				"expiry":       token.Expiry,
+			},
+			nil,
+		))
 	if err != nil {
 		return err
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		return fmt.Errorf("invalid status code, received %s\n", res.Status)
+		return fmt.Errorf("invalid status code, received %s", res.Status)
 	}
 	return nil
 }
@@ -103,17 +108,19 @@ func (m Model) Register(ctx context.Context) error {
 		return errors.New("could not retrieve access token")
 	}
 
-	res, err := lib.Fetch(lib.NewFetchRequest(
-		http.MethodPost,
-		"https://gmail.googleapis.com/gmail/v1/users/me/watch",
-		map[string]any{
-			"labelIds":  []string{"INBOX"},
-			"topicName": "projects/trigger-436310/topics/Trigger",
-		},
-		map[string]string{
-			"Authorization": fmt.Sprintf("Bearer %s", accessToken),
-			"Content-Type":  "application/json",
-		}))
+	res, err := lib.Fetch(
+		&http.Client{},
+		lib.NewFetchRequest(
+			http.MethodPost,
+			"https://gmail.googleapis.com/gmail/v1/users/me/watch",
+			map[string]any{
+				"labelIds":  []string{"INBOX"},
+				"topicName": "projects/trigger-436310/topics/Trigger",
+			},
+			map[string]string{
+				"Authorization": fmt.Sprintf("Bearer %s", accessToken),
+				"Content-Type":  "application/json",
+			}))
 	if err != nil {
 		return err
 	}

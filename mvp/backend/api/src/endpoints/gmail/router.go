@@ -45,5 +45,6 @@ func Router(ctx context.Context) (*http.ServeMux, error) {
 	router.HandleFunc("GET /auth/gmail/provider", handler.AuthProvider)
 	router.HandleFunc("GET /auth/gmail/callback", handler.AuthCallback)
 	router.Handle("GET /gmail/register", authMiddleware(http.HandlerFunc(handler.Register)))
+	router.HandleFunc("POST /gmail/webhook", handler.Webhook)
 	return router, nil
 }

@@ -75,6 +75,9 @@ func (h *Handler) Webhook(res http.ResponseWriter, req *http.Request) {
 	}
 
 	log.Printf("Webhook triggered, received body=%+v\n", body)
-	h.Service.Webhook(context.WithValue(req.Context(), gmailEventKey, body))
+	err = h.Service.Webhook(context.WithValue(req.Context(), gmailEventKey, body))
+	if err != nil {
+		fmt.Println(err)
+	}
 	res.WriteHeader(http.StatusOK)
 }
