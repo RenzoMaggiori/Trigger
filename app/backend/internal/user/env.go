@@ -11,11 +11,12 @@ import (
 
 var (
 	errEnvNotFound      string    = "Enviroment argument %s not found"
-	enviromentArguments [4]string = [...]string{
+	enviromentArguments [5]string = [...]string{
 		"MONGO_INITDB_ROOT_USERNAME",
 		"MONGO_INITDB_ROOT_PASSWORD",
 		"MONGO_PORT",
 		"MONGO_HOST",
+		"MONGO_DB",
 	}
 )
 

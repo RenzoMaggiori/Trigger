@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/joho/godotenv"
 	"trigger.com/trigger/internal/user"
 	"trigger.com/trigger/pkg/arguments"
 	"trigger.com/trigger/pkg/middleware"
+	"trigger.com/trigger/pkg/mongodb"
 	"trigger.com/trigger/pkg/router"
 	"trigger.com/trigger/pkg/server"
 )
@@ -28,8 +30,16 @@ func main() {
 		log.Fatal(err)
 	}
 
+	mongoClient, _, err := mongodb.Open(mongodb.ConnectionString())
+	if err != nil {
+		log.Fatal(err)
+	}
+	userCollection := mongoClient.Database(
+		os.Getenv("MONGO_DB"),
+	).Collection("user")
+
 	router, err := router.Create(
-		context.TODO(),
+		context.WithValue(context.TODO(), mongodb.CtxKey, userCollection),
 		user.Router,
 	)
 	if err != nil {
