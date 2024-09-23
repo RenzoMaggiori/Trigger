@@ -1,0 +1,12 @@
+<div class="task-form">
+    <input type="text" [(ngModel)]="newTask.title" placeholder="Enter your task" class="input-field" />
+    <input type="text" [(ngModel)]="newTask.description" placeholder="Enter your task description" class="input-field" />
+    <!-- <input type="date" [(ngModel)]="newTask.due_date" class="input-field" /> -->
+    <input type="date" [(ngModel)]="newTask.due_date" [value]="(newTask.due_date | date:'yyyy-MM-dd')" />
+    <select [(ngModel)]="newTask.status" class="input-field">
+        <option value="todo">To Do</option>
+        <option value="doing">Doing</option>
+        <option value="done">Done</option>
+    </select>
+    <button (click)="addTask()" class="add-task-button">Add Task</button>
+</div>

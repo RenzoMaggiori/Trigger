@@ -1,0 +1,59 @@
+services:
+  frontend:
+    container_name: frontend-poc-angular
+    build:
+      context: ./
+      dockerfile: ./dockerfiles/front.Dockerfile
+    volumes:
+      - ./frontend/todo-list:/app
+    ports:
+      - "4200:4200"
+
+  db:
+    container_name: db-poc-sql
+    build:
+      context: ./
+      dockerfile: ./dockerfiles/db.Dockerfile
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    networks:
+      - app-network
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  backend:
+    container_name: backend-poc-express
+    build:
+      context: ./
+      dockerfile: ./dockerfiles/api.Dockerfile
+    ports:
+      - "${PORT}:${PORT}"
+    environment:
+      DB_HOST: db
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE}
+      PORT: ${PORT}
+    depends_on:
+      db:
+        condition: service_healthy
+
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+    driver: local
