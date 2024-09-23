@@ -3,6 +3,8 @@ package user
 import (
 	"fmt"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 /*
@@ -20,7 +22,12 @@ var (
 	}
 )
 
-func Env() error {
+func Env(envPath string) error {
+	err := godotenv.Load(envPath)
+
+	if err != nil {
+		return err
+	}
 	for _, envArg := range enviromentArguments {
 		v := os.Getenv(envArg)
 
@@ -29,6 +36,5 @@ func Env() error {
 		}
 		return fmt.Errorf(errEnvNotFound, v)
 	}
-
 	return nil
 }

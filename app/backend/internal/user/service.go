@@ -51,6 +51,7 @@ func (m Model) GetByEmail(email string) (*UserModel, error) {
 
 func (m Model) Add(add *AddUserModel) (*UserModel, error) {
 	ctx := context.TODO()
+	// TODO: encrypt password
 	newUser := UserModel{
 		Id:       primitive.NewObjectID(),
 		Email:    add.Email,
