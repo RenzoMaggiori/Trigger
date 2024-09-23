@@ -23,18 +23,17 @@ func main() {
 		log.Fatal(err)
 	}
 
-	db, err := database.Open(database.ConnectionString())
+	db, ctx, err := database.Open(database.ConnectionString())
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
+	defer db.Disconnect(ctx)
 
-	ctx := context.WithValue(context.Background(), database.CtxKey, db)
-	server, err := server.Create(*args.Port, ctx)
+	server, err := server.Create(8000, context.WithValue(context.Background(), database.CtxKey, db))
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	go server.Start()
-	defer server.Stop()
+	server.Stop()
 }

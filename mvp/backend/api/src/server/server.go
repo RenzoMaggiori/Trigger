@@ -9,15 +9,21 @@ import (
 	"os/signal"
 	"syscall"
 
+	"go.mongodb.org/mongo-driver/mongo"
+	"trigger.com/api/src/auth"
+	"trigger.com/api/src/database"
+	"trigger.com/api/src/endpoints/gmail"
 	"trigger.com/api/src/middleware"
 	"trigger.com/api/src/router"
+	"trigger.com/api/src/service"
 )
 
-type Server struct {
+type server struct {
 	wrapper *http.Server
+	ctx     context.Context
 }
 
-func Create(port int64, ctx context.Context) (*Server, error) {
+func Create(port int64, ctx context.Context) (*server, error) {
 	middleware := middleware.Create(
 		middleware.Cors,
 	)
@@ -26,22 +32,35 @@ func Create(port int64, ctx context.Context) (*Server, error) {
 		return nil, err
 	}
 
-	return &Server{
+	return &server{
 		wrapper: &http.Server{
 			Addr:    fmt.Sprintf(":%d", port),
 			Handler: middleware(router),
 		},
+		ctx: ctx,
 	}, nil
 }
 
-func (s *Server) Start() {
-	fmt.Printf("Listening on %s\n", s.wrapper.Addr)
+func (s *server) Start() {
+	db, ok := s.ctx.Value(database.CtxKey).(*mongo.Client)
+	if !ok {
+		log.Fatal("could not retrieve db from context")
+	}
+
+	go service.New(
+		gmail.Model{
+			Authenticator: auth.New(gmail.AuthConfig()),
+			Mongo:         db,
+		},
+	).Run(s.ctx)
+
+	log.Printf("Listening on http://localhost%s\n", s.wrapper.Addr)
 	if err := s.wrapper.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Could not listen on %s: %v\n", s.wrapper.Addr, err)
 	}
 }
 
-func (s *Server) Stop() {
+func (s *server) Stop() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
