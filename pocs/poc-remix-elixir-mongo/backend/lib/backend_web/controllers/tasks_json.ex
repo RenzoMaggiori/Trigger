@@ -38,6 +38,7 @@ defmodule BackendWeb.TasksJSON do
   # Private helper function for rendering a single task's data
   defp data(%Task{} = datum) do
     %{
+      id: datum.id,
       status: datum.status,
       date: datum.date,
       task_name: datum.task_name,
