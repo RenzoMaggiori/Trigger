@@ -37,7 +37,7 @@ func (m Model) GetByEmail(email string) (*User, error) {
 
 func (m Model) UpdateByEmail(email string, updates UpdateUser) (*primitive.ObjectID, error) {
 	userCollection := m.Mongo.Database(os.Getenv("MONGO_DB")).Collection("user")
-	result, err := userCollection.UpdateOne(context.TODO(), bson.D{{Key: "email", Value: email}}, updates)
+	result, err := userCollection.UpdateOne(context.TODO(), bson.D{{Key: "email", Value: email}}, bson.D{{Key: "$set", Value: updates}})
 	if err != nil {
 		return nil, err
 	}
