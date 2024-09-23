@@ -214,7 +214,7 @@ func (m Model) Webhook(ctx context.Context) error {
 	}
 	fmt.Printf("user %v\n", u)
 
-	_, err = user.Model{Mongo: m.Mongo}.UpdateByEmail(u.Email, user.UpdateUser{LastHistoryId: eventData.HistoryId})
+	err = user.Model{Mongo: m.Mongo}.UpdateByEmail(u.Email, user.UpdateUser{LastHistoryId: eventData.HistoryId})
 	if err != nil {
 		return err
 	}

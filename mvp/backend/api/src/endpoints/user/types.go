@@ -22,7 +22,7 @@ type UpdateUser struct {
 
 type Service interface {
 	Add(User) (*primitive.ObjectID, error)
-	UpdateByEmail(string, UpdateUser) (*primitive.ObjectID, error)
+	UpdateByEmail(string, UpdateUser) error
 	GetByEmail(string) (*User, error)
 }
 
