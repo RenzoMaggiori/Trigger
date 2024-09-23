@@ -23,6 +23,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	err = user.Env()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	router, err := router.Create(
 		context.TODO(),
 		user.Router,
