@@ -54,50 +54,72 @@ func (m Model) GetUserFromGoogle(token *oauth2.Token) (*GmailUser, error) {
 }
 
 func (m Model) GetUserFromDbByEmail(email string) (*user.User, error) {
-	res, err := lib.Fetch(
-		&http.Client{},
-		lib.NewFetchRequest(
-			"GET",
-			fmt.Sprintf("%s/user/%s", os.Getenv("API_URL"), email),
-			nil,
-			nil,
-		))
+	// res, err := lib.Fetch(
+	// 	&http.Client{},
+	// 	lib.NewFetchRequest(
+	// 		"GET",
+	// 		fmt.Sprintf("%s/user/%s", os.Getenv("API_URL"), email),
+	// 		nil,
+	// 		nil,
+	// 	))
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// defer res.Body.Close()
+	// if res.StatusCode != http.StatusOK {
+	// 	return nil, fmt.Errorf("invalid status code, received %s", res.Status)
+	// }
+	//
+	// user, err := lib.JsonDecode[user.User](res.Body)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// return &user, nil
+	um := user.Model{
+		Mongo: m.Mongo,
+	}
+	user, err := um.GetByEmail(email)
 	if err != nil {
 		return nil, err
 	}
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("invalid status code, received %s", res.Status)
-	}
-
-	user, err := lib.JsonDecode[user.User](res.Body)
-	if err != nil {
-		return nil, err
-	}
-	return &user, nil
+	return user, nil
 }
 
 func (m Model) AddUserToDb(email string, token *oauth2.Token) error {
-	res, err := lib.Fetch(
-		&http.Client{},
-		lib.NewFetchRequest(
-			"POST",
-			fmt.Sprintf("%s/user", os.Getenv("API_URL")),
-			map[string]any{
-				"email":        email,
-				"accessToken":  token.AccessToken,
-				"refreshToken": token.RefreshToken,
-				"tokenType":    token.TokenType,
-				"expiry":       token.Expiry,
-			},
-			nil,
-		))
+	// res, err := lib.Fetch(
+	// 	&http.Client{},
+	// 	lib.NewFetchRequest(
+	// 		"POST",
+	// 		fmt.Sprintf("%s/user", os.Getenv("API_URL")),
+	// 		map[string]any{
+	// 			"email":        email,
+	// 			"accessToken":  token.AccessToken,
+	// 			"refreshToken": token.RefreshToken,
+	// 			"tokenType":    token.TokenType,
+	// 			"expiry":       token.Expiry,
+	// 		},
+	// 		nil,
+	// 	))
+	// if err != nil {
+	// 	return err
+	// }
+	// defer res.Body.Close()
+	// if res.StatusCode != http.StatusOK {
+	// 	return fmt.Errorf("invalid status code, received %s", res.Status)
+	// }
+	// return nil
+	um := user.Model{
+		Mongo: m.Mongo,
+	}
+	_, err := um.Add(user.User{
+		Email:        email,
+		AccessToken:  token.AccessToken,
+		RefreshToken: token.RefreshToken,
+		TokenType:    token.TokenType,
+		Expiry:       token.Expiry,
+	})
 	if err != nil {
 		return err
-	}
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		return fmt.Errorf("invalid status code, received %s", res.Status)
 	}
 	return nil
 }
