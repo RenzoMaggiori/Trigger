@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 
 	"golang.org/x/oauth2"
@@ -178,6 +177,7 @@ func fetchUserHistory(eventData EventData, client *http.Client) (bool, error) {
 	}
 
 	// * Here we check if the history list we got has at the start an Added message (new email received)
+	fmt.Printf("history %+v\n", history)
 	if len(history.History) > 0 {
 		firstHistoryItem := history.History[0]
 
@@ -215,6 +215,8 @@ func (m Model) Webhook(ctx context.Context) error {
 		return err
 	}
 
+	fmt.Printf("user %v\n", user)
+
 	token := oauth2.Token{
 		AccessToken:  user.AccessToken,
 		RefreshToken: user.RefreshToken,
@@ -227,9 +229,16 @@ func (m Model) Webhook(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	if !newEmail {
+		return nil
+	}
+
+	fmt.Printf("newEmail %v\n", newEmail)
+
 	// * If we have a new email we send an email as a response
-	if newEmail {
-		m.Send(client, eventData.EmailAddress, eventData.EmailAddress, "New Message", "You received a new email, go check it")
+	err = m.Send(client, eventData.EmailAddress, eventData.EmailAddress, "New Message", "You received a new email, go check it")
+	if err != nil {
+		return err
 	}
 	return nil
 }
