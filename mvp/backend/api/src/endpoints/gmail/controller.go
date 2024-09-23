@@ -69,6 +69,7 @@ func (h *Handler) Register(res http.ResponseWriter, req *http.Request) {
 func (h *Handler) Webhook(res http.ResponseWriter, req *http.Request) {
 	body, err := lib.JsonDecode[Event](req.Body)
 	if err != nil {
+		log.Println(err)
 		http.Error(res, "internal server error", http.StatusInternalServerError)
 		return
 	}

@@ -126,31 +126,31 @@ func (m Model) Register(ctx context.Context) error {
 }
 
 func fetchUserHistory(eventData EventData, client *http.Client) (bool, error) {
-	url := fmt.Sprintf("https://gmail.googleapis.com/gmail/v1/users/me/history?startHistoryId=%d", eventData.HistoryId)
-
-	req, err := http.NewRequest("GET", url, nil)
+	res, err := lib.Fetch(
+		client,
+		lib.NewFetchRequest(
+			"GET",
+			fmt.Sprintf("https://gmail.googleapis.com/gmail/v1/users/me/history?startHistoryId=%d", eventData.HistoryId),
+			nil,
+			nil,
+		))
 	if err != nil {
 		return false, fmt.Errorf("failed to fetch Gmail history: %v", err)
 	}
+	defer res.Body.Close()
 
-	resp, err := client.Do(req)
+	if res.StatusCode != http.StatusOK {
+		return false, fmt.Errorf("failed to fetch Gmail history, got status: %s", res.Status)
+	}
+
+	history, err := lib.JsonDecode[HistoryList](res.Body)
 	if err != nil {
-		return false, fmt.Errorf("failed to fetch Gmail history: %v", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return false, fmt.Errorf("failed to fetch Gmail history, got status: %s", resp.Status)
-	}
-
-	var historyResponse HistoryList
-	if err := json.NewDecoder(resp.Body).Decode(&historyResponse); err != nil {
 		return false, fmt.Errorf("failed to decode Gmail history response: %v", err)
 	}
 
 	// * Here we check if the history list we got has at the start an Added message (new email received)
-	if len(historyResponse.History) > 0 {
-		firstHistoryItem := historyResponse.History[0]
+	if len(history.History) > 0 {
+		firstHistoryItem := history.History[0]
 
 		if len(firstHistoryItem.MessagesAdded) > 0 {
 			return true, nil

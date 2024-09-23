@@ -23,7 +23,7 @@ func NewFetchRequest(method string, url string, body map[string]any, headers map
 	}
 }
 
-func Fetch(request *FetchRequest) (*http.Response, error) {
+func Fetch(client *http.Client, request *FetchRequest) (*http.Response, error) {
 	var body io.Reader
 
 	if request.Body != nil {
@@ -45,7 +45,6 @@ func Fetch(request *FetchRequest) (*http.Response, error) {
 		req.Header.Set(k, v)
 	}
 
-	client := http.Client{}
 	res, err := client.Do(req)
 	if err != nil {
 		return nil, err
