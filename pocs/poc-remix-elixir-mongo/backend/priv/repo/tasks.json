@@ -1,0 +1,72 @@
+[
+    {
+        "task_name": "Cooking",
+        "date": "12-09-2024",
+        "description": "Cook the vegetables",
+        "status": "pending",
+        "created_at": "11-09-2024"
+    },
+    {
+        "task_name": "Grocery Shopping",
+        "date": "13-09-2024",
+        "description": "Buy ingredients for the week",
+        "status": "pending",
+        "created_at": "11-09-2024"
+    },
+    {
+        "task_name": "Exercise",
+        "date": "14-09-2024",
+        "description": "Morning workout at the gym",
+        "status": "pending",
+        "created_at": "12-09-2024"
+    },
+    {
+        "task_name": "Work Meeting",
+        "date": "15-09-2024",
+        "description": "Discuss project status with the team",
+        "status": "pending",
+        "created_at": "13-09-2024"
+    },
+    {
+        "task_name": "Laundry",
+        "date": "16-09-2024",
+        "description": "Wash clothes and fold them",
+        "status": "pending",
+        "created_at": "14-09-2024"
+    },
+    {
+        "task_name": "Doctor Appointment",
+        "date": "17-09-2024",
+        "description": "Visit the doctor for a regular checkup",
+        "status": "pending",
+        "created_at": "16-09-2024"
+    },
+    {
+        "task_name": "Study",
+        "date": "18-09-2024",
+        "description": "Prepare for the upcoming exam",
+        "status": "pending",
+        "created_at": "17-09-2024"
+    },
+    {
+        "task_name": "House Cleaning",
+        "date": "19-09-2024",
+        "description": "Clean the living room and kitchen",
+        "status": "pending",
+        "created_at": "18-09-2024"
+    },
+    {
+        "task_name": "Car Maintenance",
+        "date": "20-09-2024",
+        "description": "Get the car serviced",
+        "status": "pending",
+        "created_at": "19-09-2024"
+    },
+    {
+        "task_name": "Dinner with Friends",
+        "date": "21-09-2024",
+        "description": "Catch up with friends over dinner",
+        "status": "pending",
+        "created_at": "20-09-2024"
+    }
+]

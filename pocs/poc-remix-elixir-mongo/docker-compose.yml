@@ -1,0 +1,30 @@
+services:
+  backend:
+    container_name: backend-container
+    build:
+      context: ./backend/
+      dockerfile: Dockerfile
+    volumes:
+      - type: bind
+        source: ./backend/
+        target: /app
+    ports:
+      - "4000:4000"
+    networks:
+      - backend
+
+  frontend:
+    container_name: frontend-container-poc-remix
+    build:
+      context: ./frontend/
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "3000:3000"
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
