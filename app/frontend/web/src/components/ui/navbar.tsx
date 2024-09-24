@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import { Button } from './button'
 import Link from 'next/link'
 import { LogoIcon } from './logoIcon'
+import { IoMenu } from "react-icons/io5";
 
 export function Navbar() {
     const [loggedIn, setLoggedIn] = useState(false);
@@ -14,17 +15,14 @@ export function Navbar() {
     ]
 
     return (
-        <nav className="flex bg-white border-gray-500 dark:bg-zinc-950">
+        <nav className="flex bg-white border-gray-500 dark:bg-zinc-950 h-16">
             <div className="w-full flex flex-nowrap items-center p-4">
                 <a href="/" className="flex items-center space-x-3 rtl:space-x-reverse absolute">
                     <LogoIcon className="h-12 w-[200px] dark:fill-white" />
                 </a>
-                <button data-collapse-toggle="navbar-default" type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-default" aria-expanded="false">
-                    <span className="sr-only">Open main menu</span>
-                    <svg className="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
-                        <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 1h15M1 7h15M1 13h15" />
-                    </svg>
-                </button>
+                <Button type='button' className="absolute right-2 md:hidden px-2" variant="ghost">
+                    <IoMenu className='h-7 w-7'/>
+                </Button>
                 <div className="hidden w-full md:block md:w-auto mx-auto">
                     <div className='flex flex-row'>
                         {navbarItems.map((item, key) => (
@@ -37,6 +35,14 @@ export function Navbar() {
                             </div>
                         ))}
                     </div>
+                </div>
+                <div className='absolute gap-x-4 right-6 hidden md:flex'>
+                    <Button className='rounded-full border-black text-lg' variant="outline">
+                        Log In
+                    </Button>
+                    <Button className='rounded-full bg-orange-600 hover:bg-orange-700 text-lg'>
+                        Sign Up
+                    </Button>
                 </div>
             </div>
         </nav>

@@ -3,7 +3,6 @@ import WordFadeIn from "@/components/magicui/word-fade-in";
 import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import AutoScroll from "embla-carousel-auto-scroll";
-import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import { FcGoogle } from "react-icons/fc";
@@ -27,7 +26,7 @@ export default function Home() {
   ]
 
   return (
-    <div className="flex flex-1 w-full bg-gray-200 dark:bg-zinc-900 justify-center">
+    <div className="flex flex-1 w-full justify-center">
       <div className="flex flex-col items-center justify-start text-center text-black dark:text-white pt-20 gap-y-5 w-full">
         <div className="text-5xl font-bold mb-4">
           <WordFadeIn words="Connect and Automate Effortlessly" as="h1" />
