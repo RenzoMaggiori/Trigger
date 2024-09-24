@@ -34,7 +34,7 @@ func Env(envPath string) error {
 		if v != "" {
 			continue
 		}
-		return fmt.Errorf(errEnvNotFound, v)
+		return fmt.Errorf(errEnvNotFound, envArg)
 	}
 	return nil
 }
