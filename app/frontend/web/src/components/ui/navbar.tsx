@@ -1,8 +1,11 @@
-import React from 'react'
+"use client"
+import React, { useState } from 'react'
 import { Button } from './button'
 import Link from 'next/link'
+import { LogoIcon } from './logoIcon'
 
-export function navbar() {
+export function Navbar() {
+    const [loggedIn, setLoggedIn] = useState(false);
 
     const navbarItems = [
         { name: "Home", href: "/home" },
@@ -14,7 +17,7 @@ export function navbar() {
         <nav className="flex bg-white border-gray-500 dark:bg-zinc-950">
             <div className="w-full flex flex-nowrap items-center p-4">
                 <a href="/" className="flex items-center space-x-3 rtl:space-x-reverse absolute">
-                    {/* <LogoIcon className="h-12 w-[200px] dark:fill-white" /> */}
+                    <LogoIcon className="h-12 w-[200px] dark:fill-white" />
                 </a>
                 <button data-collapse-toggle="navbar-default" type="button" className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-default" aria-expanded="false">
                     <span className="sr-only">Open main menu</span>
@@ -26,7 +29,7 @@ export function navbar() {
                     <div className='flex flex-row'>
                         {navbarItems.map((item, key) => (
                             <div key={key}>
-                                <Button asChild>
+                                <Button asChild variant="ghost" className='text-xl'>
                                     <Link href={item.href}>
                                         {item.name}
                                     </Link>
