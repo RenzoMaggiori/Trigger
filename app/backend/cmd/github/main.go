@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"trigger.com/trigger/internal/github"
-	"trigger.com/trigger/internal/github/reaction"
-	"trigger.com/trigger/internal/github/trigger"
+	"trigger.com/trigger/internal/gmail/reaction"
+	"trigger.com/trigger/internal/gmail/trigger"
 	"trigger.com/trigger/pkg/arguments"
 	"trigger.com/trigger/pkg/middleware"
 	"trigger.com/trigger/pkg/router"

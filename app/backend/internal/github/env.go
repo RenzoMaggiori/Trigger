@@ -8,13 +8,20 @@ import (
 )
 
 /*
-** This defines the expected enviroment variables for the Github Service
+** This defines the expected enviroment variables for the Auth Service
  */
 
 var (
 	errEnvNotFound      string    = "Enviroment argument %s not found"
-	enviromentArguments [1]string = [...]string{
-		"GITHUB_WEBHOOK_URL",
+	enviromentArguments [8]string = [...]string{
+		"MONGO_INITDB_ROOT_USERNAME",
+		"MONGO_INITDB_ROOT_PASSWORD",
+		"MONGO_PORT",
+		"MONGO_HOST",
+		"MONGO_DB",
+		"GITHUB_CLIENT_ID",
+		"GITHUB_CLIENT_SECRET",
+		"GITHUB_SERVICE_BASE_URL",
 	}
 )
 
