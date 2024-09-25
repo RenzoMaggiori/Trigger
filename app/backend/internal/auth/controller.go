@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,6 +12,10 @@ import (
 
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/fetch"
+)
+
+var (
+	errPasswordNotFound error = errors.New("password not found")
 )
 
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
@@ -41,6 +46,11 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "unable to proccess body", http.StatusUnprocessableEntity)
+		return
+	}
+	if newUser.User.Password == nil {
+		log.Println(errPasswordNotFound)
+		http.Error(w, errPasswordNotFound.Error(), http.StatusUnprocessableEntity)
 		return
 	}
 
@@ -81,7 +91,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	))
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "unable to proccess body", http.StatusUnprocessableEntity)
+		http.Error(w, "unable to login user", http.StatusInternalServerError)
 		return
 	}
 

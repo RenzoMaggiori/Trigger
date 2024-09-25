@@ -24,8 +24,6 @@ type Model struct {
 	Collection *mongo.Collection
 }
 
-var UserCollectionCtxKey = "UserCollectionCtxKey"
-
 type UserModel struct {
 	Id       primitive.ObjectID `json:"id" bson:"_id"`
 	Email    string             `json:"email" bson:"email"`

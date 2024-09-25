@@ -23,7 +23,7 @@ func Create(claims map[string]string, secret string) (string, error) {
 		jwt.SigningMethodHS256,
 		tokenClaims,
 	)
-	rawToken, err := token.SignedString(secret)
+	rawToken, err := token.SignedString([]byte(secret))
 	if err != nil {
 		return "", err
 	}
@@ -32,7 +32,7 @@ func Create(claims map[string]string, secret string) (string, error) {
 
 func Verify(rawToken string, secret string) error {
 	token, err := jwt.Parse(rawToken, func(_ *jwt.Token) (interface{}, error) {
-		return secret, nil
+		return []byte(secret), nil
 	})
 	if err != nil {
 		return err

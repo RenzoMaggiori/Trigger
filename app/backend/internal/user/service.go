@@ -51,6 +51,7 @@ func (m Model) GetByEmail(email string) (*UserModel, error) {
 }
 
 func (m Model) Add(add *AddUserModel) (*UserModel, error) {
+	// TODO: check if user already exists
 	ctx := context.TODO()
 	var err error = nil
 	var hashedPassword string = ""
