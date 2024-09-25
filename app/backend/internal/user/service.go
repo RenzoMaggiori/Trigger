@@ -6,6 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"trigger.com/trigger/pkg/mongodb"
 )
 
 func (m Model) Get() ([]UserModel, error) {
@@ -51,14 +52,22 @@ func (m Model) GetByEmail(email string) (*UserModel, error) {
 
 func (m Model) Add(add *AddUserModel) (*UserModel, error) {
 	ctx := context.TODO()
-	// TODO: encrypt password
+	var err error = nil
+	var hashedPassword string = ""
+	if add.Password != nil {
+		hashedPassword, err = mongodb.HashPassword(*add.Password)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	newUser := UserModel{
 		Id:       primitive.NewObjectID(),
 		Email:    add.Email,
-		Password: add.Password,
+		Password: &hashedPassword,
 		Role:     "default",
 	}
-	_, err := m.Collection.InsertOne(ctx, newUser)
+	_, err = m.Collection.InsertOne(ctx, newUser)
 
 	if err != nil {
 		return nil, err
