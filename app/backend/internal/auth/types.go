@@ -8,14 +8,25 @@ import (
 
 type Service interface {
 	authenticator.Authenticator
+	GetToken(string) (string, error)
+	VerifyToken(string) error
 }
 
 type Handler struct {
 	Service
 }
 
+type AuthType int64
+
+const (
+	Undefined AuthType = iota
+	Credentials
+	OAuth
+)
+
 type Model struct {
-	DB *mongo.Database
+	DB       *mongo.Database
+	authType AuthType
 }
 
 var CredentialsCtxKey = "CredentialsCtxKey"

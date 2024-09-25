@@ -13,6 +13,7 @@ func Router(ctx context.Context) (*http.ServeMux, error) {
 
 	router.Handle("POST /login", http.HandlerFunc(handler.Login))
 	router.Handle("POST /register", http.HandlerFunc(handler.Register))
+	router.Handle("POST /verify", http.HandlerFunc(handler.Verify))
 
 	return router, nil
 }
