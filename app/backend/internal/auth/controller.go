@@ -10,7 +10,7 @@ import (
 )
 
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
-	credentials, err := decode.Json[LoginModel](r.Body)
+	credentials, err := decode.Json[CredentialsModel](r.Body)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "unable to proccess body", http.StatusUnprocessableEntity)

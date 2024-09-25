@@ -6,7 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"trigger.com/trigger/pkg/mongodb"
+	"trigger.com/trigger/pkg/hash"
 )
 
 func (m Model) Get() ([]UserModel, error) {
@@ -55,7 +55,7 @@ func (m Model) Add(add *AddUserModel) (*UserModel, error) {
 	var err error = nil
 	var hashedPassword string = ""
 	if add.Password != nil {
-		hashedPassword, err = mongodb.HashPassword(*add.Password)
+		hashedPassword, err = hash.Password(*add.Password)
 		if err != nil {
 			return nil, err
 		}
