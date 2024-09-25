@@ -3,10 +3,12 @@ package auth
 import (
 	"context"
 	"errors"
+	"os"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"trigger.com/trigger/internal/user"
 	"trigger.com/trigger/pkg/hash"
+	"trigger.com/trigger/pkg/jwt"
 )
 
 var (
@@ -31,6 +33,14 @@ func (m Model) Login(ctx context.Context) (string, error) {
 		return "", err
 	}
 
-	// TODO: create access token
-	return "", nil
+	token, err := jwt.Create(
+		map[string]string{
+			"email": credentials.Email,
+		},
+		os.Getenv("TOKEN_SECRET"),
+	)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
 }
