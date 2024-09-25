@@ -14,6 +14,11 @@ export function Navbar() {
         { name: "Triggers", href: "/triggers" },
     ]
 
+    const authButtons = [
+        {name: "Log In", href: "/auth?type=login", className: "rounded-full border-black text-lg", variant: "outline"},
+        {name: "Sign Up", href: "/auth?type=signup", className: "rounded-full bg-orange-600 hover:bg-orange-700 text-lg", variant: "default"},
+    ]
+
     return (
         <nav className="flex bg-white border-gray-500 dark:bg-zinc-950 h-16">
             <div className="w-full flex flex-nowrap items-center p-4">
@@ -37,12 +42,13 @@ export function Navbar() {
                     </div>
                 </div>
                 <div className='absolute gap-x-4 right-6 hidden md:flex'>
-                    <Button className='rounded-full border-black text-lg' variant="outline">
-                        Log In
-                    </Button>
-                    <Button className='rounded-full bg-orange-600 hover:bg-orange-700 text-lg'>
-                        Sign Up
-                    </Button>
+                    {authButtons.map((item, key) => (
+                        <Button key={key} className={item.className} variant={item.variant as "outline" | "default" | "link" | "destructive" | "secondary" | "ghost"} asChild>
+                            <Link href={item.href}>
+                                {item.name}
+                            </Link>
+                        </Button>
+                    ))}
                 </div>
             </div>
         </nav>

@@ -11,8 +11,7 @@ import { FaDiscord } from "react-icons/fa";
 import { IoLogoGithub } from "react-icons/io";
 import { FaSlack } from "react-icons/fa6";
 import { PiMicrosoftOutlookLogo } from "react-icons/pi";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { LogoIcon } from "@/components/ui/logoIcon";
+import { Card, CardHeader } from "@/components/ui/card";
 import { Footer } from "@/components/ui/footer";
 
 export default function Home() {

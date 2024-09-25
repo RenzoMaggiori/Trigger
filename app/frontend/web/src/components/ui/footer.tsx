@@ -41,7 +41,7 @@ export const Footer = () => {
 
                 <div className="flex space-x-4 mt-4 md:mt-0">
                     {footerButtons.map((item, index) => (
-                        <Button variant="ghost" className={`${item.hover} rounded-full bg-zinc-500 text-zinc-300`} asChild>
+                        <Button key={index} variant="ghost" className={`${item.hover} rounded-full bg-zinc-500 text-zinc-300`} asChild>
                             <Link href={`${item.href}`}>
                                 {item.icon}
                             </Link>
