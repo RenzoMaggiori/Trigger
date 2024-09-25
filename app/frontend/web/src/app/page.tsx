@@ -11,6 +11,9 @@ import { FaDiscord } from "react-icons/fa";
 import { IoLogoGithub } from "react-icons/io";
 import { FaSlack } from "react-icons/fa6";
 import { PiMicrosoftOutlookLogo } from "react-icons/pi";
+import { Card, CardContent } from "@/components/ui/card";
+import { LogoIcon } from "@/components/ui/logoIcon";
+import { Footer } from "@/components/ui/footer";
 
 export default function Home() {
   const plugin = React.useRef(
@@ -64,8 +67,13 @@ export default function Home() {
             </CarouselContent>
           </Carousel>
         </div>
+        <Card className="flex h-[800px] w-2/3 mt-10 items-center justify-center">
+          <CardContent>
+            video
+          </CardContent>
+        </Card>
+        <Footer />
       </div>
-
     </div>
   );
 }
