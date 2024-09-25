@@ -56,7 +56,7 @@ export default function Home() {
             onMouseLeave={() => plugin.current.play(0)}
           >
             <CarouselContent className="flex">
-              {services.map((item, index) => (
+              {services.concat(services).map((item, index) => (
                 <CarouselItem key={index} className="basis-1/2 md:basis-1/4">
                   <div className="p-1">
                     <span className="text-xl md:text-3xl font-semibold flex items-center justify-center text-muted-foreground">{item.icon}{item.name}</span>
