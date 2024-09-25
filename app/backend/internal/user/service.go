@@ -2,11 +2,16 @@ package user
 
 import (
 	"context"
+	"errors"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"trigger.com/trigger/pkg/hash"
+)
+
+var (
+	errUserAlreadyExists error = errors.New("user already exists")
 )
 
 func (m Model) Get() ([]UserModel, error) {
@@ -51,9 +56,12 @@ func (m Model) GetByEmail(email string) (*UserModel, error) {
 }
 
 func (m Model) Add(add *AddUserModel) (*UserModel, error) {
-	// TODO: check if user already exists
+	userExists, err := m.GetByEmail(add.Email)
+	if userExists != nil {
+		return nil, errUserAlreadyExists
+	}
+
 	ctx := context.TODO()
-	var err error = nil
 	var hashedPassword string = ""
 	if add.Password != nil {
 		hashedPassword, err = hash.Password(*add.Password)
