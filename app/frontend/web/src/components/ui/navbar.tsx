@@ -21,7 +21,7 @@ export function Navbar() {
     ]
 
     return (
-        <nav className="flex bg-white border-gray-500 dark:bg-zinc-950 h-16">
+        <nav className="flex bg-white border-gray-500 dark:bg-zinc-950 min-h-16">
             <div className="w-full flex flex-nowrap items-center p-4">
                 <a href="/" className="flex items-center space-x-3 rtl:space-x-reverse absolute">
                     <LogoIcon className="h-12 w-[200px] dark:fill-white" />
