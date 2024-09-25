@@ -13,8 +13,6 @@ type Handler struct {
 	secret string
 }
 
-type TokenCtx string
-
 func Auth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		res, err := fetch.Fetch(

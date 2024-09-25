@@ -3,7 +3,7 @@ package auth
 import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"trigger.com/trigger/internal/user"
-	"trigger.com/trigger/pkg/authenticator"
+	"trigger.com/trigger/pkg/auth/authenticator"
 )
 
 type Service interface {
@@ -29,7 +29,9 @@ type Model struct {
 	authType AuthType
 }
 
-var CredentialsCtxKey = "CredentialsCtxKey"
+type CredentialsCtx string
+
+const CredentialsCtxKey CredentialsCtx = CredentialsCtx("CredentialsCtxKey")
 
 type CredentialsModel struct {
 	Email    string `json:"email"`
