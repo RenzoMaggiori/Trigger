@@ -9,13 +9,13 @@ import (
 )
 
 var (
-	collectionNotFoundErr error = errors.New("could not find user mongo colleciton")
+	errCollectionNotFound error = errors.New("could not find user mongo colleciton")
 )
 
 func Router(ctx context.Context) (*http.ServeMux, error) {
 	userCollection, ok := ctx.Value(UserCollectionCtxKey).(*mongo.Collection)
 	if !ok {
-		return nil, collectionNotFoundErr
+		return nil, errCollectionNotFound
 	}
 
 	router := http.NewServeMux()
