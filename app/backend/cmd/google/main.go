@@ -14,6 +14,8 @@ import (
 	"trigger.com/trigger/pkg/server"
 )
 
+const providerKey = "provider"
+
 func main() {
 	args, err := arguments.Command()
 	if err != nil {
@@ -31,8 +33,8 @@ func main() {
 		"http://localhost:8000/api/auth/gmail/callback"))
 
 	router, err := router.Create(
-		context.TODO(),
-		google.Router,
+		context.WithValue(context.TODO(), providerKey, google.Model{}),
+		multiprovider.GothRouter,
 	)
 	if err != nil {
 		log.Fatal(err)

@@ -1,6 +1,9 @@
 package google
 
-import "context"
+import (
+	"context"
+	"fmt"
+)
 
 const (
 	key    = "randomString"
@@ -10,5 +13,6 @@ const (
 
 func (m Model) Login(ctx context.Context) (string, error) {
 
+	fmt.Println("ASdasdsad")
 	return "", nil
 }
