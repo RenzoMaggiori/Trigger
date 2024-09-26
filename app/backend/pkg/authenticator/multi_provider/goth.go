@@ -1,7 +1,6 @@
 package multiprovider
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 
@@ -28,7 +27,6 @@ func CreateMultiProvider(providers ...goth.Provider) {
 	store.MaxAge(int(maxAge64))
 	store.Options.Path = "/"
 	store.Options.HttpOnly = true
-	fmt.Println(isProd)
 	store.Options.Secure = isProd
 
 	gothic.Store = store
