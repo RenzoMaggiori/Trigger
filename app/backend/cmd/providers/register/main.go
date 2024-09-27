@@ -9,7 +9,6 @@ import (
 	googleAuth "github.com/markbates/goth/providers/google"
 
 	"trigger.com/trigger/internal/providers/register"
-	"trigger.com/trigger/internal/providers/register/github"
 	"trigger.com/trigger/internal/providers/register/google"
 	"trigger.com/trigger/pkg/arguments"
 	gothProviders "trigger.com/trigger/pkg/authenticator/providers"
@@ -39,11 +38,12 @@ func main() {
 			os.Getenv("GITHUB_SECRET"),
 			"http://localhost:8080/api/github/register/callback"),
 	)
+
 	router, err := router.Create(
 		context.TODO(),
-		register.Router,
 		google.Router,
-		github.Router,
+		register.Router,
+		//github.Router,
 	)
 	if err != nil {
 		log.Fatal(err)

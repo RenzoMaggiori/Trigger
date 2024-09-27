@@ -7,11 +7,8 @@ import (
 	"github.com/markbates/goth/gothic"
 )
 
-type contextKey string
-
-const providerKey contextKey = "provider"
-
-func (h *Handler) Auth(w http.ResponseWriter, r *http.Request) {
+// No need to call Auth from a Handler
+func Auth(w http.ResponseWriter, r *http.Request) {
 	// try to get the user without re-authenticating
 	// provider := r.URL.Query().Get("provider")
 	// r = r.WithContext(context.WithValue(context.Background(), providerKey, provider))
