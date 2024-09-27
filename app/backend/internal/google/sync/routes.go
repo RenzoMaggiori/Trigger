@@ -7,7 +7,7 @@ import (
 	"trigger.com/trigger/pkg/authenticator/providers"
 )
 
-func ProviderRouter(ctx context.Context) (*http.ServeMux, error) {
+func Router(ctx context.Context) (*http.ServeMux, error) {
 	router := http.NewServeMux()
 
 	handler := providers.Handler{
