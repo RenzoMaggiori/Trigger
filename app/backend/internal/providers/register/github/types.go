@@ -1,4 +1,4 @@
-package register
+package github
 
 type Model struct {
 }

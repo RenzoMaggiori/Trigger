@@ -7,7 +7,8 @@ import (
 	"github.com/markbates/goth/gothic"
 )
 
-func (h *Handler) Auth(w http.ResponseWriter, r *http.Request) {
+// No need to call Auth from a Handler
+func Auth(w http.ResponseWriter, r *http.Request) {
 	// try to get the user without re-authenticating
 	if gothUser, err := gothic.CompleteUserAuth(w, r); err == nil {
 		log.Println(gothUser)
