@@ -8,13 +8,11 @@ import (
 	googleAuth "github.com/markbates/goth/providers/google"
 	"trigger.com/trigger/internal/google"
 	"trigger.com/trigger/pkg/arguments"
-	multiprovider "trigger.com/trigger/pkg/authenticator/multi_provider"
+	"trigger.com/trigger/pkg/authenticator/providers"
 	"trigger.com/trigger/pkg/middleware"
 	"trigger.com/trigger/pkg/router"
 	"trigger.com/trigger/pkg/server"
 )
-
-const providerKey = "provider"
 
 func main() {
 	args, err := arguments.Command()
@@ -27,18 +25,19 @@ func main() {
 		log.Fatal(err)
 	}
 
-	multiprovider.CreateMultiProvider(googleAuth.New(
+	providers.CreateProvider(googleAuth.New(
 		os.Getenv("GOOGLE_CLIENT_ID"),
 		os.Getenv("GOOGLE_CLIENT_SECRET"),
-		"http://localhost:8000/api/auth/gmail/callback"))
+		"http://localhost:8000/api/auth/google/callback"))
 
 	router, err := router.Create(
-		context.WithValue(context.TODO(), providerKey, google.Model{}),
-		multiprovider.GothRouter,
+		context.WithValue(context.TODO(), providers.ProviderKey, "google/sync"),
+		providers.ProviderRouter,
 	)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	server, err := server.Create(
 		router,
 		middleware.Create(
