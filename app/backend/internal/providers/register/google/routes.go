@@ -1,4 +1,4 @@
-package sync
+package google
 
 import (
 	"context"
@@ -14,9 +14,9 @@ func Router(ctx context.Context) (*http.ServeMux, error) {
 		Service: Model{},
 	}
 
-	router.Handle("/auth/google/sync", http.HandlerFunc(handler.Auth))
-	router.Handle("/auth/google/callback", http.HandlerFunc(handler.Callback))
-	router.Handle("/auth/google/logout", http.HandlerFunc(handler.Logout))
+	// Prefix routes with /google
+	router.Handle("GET /google/register/callback", http.HandlerFunc(handler.Callback))
+	router.Handle("GET /google/register/logout", http.HandlerFunc(handler.Logout))
 
 	return router, nil
 }

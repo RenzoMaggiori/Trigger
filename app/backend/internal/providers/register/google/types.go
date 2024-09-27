@@ -1,4 +1,4 @@
-package sync
+package google
 
 type Model struct {
 }

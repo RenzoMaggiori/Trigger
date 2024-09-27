@@ -1,4 +1,4 @@
-package register
+package github
 
 import (
 	"context"
@@ -14,9 +14,8 @@ func Router(ctx context.Context) (*http.ServeMux, error) {
 		Service: Model{},
 	}
 
-	router.Handle("/auth/google/register", http.HandlerFunc(handler.Auth))
-	router.Handle("/auth/google/callback", http.HandlerFunc(handler.Callback))
-	router.Handle("/auth/google/logout", http.HandlerFunc(handler.Logout))
+	router.Handle("GET /github/register/callback", http.HandlerFunc(handler.Callback))
+	router.Handle("GET /github/register/logout", http.HandlerFunc(handler.Logout))
 
 	return router, nil
 }
