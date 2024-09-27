@@ -7,6 +7,8 @@ import (
 
 	googleAuth "github.com/markbates/goth/providers/google"
 	"trigger.com/trigger/internal/google"
+	"trigger.com/trigger/internal/google/register"
+	"trigger.com/trigger/internal/google/sync"
 	"trigger.com/trigger/pkg/arguments"
 	"trigger.com/trigger/pkg/authenticator/providers"
 	"trigger.com/trigger/pkg/middleware"
@@ -31,8 +33,9 @@ func main() {
 		"http://localhost:8000/api/auth/google/callback"))
 
 	router, err := router.Create(
-		context.WithValue(context.TODO(), providers.ProviderKey, "google/sync"),
-		providers.ProviderRouter,
+		context.TODO(),
+		register.Router,
+		sync.Router,
 	)
 	if err != nil {
 		log.Fatal(err)
