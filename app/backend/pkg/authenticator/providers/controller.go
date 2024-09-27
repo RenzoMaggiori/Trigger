@@ -1,4 +1,4 @@
-package multiprovider
+package providers
 
 import (
 	"log"
@@ -6,10 +6,6 @@ import (
 
 	"github.com/markbates/goth/gothic"
 )
-
-type contextKey string
-
-const providerKey contextKey = "provider"
 
 func (h *Handler) Auth(w http.ResponseWriter, r *http.Request) {
 	// try to get the user without re-authenticating
@@ -34,7 +30,4 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	gothic.Logout(w, r)
 	w.Header().Set("Location", "/")
 	w.WriteHeader(http.StatusTemporaryRedirect)
-}
-
-func (h *Handler) Test(w http.ResponseWriter, r *http.Request) {
 }

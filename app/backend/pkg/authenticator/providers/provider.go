@@ -1,4 +1,4 @@
-package multiprovider
+package providers
 
 import (
 	"os"
@@ -12,7 +12,7 @@ import (
 type Provider interface {
 }
 
-func CreateMultiProvider(providers ...goth.Provider) {
+func CreateProvider(providers ...goth.Provider) {
 	key := os.Getenv("AUTH_KEY")
 	maxAge64, err := strconv.ParseInt(os.Getenv("AUTH_MAX_AGE"), 10, 64)
 	if err != nil {
