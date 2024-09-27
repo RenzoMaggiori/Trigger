@@ -18,7 +18,6 @@ export default function Home() {
   const plugin = React.useRef(
     AutoScroll({ startDelay: 0 })
   )
-
   const services = [
     { name: "Gmail", icon: <BiLogoGmail className="mr-2 hidden md:block" /> },
     { name: "Discord", icon: <FaDiscord className="mr-2 hidden md:block" /> },
@@ -26,7 +25,8 @@ export default function Home() {
     { name: "Slack", icon: <FaSlack className="mr-2 hidden md:block" /> },
     { name: "Outlook", icon: <PiMicrosoftOutlookLogo className="mr-2 hidden md:block" /> },
   ]
-
+  
+  // TODO: Add href to start with google
   return (
     <div className="flex flex-1 flex-col w-full justify-center">
       <div className="flex flex-col items-center justify-start text-center text-black dark:text-white pt-20 gap-y-5 w-full">
@@ -37,8 +37,10 @@ export default function Home() {
           <WordFadeIn as="p" words="Trigger empowers you to connect services seamlessly. Automate tasks and enhance productivity by turning your ideas into efficient workflows." />
         </div>
         <div className="max-w-md mx-auto flex flex-col md:flex-row gap-x-7">
-          <Button className="w-full rounded-full text-lg py-6 px-12 mt-5 bg-orange-600 hover:bg-orange-700 text-white hover:text-white" variant="outline">
-            Start with Email
+          <Button className="w-full rounded-full text-lg py-6 px-12 mt-5 bg-orange-600 hover:bg-orange-700 text-white hover:text-white" variant="outline" asChild>
+            <Link href="/auth?type=signup">
+              Start with Email
+            </Link>
           </Button>
           <Button className="w-full rounded-full border-black bg-white text-lg p-6 mt-5" variant="outline" asChild>
             <Link href="http://localhost:8000/api/auth/gmail/provider" className="flex items-center">

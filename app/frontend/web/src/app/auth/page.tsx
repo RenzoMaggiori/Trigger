@@ -42,7 +42,7 @@ const page = () => {
         <div className='flex justify-center items-center h-full'>
             <Tabs defaultValue={defaultValue} className="w-3/4 md:w-1/2 lg:w-1/3">
                 <TabsList className="grid w-full grid-cols-2">
-                    {tabs.map((item, index) => (
+                    {tabs.map((item, index) => ( 
                         <TabsTrigger key={index} value={item.trigger}>{item.trigger}</TabsTrigger>
                     ))}
                 </TabsList>
