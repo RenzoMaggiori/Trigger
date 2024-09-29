@@ -16,5 +16,5 @@ func Router(ctx context.Context) (router.PrefixedRouter, error) {
 	server := http.NewServeMux()
 
 	server.Handle("GET /register", http.HandlerFunc(providers.Auth))
-	return router.NewPrefixedRouter("/provider/", server), nil
+	return router.NewPrefixedRouter("/provider", server), nil
 }

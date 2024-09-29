@@ -27,8 +27,9 @@ func Create(ctx context.Context, routers ...RouterFn) (*http.ServeMux, error) {
 		if err != nil {
 			return nil, err
 		}
-		router.Handle(r.Prefix,
-			http.StripPrefix(r.Prefix, r.Server))
+		prefix := "/api" + r.Prefix
+		router.Handle(prefix+"/",
+			http.StripPrefix(prefix, r.Server))
 	}
 
 	return router, nil
