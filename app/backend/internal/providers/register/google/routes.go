@@ -5,18 +5,18 @@ import (
 	"net/http"
 
 	"trigger.com/trigger/pkg/authenticator/providers"
+	"trigger.com/trigger/pkg/router"
 )
 
-func Router(ctx context.Context) (*http.ServeMux, error) {
-	router := http.NewServeMux()
-
+func Router(ctx context.Context) (router.PrefixedRouter, error) {
+	server := http.NewServeMux()
 	handler := providers.Handler{
 		Service: Model{},
 	}
 
 	// Prefix routes with /google
-	router.Handle("GET /google/register/callback", http.HandlerFunc(handler.Callback))
-	router.Handle("GET /google/register/logout", http.HandlerFunc(handler.Logout))
+	server.Handle("GET /register/callback", http.HandlerFunc(handler.Callback))
+	server.Handle("GET /register/logout", http.HandlerFunc(handler.Logout))
 
-	return router, nil
+	return router.NewPrefixedRouter("/google", server), nil
 }
