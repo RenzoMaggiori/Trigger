@@ -1,4 +1,4 @@
-package register
+package providers
 
 import (
 	"fmt"

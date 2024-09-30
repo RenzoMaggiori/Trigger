@@ -5,15 +5,15 @@ import (
 	"net/http"
 )
 
-type RouterFn func(context.Context) (PrefixedRouter, error)
+type RouterFn func(context.Context) (Router, error)
 
-type PrefixedRouter struct {
+type Router struct {
 	Server *http.ServeMux
 	Prefix string
 }
 
-func NewPrefixedRouter(prefix string, server *http.ServeMux) PrefixedRouter {
-	return PrefixedRouter{
+func NewRouter(prefix string, server *http.ServeMux) Router {
+	return Router{
 		Server: server,
 		Prefix: prefix,
 	}
@@ -22,8 +22,8 @@ func NewPrefixedRouter(prefix string, server *http.ServeMux) PrefixedRouter {
 func Create(ctx context.Context, routers ...RouterFn) (*http.ServeMux, error) {
 	router := http.NewServeMux()
 
-	for _, prefixedRouter := range routers {
-		r, err := prefixedRouter(ctx)
+	for _, Router := range routers {
+		r, err := Router(ctx)
 		if err != nil {
 			return nil, err
 		}

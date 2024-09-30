@@ -8,12 +8,20 @@ import (
 )
 
 /*
-** This defines the expected enviroment variables for the Auth Service
+** This defines the expected enviroment variables for the Google Service
  */
 
 var (
 	errEnvNotFound      string    = "Enviroment argument %s not found"
-	enviromentArguments [0]string = [...]string{}
+	enviromentArguments [7]string = [...]string{
+		"GOOGLE_CLIENT_ID",
+		"GOOGLE_CLIENT_SECRET",
+		"GITHUB_KEY",
+		"GITHUB_SECRET",
+		"AUTH_KEY",
+		"AUTH_MAX_AGES",
+		"AUTH_IS_PROD",
+	}
 )
 
 func Env(envPath string) error {
