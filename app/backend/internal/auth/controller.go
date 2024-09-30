@@ -1,13 +1,17 @@
 package auth
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"trigger.com/trigger/pkg/decode"
+	"trigger.com/trigger/pkg/fetch"
 )
 
 var (
@@ -92,7 +96,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// // Cookie or Header?
-	// w.Header().Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+	w.Header().Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
 }
 
 func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {

@@ -50,6 +50,10 @@ func (m Model) Login(ctx context.Context) (string, error) {
 	return token, nil
 }
 
+func (m Model) Logout(ctx context.Context) (string, error) {
+	return "", nil
+}
+
 func (m Model) GetToken(authorizationHeader string) (string, error) {
 	if authorizationHeader == "" {
 		return "", errAuthorizationHeaderNotFound
