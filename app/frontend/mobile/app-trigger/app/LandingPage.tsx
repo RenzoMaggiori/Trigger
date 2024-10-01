@@ -65,7 +65,7 @@ export default function LandingPage() {
                     />
                 </View>
                 <TechCarousel technologies={technologies} />
-                <View style={styles.videoContainer}>
+                {/* <View style={styles.videoContainer}>
                     <Video
                         source={require('@/assets/video_placeholder.mov')}
                         style={styles.video}
@@ -74,7 +74,7 @@ export default function LandingPage() {
                         isLooping
                         isMuted={false}
                     />
-                </View>
+                </View> */}
                 {/* <View style={styles.footer}>
                     <Text>Footer with team info</Text>
                 </View> */}
