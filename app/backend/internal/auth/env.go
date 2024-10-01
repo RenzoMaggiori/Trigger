@@ -13,13 +13,9 @@ import (
 
 var (
 	errEnvNotFound      string     = "Enviroment argument %s not found"
-	enviromentArguments [16]string = [...]string{
-		"MONGO_INITDB_ROOT_USERNAME",
-		"MONGO_INITDB_ROOT_PASSWORD",
-		"MONGO_PORT",
-		"MONGO_HOST",
-		"MONGO_DB",
+	enviromentArguments [12]string = [...]string{
 		"TOKEN_SECRET",
+		"ADMIN_TOKEN",
 		"USER_SERVICE_BASE_URL",
 		"AUTH_SERVICE_BASE_URL",
 		"SESSION_SERVICE_BASE_URL",

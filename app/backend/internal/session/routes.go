@@ -32,12 +32,12 @@ func Router(ctx context.Context) (*router.Router, error) {
 
 	server.Handle("GET /", http.HandlerFunc(handler.GetSessions))
 	server.Handle("GET /id/{id}", http.HandlerFunc(handler.GetSessionById))
-	server.Handle("GET /userId/{userId}", http.HandlerFunc(handler.GetSessionByUserId))
+	server.Handle("GET /user_id/{user_id}", http.HandlerFunc(handler.GetSessionByUserId))
 	server.Handle("POST /add", http.HandlerFunc(handler.AddSession))
 	server.Handle("PATCH /id/{id}", http.HandlerFunc(handler.UpdateSessionById))
-	server.Handle("PATCH /userId/{userId}", http.HandlerFunc(handler.UpdateSessionByUserId))
+	server.Handle("PATCH /user_id/{user_id}", http.HandlerFunc(handler.UpdateSessionByUserId))
 	server.Handle("DELETE /id/{id}", http.HandlerFunc(handler.DeleteSessionById))
-	server.Handle("DELETE /userId/{userId}", http.HandlerFunc(handler.DeleteSessionByUserId))
+	server.Handle("DELETE /user_id/{user_id}", http.HandlerFunc(handler.DeleteSessionByUserId))
 
 	return router.NewRouter("/session", server), nil
 }

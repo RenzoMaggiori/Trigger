@@ -30,8 +30,10 @@ func Create(claims map[string]string, secret string) (string, error) {
 	return rawToken, nil
 }
 
-func Expiry(rawToken string) (time.Time, error) {
-	token, _, err := new(jwt.Parser).ParseUnverified(rawToken, jwt.MapClaims{})
+func Expiry(rawToken string, secret string) (time.Time, error) {
+	token, err := jwt.Parse(rawToken, func(_ *jwt.Token) (interface{}, error) {
+		return []byte(secret), nil
+	})
 	if err != nil {
 		return time.Time{}, err
 	}

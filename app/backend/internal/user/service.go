@@ -8,7 +8,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"trigger.com/trigger/pkg/hash"
-	"trigger.com/trigger/pkg/mongodb"
 )
 
 var (

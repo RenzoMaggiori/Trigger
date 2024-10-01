@@ -47,7 +47,7 @@ func (h *Handler) GetSessionById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetSessionByUserId(w http.ResponseWriter, r *http.Request) {
-	userId, err := primitive.ObjectIDFromHex(r.PathValue("userId"))
+	userId, err := primitive.ObjectIDFromHex(r.PathValue("user_id"))
 
 	if err != nil {
 		log.Print(err)
@@ -55,7 +55,7 @@ func (h *Handler) GetSessionByUserId(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.Service.GetByUserId(userId)
+	user, err := h.Service.GetByUserId(user_id)
 	if err != nil {
 		log.Print(err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
@@ -119,7 +119,7 @@ func (h *Handler) UpdateSessionById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) UpdateSessionByUserId(w http.ResponseWriter, r *http.Request) {
-	userId, err := primitive.ObjectIDFromHex(r.PathValue("userId"))
+	userId, err := primitive.ObjectIDFromHex(r.PathValue("user_id"))
 	providerName := r.PathValue("providerName")
 
 	if err != nil {
@@ -164,7 +164,7 @@ func (h *Handler) DeleteSessionById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) DeleteSessionByUserId(w http.ResponseWriter, r *http.Request) {
-	userId, err := primitive.ObjectIDFromHex(r.PathValue("userId"))
+	userId, err := primitive.ObjectIDFromHex(r.PathValue("user_id"))
 	providerName := r.PathValue("providerName")
 
 	if err != nil {

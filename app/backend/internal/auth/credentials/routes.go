@@ -1,4 +1,4 @@
-package auth
+package credentials
 
 import (
 	"context"

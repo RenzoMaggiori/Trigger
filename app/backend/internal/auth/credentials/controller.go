@@ -1,13 +1,18 @@
-package auth
+package credentials
 
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"trigger.com/trigger/pkg/decode"
+	"trigger.com/trigger/pkg/jwt"
+)
+
+const (
+	authCookieName string = "Authorization"
 )
 
 var (
@@ -33,33 +38,21 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Cookie or Header?
-	w.Header().Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+	expires, err := jwt.Expiry(
+		accessToken,
+		os.Getenv("TOKEN_SECRET"),
+	)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	cookie := &http.Cookie{Name: authCookieName, Value: accessToken, Expires: expires}
+	http.SetCookie(w, cookie)
 }
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
-	// newUser, err := decode.Json[RegisterModel](r.Body)
-	// if err != nil {
-	// 	log.Println(err)
-	// 	http.Error(w, "unable to proccess body", http.StatusUnprocessableEntity)
-	// 	return
-	// }
-
-	// // call user service to create user
-
-	// accessToken, err := h.Service.Login(context.WithValue(
-	// 	context.TODO(),
-	// 	CredentialsCtxKey,
-	// 	"",
-	// ))
-	// if err != nil {
-	// 	log.Println(err)
-	// 	http.Error(w, "unable to proccess body", http.StatusUnprocessableEntity)
-	// 	return
-	// }
-
-	// // Cookie or Header?
-	// w.Header().Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
 	newUser, err := decode.Json[RegisterModel](r.Body)
 	if err != nil {
 		log.Println(err)
@@ -73,15 +66,24 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	accessToken, err := h.Service.Register(newUser)
-
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "unable to login user", http.StatusInternalServerError)
 		return
 	}
 
-	// // Cookie or Header?
-	w.Header().Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+	expires, err := jwt.Expiry(
+		accessToken,
+		os.Getenv("TOKEN_SECRET"),
+	)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	cookie := &http.Cookie{Name: authCookieName, Value: accessToken, Expires: expires}
+	http.SetCookie(w, cookie)
 }
 
 func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {

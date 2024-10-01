@@ -31,7 +31,7 @@ func main() {
 	}
 	userCollection := mongoClient.Database(
 		os.Getenv("MONGO_DB"),
-	).Collection("user")
+	).Collection("session")
 
 	router, err := router.Create(
 		context.WithValue(

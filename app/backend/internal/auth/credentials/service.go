@@ -1,4 +1,4 @@
-package auth
+package credentials
 
 import (
 	"bytes"
@@ -26,6 +26,8 @@ var (
 	errAuthorizationTypeNone       error = errors.New("could not decypher auth type")
 	errTokenNotFound               error = errors.New("could not find token in authorization header")
 	errAuthTypeUndefined           error = errors.New("auth type is undefined")
+	errUserNotRetrieved            error = errors.New("could not retrieve user")
+	errSessionNotRetrieved         error = errors.New("could not retrieve session")
 )
 
 func (m Model) Login(ctx context.Context) (string, error) {
@@ -34,9 +36,23 @@ func (m Model) Login(ctx context.Context) (string, error) {
 		return "", errCredentialsNotFound
 	}
 
-	var user user.UserModel
-	filter := bson.M{"email": credentials.Email}
-	err := m.DB.Collection("user").FindOne(ctx, filter).Decode(&user)
+	res, err := fetch.Fetch(http.DefaultClient, fetch.NewFetchRequest(
+		http.MethodGet,
+		fmt.Sprintf("%s/api/user/email/%s", os.Getenv("USER_SERVICE_BASE_URL"), credentials.Email),
+		nil,
+		map[string]string{
+			"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
+		},
+	))
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return "", errUserNotRetrieved
+	}
+
+	user, err := decode.Json[user.UserModel](res.Body)
 	if err != nil {
 		return "", err
 	}
@@ -52,71 +68,61 @@ func (m Model) Login(ctx context.Context) (string, error) {
 		},
 		os.Getenv("TOKEN_SECRET"),
 	)
+	res, err = fetch.Fetch(http.DefaultClient, fetch.NewFetchRequest(
+		http.MethodGet,
+		fmt.Sprintf("%s/api/session/userId/%s", os.Getenv("SESSION_SERVICE_BASE_URL"), user.Id.String()),
+		nil,
+		map[string]string{
+			"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
+		},
+	))
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return "", errSessionNotRetrieved
+	}
 
-	var userSession *session.SessionModel = nil
-	filter = bson.M{"userId": user.Id}
-	cursor, err := m.DB.Collection("session").Find(ctx, filter)
-
+	userSession, err := decode.Json[session.SessionModel](res.Body)
 	if err != nil {
 		return "", err
 	}
 
-	defer cursor.Close(ctx)
-
-	for cursor.Next(ctx) {
-		var session session.SessionModel
-		err := cursor.Decode(&session)
-		if err != nil {
-			return "", err
-		}
-		if session.ProviderName == nil {
-			userSession = &session
-		}
-	}
-
+	expiry, err := jwt.Expiry(token, os.Getenv("TOKEN_SECRET"))
 	if err != nil {
 		return "", err
 	}
 
-	if userSession == nil {
-		return "", errors.New("user session not found")
+	updateSession := session.UpdateSessionModel{
+		AccessToken: &token,
+		Expiry:      &expiry,
 	}
-	expiry, err := jwt.Expiry(token)
-	if err != nil {
-		return "", err
-	}
-	addSession := session.AddSessionModel{
-		UserId:       user.Id,
-		ProviderName: nil,
-		AccessToken:  token,
-		RefreshToken: nil,
-		Expiry:       expiry,
-		IdToken:      nil,
-	}
-
-	body, err := bson.Marshal(addSession)
+	body, err := bson.Marshal(updateSession)
 	if err != nil {
 		return "", err
 	}
 
-	res, err := fetch.Fetch(
-		&http.Client{},
+	res, err = fetch.Fetch(
+		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodPatch,
-			fmt.Sprintf("%s/session/id/%d", os.Getenv("USER_SERVICE_BASE_URL"), userSession.Id),
+			fmt.Sprintf("%s/session/user_id/%d", os.Getenv("USER_SERVICE_BASE_URL"), userSession.Id),
 			bytes.NewReader(body),
-			nil,
+			map[string]string{
+				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
+			},
 		),
 	)
 	if err != nil {
 		log.Println(err)
 		return "", err
 	}
+	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
 		log.Printf("invalid status code, received %s\n", res.Status)
 		return "", errors.New("unable to create user")
 	}
-
 	return token, nil
 }
 
