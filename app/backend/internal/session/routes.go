@@ -39,5 +39,5 @@ func Router(ctx context.Context) (*router.Router, error) {
 	server.Handle("DELETE /id/{id}", http.HandlerFunc(handler.DeleteSessionById))
 	server.Handle("DELETE /userId/{userId}", http.HandlerFunc(handler.DeleteSessionByUserId))
 
-	return router.NewRouter("/user", server), nil
+	return router.NewRouter("/session", server), nil
 }

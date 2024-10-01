@@ -8,6 +8,7 @@ import (
 
 type Service interface {
 	authenticator.Authenticator
+	Register(RegisterModel) (string, error)
 	GetToken(string) (string, error)
 	VerifyToken(string) error
 }
