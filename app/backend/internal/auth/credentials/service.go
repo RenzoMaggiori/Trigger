@@ -70,7 +70,7 @@ func (m Model) Login(ctx context.Context) (string, error) {
 	)
 	res, err = fetch.Fetch(http.DefaultClient, fetch.NewFetchRequest(
 		http.MethodGet,
-		fmt.Sprintf("%s/api/session/userId/%s", os.Getenv("SESSION_SERVICE_BASE_URL"), user.Id.String()),
+		fmt.Sprintf("%s/api/session/user_id/%s", os.Getenv("SESSION_SERVICE_BASE_URL"), user.Id.String()),
 		nil,
 		map[string]string{
 			"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
@@ -82,23 +82,6 @@ func (m Model) Login(ctx context.Context) (string, error) {
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
 		return "", errSessionNotRetrieved
-	}
-
-	res, err := fetch.Fetch(
-		&http.Client{},
-		fetch.NewFetchRequest(
-			http.MethodGet,
-			fmt.Sprintf("%s/api/session/userId/%d", os.Getenv("USER_SERVICE_BASE_URL"), user.Id),
-			nil,
-			nil,
-		),
-	)
-	if err != nil {
-		return "", err
-	}
-	if res.StatusCode != http.StatusOK {
-		log.Printf("invalid status code, received %s\n", res.Status)
-		return "", errors.New("unable to create user")
 	}
 
 	userSession, err := decode.Json[session.SessionModel](res.Body)
