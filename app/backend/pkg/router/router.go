@@ -5,15 +5,15 @@ import (
 	"net/http"
 )
 
-type RouterFn func(context.Context) (Router, error)
+type RouterFn func(context.Context) (*Router, error)
 
 type Router struct {
 	Server *http.ServeMux
 	Prefix string
 }
 
-func NewRouter(prefix string, server *http.ServeMux) Router {
-	return Router{
+func NewRouter(prefix string, server *http.ServeMux) *Router {
+	return &Router{
 		Server: server,
 		Prefix: prefix,
 	}

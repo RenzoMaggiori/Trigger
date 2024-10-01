@@ -7,7 +7,7 @@ import (
 	"trigger.com/trigger/pkg/router"
 )
 
-func Router(ctx context.Context) (router.Router, error) {
+func Router(ctx context.Context) (*router.Router, error) {
 	server := http.NewServeMux()
 
 	handler := Handler{

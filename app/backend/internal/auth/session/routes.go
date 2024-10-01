@@ -1,4 +1,4 @@
-package user
+package session
 
 import (
 	"context"
@@ -30,14 +30,14 @@ func Router(ctx context.Context) (*router.Router, error) {
 		},
 	}
 
-	server.Handle("GET /", http.HandlerFunc(handler.GetUsers))
-	server.Handle("GET /id/{id}", http.HandlerFunc(handler.GetUserById))
-	server.Handle("GET /email/{email}", http.HandlerFunc(handler.GetUserByEmail))
-	server.Handle("POST /add", http.HandlerFunc(handler.AddUser))
-	server.Handle("PATCH /id/{id}", http.HandlerFunc(handler.UpdateUserById))
-	server.Handle("PATCH /email/{email}", http.HandlerFunc(handler.UpdateUserByEmail))
-	server.Handle("DELETE /id/{id}", http.HandlerFunc(handler.DeleteUserById))
-	server.Handle("DELETE /email/{email}", http.HandlerFunc(handler.DeleteUserById))
+	server.Handle("GET /", http.HandlerFunc(handler.GetSessions))
+	server.Handle("GET /id/{id}", http.HandlerFunc(handler.GetSessionById))
+	server.Handle("GET /userId/{userId}", http.HandlerFunc(handler.GetSessionByUserId))
+	server.Handle("POST /add", http.HandlerFunc(handler.AddSession))
+	server.Handle("PATCH /id/{id}", http.HandlerFunc(handler.UpdateSessionById))
+	server.Handle("PATCH /userId/{userId}", http.HandlerFunc(handler.UpdateSessionByUserId))
+	server.Handle("DELETE /id/{id}", http.HandlerFunc(handler.DeleteSessionById))
+	server.Handle("DELETE /userId/{userId}", http.HandlerFunc(handler.DeleteSessionByUserId))
 
 	return router.NewRouter("/user", server), nil
 }

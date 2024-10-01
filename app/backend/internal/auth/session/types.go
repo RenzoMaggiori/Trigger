@@ -1,25 +1,21 @@
-package providers
+package session
 
 import (
 	"time"
 
-	"github.com/markbates/goth"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"trigger.com/trigger/pkg/authenticator"
 )
 
 type Service interface {
-	authenticator.Authenticator
-	Callback(user goth.User) (string, error)
-	// Get() ([]SessionModel, error)
-	// GetById(primitive.ObjectID) (*SessionModel, error)
-	// GetByUserId(primitive.ObjectID) (*SessionModel, error)
-	// Add(*AddSessionModel) (*SessionModel, error)
-	// UpdateById(primitive.ObjectID, *UpdateSessionModel) (*SessionModel, error)
-	// UpdateByUserId(primitive.ObjectID, *UpdateSessionModel) (*SessionModel, error)
-	// DeleteById(primitive.ObjectID) error
-	// DeleteByUserId(primitive.ObjectID) error
+	Get() ([]SessionModel, error)
+	GetById(primitive.ObjectID) (*SessionModel, error)
+	GetByUserId(primitive.ObjectID) ([]SessionModel, error)
+	Add(*AddSessionModel) (*SessionModel, error)
+	UpdateById(primitive.ObjectID, *UpdateSessionModel) (*SessionModel, error)
+	UpdateByUserId(primitive.ObjectID, string, *UpdateSessionModel) (*SessionModel, error)
+	DeleteById(primitive.ObjectID) error
+	DeleteByUserId(primitive.ObjectID, string) error
 }
 
 type Handler struct {
@@ -27,10 +23,8 @@ type Handler struct {
 }
 
 type Model struct {
-	DB *mongo.Database
+	Collection *mongo.Collection
 }
-
-var CredentialsCtxKey = "CredentialsCtxKey"
 
 type SessionModel struct {
 	Id           primitive.ObjectID `json:"id" bson:"_id"`

@@ -65,7 +65,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		&http.Client{},
 		fetch.NewFetchRequest(
 			http.MethodPost,
-			fmt.Sprintf("%s/api/user", os.Getenv("USER_SERVICE_BASE_URL")),
+			fmt.Sprintf("%s/api/user/add", os.Getenv("USER_SERVICE_BASE_URL")),
 			bytes.NewReader(body),
 			nil,
 		),

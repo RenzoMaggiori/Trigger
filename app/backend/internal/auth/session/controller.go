@@ -1,4 +1,4 @@
-package user
+package session
 
 import (
 	"log"
@@ -9,7 +9,7 @@ import (
 	"trigger.com/trigger/pkg/encode"
 )
 
-func (h *Handler) GetUsers(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetSessions(w http.ResponseWriter, r *http.Request) {
 	users, err := h.Service.Get()
 
 	if err != nil {
@@ -24,7 +24,7 @@ func (h *Handler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) GetUserById(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetSessionById(w http.ResponseWriter, r *http.Request) {
 	id, err := primitive.ObjectIDFromHex(r.PathValue("id"))
 
 	if err != nil {
@@ -46,10 +46,16 @@ func (h *Handler) GetUserById(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
-	email := r.PathValue("email")
+func (h *Handler) GetSessionByUserId(w http.ResponseWriter, r *http.Request) {
+	userId, err := primitive.ObjectIDFromHex(r.PathValue("userId"))
 
-	user, err := h.Service.GetByEmail(email)
+	if err != nil {
+		log.Print(err)
+		http.Error(w, "bad user id", http.StatusBadRequest)
+		return
+	}
+
+	user, err := h.Service.GetByUserId(userId)
 	if err != nil {
 		log.Print(err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
@@ -62,8 +68,8 @@ func (h *Handler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) AddUser(w http.ResponseWriter, r *http.Request) {
-	add, err := decode.Json[AddUserModel](r.Body)
+func (h *Handler) AddSession(w http.ResponseWriter, r *http.Request) {
+	add, err := decode.Json[AddSessionModel](r.Body)
 	if err != nil {
 		log.Print(err)
 		http.Error(w, "could not decode json", http.StatusUnprocessableEntity)
@@ -83,7 +89,7 @@ func (h *Handler) AddUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) UpdateUserById(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) UpdateSessionById(w http.ResponseWriter, r *http.Request) {
 	id, err := primitive.ObjectIDFromHex(r.PathValue("id"))
 
 	if err != nil {
@@ -92,7 +98,7 @@ func (h *Handler) UpdateUserById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	update, err := decode.Json[UpdateUserModel](r.Body)
+	update, err := decode.Json[UpdateSessionModel](r.Body)
 	if err != nil {
 		log.Print(err)
 		http.Error(w, "could not decode json", http.StatusUnprocessableEntity)
@@ -112,9 +118,16 @@ func (h *Handler) UpdateUserById(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) UpdateUserByEmail(w http.ResponseWriter, r *http.Request) {
-	email := r.PathValue("email")
-	update, err := decode.Json[UpdateUserModel](r.Body)
+func (h *Handler) UpdateSessionByUserId(w http.ResponseWriter, r *http.Request) {
+	userId, err := primitive.ObjectIDFromHex(r.PathValue("userId"))
+	providerName := r.PathValue("providerName")
+
+	if err != nil {
+		log.Print(err)
+		http.Error(w, "bad user id", http.StatusBadRequest)
+		return
+	}
+	update, err := decode.Json[UpdateSessionModel](r.Body)
 
 	if err != nil {
 		log.Print(err)
@@ -122,7 +135,7 @@ func (h *Handler) UpdateUserByEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedUser, err := h.Service.UpdateByEmail(email, &update)
+	updatedUser, err := h.Service.UpdateByUserId(userId, providerName, &update)
 	if err != nil {
 		log.Print(err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
@@ -135,7 +148,7 @@ func (h *Handler) UpdateUserByEmail(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) DeleteUserById(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) DeleteSessionById(w http.ResponseWriter, r *http.Request) {
 	id, err := primitive.ObjectIDFromHex(r.PathValue("id"))
 
 	if err != nil {
@@ -150,10 +163,16 @@ func (h *Handler) DeleteUserById(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) DeleteUserByEmail(w http.ResponseWriter, r *http.Request) {
-	email := r.PathValue("email")
+func (h *Handler) DeleteSessionByUserId(w http.ResponseWriter, r *http.Request) {
+	userId, err := primitive.ObjectIDFromHex(r.PathValue("userId"))
+	providerName := r.PathValue("providerName")
 
-	if err := h.Service.DeleteByEmail(email); err != nil {
+	if err != nil {
+		log.Print(err)
+		http.Error(w, "bad user id", http.StatusBadRequest)
+		return
+	}
+	if err := h.Service.DeleteByUserId(userId, providerName); err != nil {
 		log.Print(err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return

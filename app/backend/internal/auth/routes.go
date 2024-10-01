@@ -7,19 +7,20 @@ import (
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"trigger.com/trigger/pkg/mongodb"
+	"trigger.com/trigger/pkg/router"
 )
 
 var (
 	errDatabaseNotFound error = errors.New("could not find mongo database")
 )
 
-func Router(ctx context.Context) (*http.ServeMux, error) {
+func Router(ctx context.Context) (*router.Router, error) {
 	database, ok := ctx.Value(mongodb.CtxKey).(*mongo.Database)
 	if !ok {
 		return nil, errDatabaseNotFound
 	}
 
-	router := http.NewServeMux()
+	server := http.NewServeMux()
 	handler := Handler{
 		Service: Model{
 			DB:       database,
@@ -27,9 +28,9 @@ func Router(ctx context.Context) (*http.ServeMux, error) {
 		},
 	}
 
-	router.Handle("POST /login", http.HandlerFunc(handler.Login))
-	router.Handle("POST /register", http.HandlerFunc(handler.Register))
-	router.Handle("POST /verify", http.HandlerFunc(handler.Verify))
+	server.Handle("POST /login", http.HandlerFunc(handler.Login))
+	server.Handle("POST /register", http.HandlerFunc(handler.Register))
+	server.Handle("POST /verify", http.HandlerFunc(handler.Verify))
 
-	return router, nil
+	return router.NewRouter("/auth", server), nil
 }
