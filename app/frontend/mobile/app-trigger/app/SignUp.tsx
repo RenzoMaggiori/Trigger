@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
+import Button from '@/components/Button';
+import { MaterialIcons, Ionicons, FontAwesome, FontAwesome5 } from '@expo/vector-icons';
+import ButtonIcon from '@/components/ButtonIcon';
 
 export default function SignUp() {
+    const [name, setName] = useState('');
+    const [surname, setSurname] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -14,52 +19,105 @@ export default function SignUp() {
         router.push('/(tabs)/HomeScreen');
     };
 
+    const handleSocialSignUp = (service: string) => {
+        router.push('/(tabs)/HomeScreen');
+        console.log(`Signing up with ${service}`);
+    };
+
+    const technologies = [
+        { name: 'Gmail', icon: <MaterialIcons name="email" size={30} color={Colors.light.gmail} /> },
+        { name: 'Github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
+        { name: 'Outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.outlook} /> },
+    ];
+
+    const data = {
+        logo: require('../assets/images/react-logo.png'),
+    };
+
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>SIGN UP</Text>
-            <TextInput
-                style={styles.input}
-                placeholder="Email"
-                value={email}
-                onChangeText={setEmail}
-            />
-            <TextInput
-                style={styles.input}
-                placeholder="Password"
-                secureTextEntry
-                value={password}
-                onChangeText={setPassword}
-            />
-            <TextInput
-                style={styles.input}
-                placeholder="Confirm Password"
-                secureTextEntry
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-            />
-            <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
-                <Text style={styles.signUpButtonText}>SIGN UP</Text>
-            </TouchableOpacity>
-            <Text style={styles.orText}>or</Text>
-            <TouchableOpacity style={styles.servicesButton}>
-                <Text style={styles.servicesButtonText}>Services</Text>
-            </TouchableOpacity>
-        </View>
+        <SafeAreaView style={styles.safeArea}>
+            <ScrollView contentContainerStyle={styles.scrollContainer}>
+                <View style={styles.navbar}>
+                    <Image source={data.logo} style={styles.logo} />
+                </View>
+                <TextInput
+                    style={styles.input}
+                    placeholder="Name"
+                    value={name}
+                    onChangeText={setName}
+                />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Surname"
+                    value={surname}
+                    onChangeText={setSurname}
+                />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Email"
+                    value={email}
+                    onChangeText={setEmail}
+                />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Password"
+                    secureTextEntry
+                    value={password}
+                    onChangeText={setPassword}
+                />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Confirm Password"
+                    secureTextEntry
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                />
+                <Button
+                    onPress={handleSignUp}
+                    title="SIGN UP"
+                />
+                <View style={styles.separatorContainer}>
+                    <View style={styles.line} />
+                    <Text style={styles.orText}>or</Text>
+                    <View style={styles.line} />
+                </View>
+                {technologies.map((tech, index) => (
+                    <ButtonIcon
+                        key={index}
+                        onPress={() => handleSocialSignUp(tech.name)}
+                        title={"Continue with " + tech.name}
+                        icon={tech.icon}
+                        backgroundColor="#FFFFFF"
+                        borderCol={tech.icon.props.color}
+                    />
+                ))}
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
+    safeArea: {
         flex: 1,
-        padding: 16,
-        justifyContent: 'center',
         backgroundColor: Colors.light.background,
+    },
+    navbar: {
+        alignItems: 'center',
+    },
+    logo: {
+        width: 80,
+        height: 80,
+    },
+    scrollContainer: {
+        flexGrow: 1,
+        paddingHorizontal: 16,
+        justifyContent: 'flex-start',
     },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
         textAlign: 'center',
-        marginBottom: 20,
+        marginVertical: 20,
     },
     input: {
         borderWidth: 1,
@@ -81,7 +139,17 @@ const styles = StyleSheet.create({
     },
     orText: {
         textAlign: 'center',
-        marginVertical: 10,
+        marginHorizontal: 20,
+    },
+    separatorContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: 20,
+    },
+    line: {
+        flex: 1,
+        height: 1,
+        backgroundColor: '#ccc',
     },
     servicesButton: {
         padding: 15,
