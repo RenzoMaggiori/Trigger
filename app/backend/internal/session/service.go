@@ -95,44 +95,17 @@ func (m Model) Add(add *AddSessionModel) (*SessionModel, error) {
 func (m Model) UpdateById(id primitive.ObjectID, update *UpdateSessionModel) (*SessionModel, error) {
 	ctx := context.TODO()
 	filter := bson.M{"_id": id}
-	updateData := bson.M{}
-	updateBytes, err := bson.Marshal(update)
+	updateData := bson.M{"$set": update}
 
+	_, err := m.Collection.UpdateOne(ctx, filter, updateData)
 	if err != nil {
 		return nil, err
 	}
 
-	bson.Unmarshal(updateBytes, updateData)
-	result := m.Collection.FindOneAndUpdate(ctx, filter, updateData)
-	if err := result.Err(); err != nil {
-		return nil, err
-	}
-
 	var updatedSession SessionModel
-	if err := result.Decode(&updatedSession); err != nil {
-		return nil, err
-	}
-	return &updatedSession, nil
-}
-
-func (m Model) UpdateByUserId(userId primitive.ObjectID, providerName string, update *UpdateSessionModel) (*SessionModel, error) {
-	ctx := context.TODO()
-	filter := bson.M{"userId": userId, "providerName": providerName}
-	updateData := bson.M{}
-	updateBytes, err := bson.Marshal(update)
+	err = m.Collection.FindOne(ctx, filter).Decode(&updatedSession)
 
 	if err != nil {
-		return nil, err
-	}
-
-	bson.Unmarshal(updateBytes, updateData)
-	result := m.Collection.FindOneAndUpdate(ctx, filter, updateData)
-	if err := result.Err(); err != nil {
-		return nil, err
-	}
-
-	var updatedSession SessionModel
-	if err := result.Decode(&updatedSession); err != nil {
 		return nil, err
 	}
 	return &updatedSession, nil
@@ -164,4 +137,16 @@ func (m Model) DeleteByUserId(userId primitive.ObjectID, providerName string) er
 		return mongo.ErrNoDocuments
 	}
 	return nil
+}
+
+func (m Model) GetByToken(token string) (*SessionModel, error) {
+	var session SessionModel
+	ctx := context.TODO()
+	filter := bson.M{"accessToken": token}
+	err := m.Collection.FindOne(ctx, filter).Decode(&session)
+
+	if err != nil {
+		return nil, err
+	}
+	return &session, nil
 }

@@ -48,7 +48,9 @@ func (m Model) Callback(gothUser goth.User) (string, error) {
 			http.MethodPost,
 			fmt.Sprintf("%s/api/user/add", os.Getenv("USER_SERVICE_BASE_URL")),
 			bytes.NewReader(body),
-			nil,
+			map[string]string{
+				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
+			},
 		),
 	)
 	if err != nil {

@@ -1,7 +1,6 @@
 package credentials
 
 import (
-	"go.mongodb.org/mongo-driver/mongo"
 	"trigger.com/trigger/internal/user"
 	"trigger.com/trigger/pkg/authenticator"
 )
@@ -17,17 +16,7 @@ type Handler struct {
 	Service
 }
 
-type AuthType int64
-
-const (
-	Undefined AuthType = iota
-	Credentials
-	OAuth
-)
-
 type Model struct {
-	DB       *mongo.Database
-	authType AuthType
 }
 
 var CredentialsCtxKey = "CredentialsCtxKey"

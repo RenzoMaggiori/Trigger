@@ -29,7 +29,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	userCollection := mongoClient.Database(
+	sessionCollection := mongoClient.Database(
 		os.Getenv("MONGO_DB"),
 	).Collection("session")
 
@@ -37,7 +37,7 @@ func main() {
 		context.WithValue(
 			context.TODO(),
 			mongodb.CtxKey,
-			userCollection,
+			sessionCollection,
 		),
 		session.Router,
 	)

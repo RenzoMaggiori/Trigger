@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"trigger.com/trigger/internal/session"
 	"trigger.com/trigger/internal/user"
 	"trigger.com/trigger/pkg/decode"
@@ -69,9 +68,12 @@ func (m Model) Login(ctx context.Context) (string, error) {
 		},
 		os.Getenv("TOKEN_SECRET"),
 	)
+	if err != nil {
+		return "", err
+	}
 	res, err = fetch.Fetch(http.DefaultClient, fetch.NewFetchRequest(
 		http.MethodGet,
-		fmt.Sprintf("%s/api/session/user_id/%s", os.Getenv("SESSION_SERVICE_BASE_URL"), user.Id.String()),
+		fmt.Sprintf("%s/api/session/user_id/%s", os.Getenv("SESSION_SERVICE_BASE_URL"), user.Id.Hex()),
 		nil,
 		map[string]string{
 			"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
@@ -85,9 +87,21 @@ func (m Model) Login(ctx context.Context) (string, error) {
 		return "", errSessionNotRetrieved
 	}
 
-	userSession, err := decode.Json[session.SessionModel](res.Body)
+	userSessions, err := decode.Json[[]session.SessionModel](res.Body)
 	if err != nil {
 		return "", err
+	}
+
+	var userSession *session.SessionModel = nil
+	for _, session := range userSessions {
+		if session.ProviderName == nil {
+			userSession = &session
+			break
+		}
+	}
+
+	if userSession == nil {
+		return "", errors.New("user session not found")
 	}
 
 	expiry, err := jwt.Expiry(token, os.Getenv("TOKEN_SECRET"))
@@ -99,16 +113,15 @@ func (m Model) Login(ctx context.Context) (string, error) {
 		AccessToken: &token,
 		Expiry:      &expiry,
 	}
-	body, err := bson.Marshal(updateSession)
+	body, err := json.Marshal(updateSession)
 	if err != nil {
 		return "", err
 	}
-
 	res, err = fetch.Fetch(
 		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodPatch,
-			fmt.Sprintf("%s/session/user_id/%d", os.Getenv("USER_SERVICE_BASE_URL"), userSession.Id),
+			fmt.Sprintf("%s/api/session/id/%s", os.Getenv("SESSION_SERVICE_BASE_URL"), userSession.Id.Hex()),
 			bytes.NewReader(body),
 			map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
@@ -182,7 +195,7 @@ func (m Model) Register(regsiterModel RegisterModel) (string, error) {
 		&http.Client{},
 		fetch.NewFetchRequest(
 			http.MethodPost,
-			fmt.Sprintf("%s/session/add", os.Getenv("SESSION_SERVICE_BASE_URL")),
+			fmt.Sprintf("%s/api/session/add", os.Getenv("SESSION_SERVICE_BASE_URL")),
 			bytes.NewReader(body),
 			nil,
 		),
@@ -222,7 +235,6 @@ func (m Model) GetToken(authorizationHeader string) (string, error) {
 		if len(parts) < 2 || parts[0] != "Bearer" {
 			return "", errTokenNotFound
 		}
-		m.authType = Credentials
 		return parts[1], nil
 	}
 	// TODO: check for oauth token
@@ -230,13 +242,23 @@ func (m Model) GetToken(authorizationHeader string) (string, error) {
 }
 
 func (m Model) VerifyToken(token string) error {
-	switch m.authType {
-	case Credentials:
-		return jwt.Verify(token, os.Getenv("TOKEN_SECRET"))
-	case OAuth:
-		// TODO: verify oauth2 token
-		return errAuthTypeUndefined
-	default:
-		return errAuthTypeUndefined
+	if err := jwt.Verify(token, os.Getenv("TOKEN_SECRET")); err == nil {
+		return nil
 	}
+
+	res, err := fetch.Fetch(&http.Client{}, fetch.NewFetchRequest(
+		http.MethodGet,
+		fmt.Sprintf("%s/api/session/access_token/%s", os.Getenv("SESSION_SERVICE_BASE_URL"), token),
+		nil,
+		map[string]string{
+			"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
+		}))
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return errSessionNotRetrieved
+	}
+	return nil
 }

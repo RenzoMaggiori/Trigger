@@ -6,20 +6,7 @@ import (
 	"net/http"
 
 	"go.mongodb.org/mongo-driver/mongo"
-<<<<<<< HEAD
-)
-
-var (
-	collectionNotFoundErr error = errors.New("could not find user mongo colleciton")
-)
-
-func Router(ctx context.Context) (*router.Router, error) {
-	userCollection, ok := ctx.Value(UserCollectionCtxKey).(*mongo.Collection)
-	if !ok {
-		return nil, collectionNotFoundErr
-	}
-
-	router := http.NewServeMux()
+	"trigger.com/trigger/pkg/middleware"
 	"trigger.com/trigger/pkg/mongodb"
 	"trigger.com/trigger/pkg/router"
 )

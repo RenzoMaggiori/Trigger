@@ -87,21 +87,17 @@ func (m Model) Add(add *AddUserModel) (*UserModel, error) {
 func (m Model) UpdateById(id primitive.ObjectID, update *UpdateUserModel) (*UserModel, error) {
 	ctx := context.TODO()
 	filter := bson.M{"_id": id}
-	updateData := bson.M{}
-	updateBytes, err := bson.Marshal(update)
+	updateData := bson.M{"$set": update}
 
+	_, err := m.Collection.UpdateOne(ctx, filter, updateData)
 	if err != nil {
 		return nil, err
 	}
 
-	bson.Unmarshal(updateBytes, updateData)
-	result := m.Collection.FindOneAndUpdate(ctx, filter, updateData)
-	if err := result.Err(); err != nil {
-		return nil, err
-	}
-
 	var updatedUser UserModel
-	if err := result.Decode(&updatedUser); err != nil {
+	err = m.Collection.FindOne(ctx, filter).Decode(&updatedUser)
+
+	if err != nil {
 		return nil, err
 	}
 	return &updatedUser, nil
@@ -110,21 +106,17 @@ func (m Model) UpdateById(id primitive.ObjectID, update *UpdateUserModel) (*User
 func (m Model) UpdateByEmail(email string, update *UpdateUserModel) (*UserModel, error) {
 	ctx := context.TODO()
 	filter := bson.M{"email": email}
-	updateData := bson.M{}
-	updateBytes, err := bson.Marshal(update)
+	updateData := bson.M{"$set": update}
 
+	_, err := m.Collection.UpdateOne(ctx, filter, updateData)
 	if err != nil {
 		return nil, err
 	}
 
-	bson.Unmarshal(updateBytes, updateData)
-	result := m.Collection.FindOneAndUpdate(ctx, filter, updateData)
-	if err := result.Err(); err != nil {
-		return nil, err
-	}
-
 	var updatedUser UserModel
-	if err := result.Decode(&updatedUser); err != nil {
+	err = m.Collection.FindOne(ctx, filter).Decode(&updatedUser)
+
+	if err != nil {
 		return nil, err
 	}
 	return &updatedUser, nil

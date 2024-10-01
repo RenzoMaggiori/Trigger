@@ -55,7 +55,7 @@ func (h *Handler) GetSessionByUserId(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.Service.GetByUserId(user_id)
+	user, err := h.Service.GetByUserId(userId)
 	if err != nil {
 		log.Print(err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
@@ -118,36 +118,6 @@ func (h *Handler) UpdateSessionById(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) UpdateSessionByUserId(w http.ResponseWriter, r *http.Request) {
-	userId, err := primitive.ObjectIDFromHex(r.PathValue("user_id"))
-	providerName := r.PathValue("providerName")
-
-	if err != nil {
-		log.Print(err)
-		http.Error(w, "bad user id", http.StatusBadRequest)
-		return
-	}
-	update, err := decode.Json[UpdateSessionModel](r.Body)
-
-	if err != nil {
-		log.Print(err)
-		http.Error(w, "could not decode json", http.StatusUnprocessableEntity)
-		return
-	}
-
-	updatedUser, err := h.Service.UpdateByUserId(userId, providerName, &update)
-	if err != nil {
-		log.Print(err)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
-	}
-	if err = encode.Json(w, updatedUser); err != nil {
-		log.Print(err)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
-		return
-	}
-}
-
 func (h *Handler) DeleteSessionById(w http.ResponseWriter, r *http.Request) {
 	id, err := primitive.ObjectIDFromHex(r.PathValue("id"))
 
@@ -163,16 +133,16 @@ func (h *Handler) DeleteSessionById(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) DeleteSessionByUserId(w http.ResponseWriter, r *http.Request) {
-	userId, err := primitive.ObjectIDFromHex(r.PathValue("user_id"))
-	providerName := r.PathValue("providerName")
+func (h *Handler) GetByToken(w http.ResponseWriter, r *http.Request) {
+	token := r.PathValue("access_token")
 
+	session, err := h.Service.GetByToken(token)
 	if err != nil {
 		log.Print(err)
-		http.Error(w, "bad user id", http.StatusBadRequest)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
-	if err := h.Service.DeleteByUserId(userId, providerName); err != nil {
+	if err = encode.Json(w, session); err != nil {
 		log.Print(err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return

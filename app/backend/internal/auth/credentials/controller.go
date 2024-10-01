@@ -34,7 +34,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	))
 	if err != nil {
 		log.Println(err)
-		http.Error(w, "unable to proccess body", http.StatusUnprocessableEntity)
+		http.Error(w, "eror while retrieving token", http.StatusNotFound)
 		return
 	}
 
@@ -96,7 +96,7 @@ func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
 
 	if err = h.Service.VerifyToken(token); err != nil {
 		log.Println(err)
-		http.Error(w, "unable to get authorization token", http.StatusBadRequest)
+		http.Error(w, "unable to retrieve the token from the db", http.StatusBadRequest)
 		return
 	}
 }
