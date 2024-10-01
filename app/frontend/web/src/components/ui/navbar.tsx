@@ -12,7 +12,7 @@ export function Navbar() {
     const navbarItems = [
         { name: "Home", href: "/home" },
         { name: "Community", href: "/community" },
-        { name: "Triggers", href: "/triggers" },
+        { name: "Settings", href: "/settings" },
     ]
 
     const authButtons = [

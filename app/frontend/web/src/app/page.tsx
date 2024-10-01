@@ -18,6 +18,10 @@ export default function Home() {
   const plugin = React.useRef(
     AutoScroll({ startDelay: 0 })
   )
+  const slogan = [
+    "Connect and Automate Effortlessly",
+    "Trigger empowers you to connect services seamlessly. Automate tasks and enhance productivity by turning your ideas into efficient workflows."
+  ];
   const services = [
     { name: "Gmail", icon: <BiLogoGmail className="mr-2 hidden md:block" /> },
     { name: "Discord", icon: <FaDiscord className="mr-2 hidden md:block" /> },
@@ -31,10 +35,10 @@ export default function Home() {
     <div className="flex flex-1 flex-col w-full justify-center">
       <div className="flex flex-col items-center justify-start text-center text-black dark:text-white pt-20 gap-y-5 w-full">
         <div className="text-5xl font-bold mb-4">
-          <WordFadeIn words="Connect and Automate Effortlessly" as="h1" />
+          <WordFadeIn words={slogan[0]} as="h1" />
         </div>
         <div className="text-xl font-bold max-w-2xl">
-          <WordFadeIn as="p" words="Trigger empowers you to connect services seamlessly. Automate tasks and enhance productivity by turning your ideas into efficient workflows." />
+          <WordFadeIn as="p" words={slogan[1]} />
         </div>
         <div className="max-w-md mx-auto flex flex-col md:flex-row gap-x-7">
           <Button className="w-full rounded-full text-lg py-6 px-12 mt-5 bg-orange-600 hover:bg-orange-700 text-white hover:text-white" variant="outline" asChild>
