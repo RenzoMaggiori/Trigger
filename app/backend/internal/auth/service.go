@@ -53,34 +53,29 @@ func (m Model) Login(ctx context.Context) (string, error) {
 		os.Getenv("TOKEN_SECRET"),
 	)
 
-	var userSession *session.SessionModel = nil
-	filter = bson.M{"userId": user.Id}
-	cursor, err := m.DB.Collection("session").Find(ctx, filter)
+	res, err := fetch.Fetch(
+		&http.Client{},
+		fetch.NewFetchRequest(
+			http.MethodGet,
+			fmt.Sprintf("%s/api/session/userId/%d", os.Getenv("USER_SERVICE_BASE_URL"), user.Id),
+			nil,
+			nil,
+		),
+	)
+	if err != nil {
+		return "", err
+	}
+	if res.StatusCode != http.StatusOK {
+		log.Printf("invalid status code, received %s\n", res.Status)
+		return "", errors.New("unable to create user")
+	}
+
+	userSession, err := decode.Json[session.SessionModel](res.Body)
 
 	if err != nil {
 		return "", err
 	}
 
-	defer cursor.Close(ctx)
-
-	for cursor.Next(ctx) {
-		var session session.SessionModel
-		err := cursor.Decode(&session)
-		if err != nil {
-			return "", err
-		}
-		if session.ProviderName == nil {
-			userSession = &session
-		}
-	}
-
-	if err != nil {
-		return "", err
-	}
-
-	if userSession == nil {
-		return "", errors.New("user session not found")
-	}
 	expiry, err := jwt.Expiry(token)
 	if err != nil {
 		return "", err
@@ -99,7 +94,7 @@ func (m Model) Login(ctx context.Context) (string, error) {
 		return "", err
 	}
 
-	res, err := fetch.Fetch(
+	res, err = fetch.Fetch(
 		&http.Client{},
 		fetch.NewFetchRequest(
 			http.MethodPatch,
