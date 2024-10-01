@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
+import Button from '@/components/Button';
 
 export default function SignIn() {
     const [email, setEmail] = useState('');
@@ -29,13 +30,17 @@ export default function SignIn() {
                 value={password}
                 // onChangeText={setPassword}
             />
-            <TouchableOpacity style={styles.signInButton} onPress={handleSignIn}>
-                <Text style={styles.signInButtonText}>SIGN IN</Text>
-            </TouchableOpacity>
+            <Button
+                onPress={handleSignIn}
+                title="SIGN IN"
+            />
             <Text style={styles.orText}>or</Text>
-            <TouchableOpacity style={styles.servicesButton}>
-                <Text style={styles.servicesButtonText}>Services</Text>
-            </TouchableOpacity>
+            <Button
+                onPress={handleSignIn}
+                title="Services"
+                backgroundColor='#FFFFFF'
+                textColor='#000000'
+            />
         </View>
     );
 }
