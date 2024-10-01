@@ -84,6 +84,23 @@ func (m Model) Login(ctx context.Context) (string, error) {
 		return "", errSessionNotRetrieved
 	}
 
+	res, err := fetch.Fetch(
+		&http.Client{},
+		fetch.NewFetchRequest(
+			http.MethodGet,
+			fmt.Sprintf("%s/api/session/userId/%d", os.Getenv("USER_SERVICE_BASE_URL"), user.Id),
+			nil,
+			nil,
+		),
+	)
+	if err != nil {
+		return "", err
+	}
+	if res.StatusCode != http.StatusOK {
+		log.Printf("invalid status code, received %s\n", res.Status)
+		return "", errors.New("unable to create user")
+	}
+
 	userSession, err := decode.Json[session.SessionModel](res.Body)
 	if err != nil {
 		return "", err
