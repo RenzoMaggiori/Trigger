@@ -12,14 +12,6 @@ import (
 type Service interface {
 	authenticator.Authenticator
 	Callback(user goth.User) (string, error)
-	// Get() ([]SessionModel, error)
-	// GetById(primitive.ObjectID) (*SessionModel, error)
-	// GetByUserId(primitive.ObjectID) (*SessionModel, error)
-	// Add(*AddSessionModel) (*SessionModel, error)
-	// UpdateById(primitive.ObjectID, *UpdateSessionModel) (*SessionModel, error)
-	// UpdateByUserId(primitive.ObjectID, *UpdateSessionModel) (*SessionModel, error)
-	// DeleteById(primitive.ObjectID) error
-	// DeleteByUserId(primitive.ObjectID) error
 }
 
 type Handler struct {
