@@ -2,17 +2,25 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"net/http"
+
+	"trigger.com/trigger/pkg/router"
 )
 
-func Router(ctx context.Context) (*http.ServeMux, error) {
-	router := http.NewServeMux()
+var (
+	errDatabaseNotFound error = errors.New("could not find mongo database")
+)
+
+func Router(ctx context.Context) (*router.Router, error) {
+	server := http.NewServeMux()
 	handler := Handler{
 		Service: Model{},
 	}
 
-	router.Handle("POST /login", http.HandlerFunc(handler.Login))
-	router.Handle("POST /register", http.HandlerFunc(handler.Register))
+	server.Handle("POST /login", http.HandlerFunc(handler.Login))
+	server.Handle("POST /register", http.HandlerFunc(handler.Register))
+	server.Handle("POST /verify", http.HandlerFunc(handler.Verify))
 
-	return router, nil
+	return router.NewRouter("/auth", server), nil
 }

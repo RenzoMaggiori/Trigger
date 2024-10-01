@@ -5,10 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/markbates/goth/providers/github"
-	"github.com/markbates/goth/providers/google"
-	"trigger.com/trigger/internal/auth"
-	"trigger.com/trigger/internal/auth/providers"
+	"trigger.com/trigger/internal/session"
+	"trigger.com/trigger/internal/user"
 	"trigger.com/trigger/pkg/arguments"
 	"trigger.com/trigger/pkg/middleware"
 	"trigger.com/trigger/pkg/mongodb"
@@ -22,7 +20,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = auth.Env(*args.EnvPath)
+	err = user.Env(*args.EnvPath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -31,29 +29,17 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	database := mongoClient.Database(
+	userCollection := mongoClient.Database(
 		os.Getenv("MONGO_DB"),
-	)
-
-	providers.CreateProvider(
-		google.New(
-			os.Getenv("GOOGLE_CLIENT_ID"),
-			os.Getenv("GOOGLE_CLIENT_SECRET"),
-			"http://localhost:8080/api/oauth2/callback"),
-		github.New(
-			os.Getenv("GITHUB_KEY"),
-			os.Getenv("GITHUB_SECRET"),
-			"http://localhost:8080/api/oauth2/callback"),
-	)
+	).Collection("user")
 
 	router, err := router.Create(
 		context.WithValue(
 			context.TODO(),
 			mongodb.CtxKey,
-			database,
+			userCollection,
 		),
-		auth.Router,
-		providers.Router,
+		session.Router,
 	)
 	if err != nil {
 		log.Fatal(err)

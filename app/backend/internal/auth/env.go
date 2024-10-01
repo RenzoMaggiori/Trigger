@@ -8,12 +8,29 @@ import (
 )
 
 /*
-** This defines the expected enviroment variables for the Auth Service
+** This defines the expected enviroment variables for the Google Service
  */
 
 var (
-	errEnvNotFound      string    = "Enviroment argument %s not found"
-	enviromentArguments [0]string = [...]string{}
+	errEnvNotFound      string     = "Enviroment argument %s not found"
+	enviromentArguments [16]string = [...]string{
+		"MONGO_INITDB_ROOT_USERNAME",
+		"MONGO_INITDB_ROOT_PASSWORD",
+		"MONGO_PORT",
+		"MONGO_HOST",
+		"MONGO_DB",
+		"TOKEN_SECRET",
+		"USER_SERVICE_BASE_URL",
+		"AUTH_SERVICE_BASE_URL",
+		"SESSION_SERVICE_BASE_URL",
+		"GOOGLE_CLIENT_ID",
+		"GOOGLE_CLIENT_SECRET",
+		"GITHUB_KEY",
+		"GITHUB_SECRET",
+		"AUTH_KEY",
+		"AUTH_MAX_AGES",
+		"AUTH_IS_PROD",
+	}
 )
 
 func Env(envPath string) error {
