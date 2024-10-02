@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	customerror "trigger.com/trigger/pkg/custom-error"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/encode"
 )
@@ -13,13 +14,11 @@ func (h *Handler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := h.Service.Get()
 
 	if err != nil {
-		log.Print(err)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		customerror.Send(w, err, errCodes)
 		return
 	}
 	if err = encode.Json(w, users); err != nil {
-		log.Print(err)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		customerror.Send(w, err, errCodes)
 		return
 	}
 }

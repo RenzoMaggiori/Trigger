@@ -2,16 +2,11 @@ package user
 
 import (
 	"context"
-	"errors"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"trigger.com/trigger/pkg/hash"
-)
-
-var (
-	errUserAlreadyExists error = errors.New("user already exists")
 )
 
 func (m Model) Get() ([]UserModel, error) {
@@ -38,7 +33,7 @@ func (m Model) GetById(id primitive.ObjectID) (*UserModel, error) {
 	err := m.Collection.FindOne(ctx, filter).Decode(&user)
 
 	if err != nil {
-		return nil, err
+		return nil, errUserNotFound
 	}
 	return &user, nil
 }
