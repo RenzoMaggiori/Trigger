@@ -16,7 +16,7 @@ export const Colors = {
     icon: '#687076',
     tabIconDefault: '#687076',
     tabIconSelected: tintColorLight,
-    gmail: '#D14836',
+    google: '#D14836',
     discord: '#7289DA',
     github: '#24292E',
     slack: '#4A154B',

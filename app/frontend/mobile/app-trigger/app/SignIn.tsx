@@ -22,7 +22,7 @@ export default function SignIn() {
     };
 
     const technologies = [
-        { name: 'Gmail', icon: <MaterialIcons name="email" size={30} color={Colors.light.gmail} /> },
+        { name: 'Google', icon: <Ionicons name="logo-google" size={30} color={Colors.light.google} />},
         { name: 'Github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
         { name: 'Outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.outlook} /> },
     ];
