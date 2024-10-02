@@ -26,6 +26,7 @@ var (
 		"AUTH_KEY",
 		"AUTH_MAX_AGES",
 		"AUTH_IS_PROD",
+
 	}
 )
 

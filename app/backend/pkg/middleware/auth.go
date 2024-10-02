@@ -9,6 +9,10 @@ import (
 	"trigger.com/trigger/pkg/fetch"
 )
 
+type Handler struct {
+	secret string
+}
+
 type TokenCtx string
 
 func Auth(next http.Handler) http.Handler {

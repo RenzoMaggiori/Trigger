@@ -41,4 +41,5 @@ func Router(ctx context.Context) (*router.Router, error) {
 	server.Handle("DELETE /email/{email}", middlewares(http.HandlerFunc(handler.DeleteUserById)))
 
 	return router.NewRouter("/user", server), nil
+
 }

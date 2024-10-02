@@ -64,6 +64,7 @@ func (h *Handler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) AddUser(w http.ResponseWriter, r *http.Request) {
 	add, err := decode.Json[AddUserModel](r.Body)
+
 	if err != nil {
 		log.Print(err)
 		http.Error(w, "could not decode json", http.StatusUnprocessableEntity)
