@@ -10,7 +10,7 @@ export const SideMenu = () => {
         {
             href: "/",
             name: "Create Trigger",
-            className: "bg-gradient-to-r from-blue-500 via-violet-500 to-fuchsia-500 hover:bg-gradient-to-r hover:from-blue-600 hover:via-violet-600 hover:to-fuchsia-600 animate-gradient text-white",
+            className: "bg-gradient-to-r from-blue-500 via-violet-500 to-fuchsia-500 hover:bg-gradient-to-r hover:from-blue-600 hover:via-violet-600 hover:to-fuchsia-600 animate-gradient text-white mb-5",
             icon: <MdAddBox className="text-white mr-2 w-5 h-5" />,
         },
         {

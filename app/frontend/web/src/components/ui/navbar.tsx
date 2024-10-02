@@ -11,48 +11,49 @@ import { SiGooglegemini } from 'react-icons/si'
 import { IoSettingsOutline } from "react-icons/io5";
 import { cn } from '@/lib/utils'
 
+const navbarItems = [
+    { name: "Home", href: "/home" },
+    { name: "Community", href: "/community" },
+    { name: "Settings", href: "/settings" },
+]
+
+const homeItems = [
+    {
+        href: "/",
+        name: "Create Trigger",
+        className: "bg-gradient-to-r from-blue-500 via-violet-500 to-fuchsia-500 hover:bg-gradient-to-r hover:from-blue-600 hover:via-violet-600 hover:to-fuchsia-600 animate-gradient border-0 text-white",
+        icon: <MdAddBox className="text-white w-5 h-5" />,
+    },
+    {
+        name: "Templates",
+        href: "/",
+        icon: <GrDocumentImage className="text-black dark:text-white w-5 h-5" />,
+    },
+    {
+        name: "Triggers",
+        href: "/home",
+        icon: <SiGooglegemini className="text-black dark:text-white w-5 h-5" />,
+    },
+    {
+        name: "Settings",
+        href: "/settings",
+        icon: <IoSettingsOutline className="text-black dark:text-white w-5 h-5" />,
+    },
+]
+
+const authButtons = [
+    { name: "Log In", href: "/auth?type=login", className: "rounded-full border-black text-lg", variant: "outline" },
+    { name: "Sign Up", href: "/auth?type=signup", className: "rounded-full bg-orange-600 hover:bg-orange-700 text-lg", variant: "default" },
+]
+
 export function Navbar() {
-    const [loggedIn, setLoggedIn] = React.useState(false);
-    const [isHomePage, setIsHomePage] = React.useState(false);
+    const [loggedIn, setLoggedIn] = React.useState<Boolean>(false);
+    const [isHomePage, setIsHomePage] = React.useState<Boolean>(false);
 
     React.useEffect(() => {
         setIsHomePage(window.location.pathname === '/home');
     }, [window.location.pathname]);
 
-    const navbarItems = [
-        { name: "Home", href: "/home" },
-        { name: "Community", href: "/community" },
-        { name: "Settings", href: "/settings" },
-    ]
-
-    const homeItems = [
-        {
-            href: "/",
-            name: "Create Trigger",
-            className: "bg-gradient-to-r from-blue-500 via-violet-500 to-fuchsia-500 hover:bg-gradient-to-r hover:from-blue-600 hover:via-violet-600 hover:to-fuchsia-600 animate-gradient border-0 text-white",
-            icon: <MdAddBox className="text-white w-5 h-5" />,
-        },
-        {
-            name: "Templates",
-            href: "/",
-            icon: <GrDocumentImage className="text-black dark:text-white w-5 h-5" />,
-        },
-        {
-            name: "Triggers",
-            href: "/home",
-            icon: <SiGooglegemini className="text-black dark:text-white w-5 h-5" />,
-        },
-        {
-            name: "Settings",
-            href: "/settings",
-            icon: <IoSettingsOutline className="text-black dark:text-white w-5 h-5" />,
-        },
-    ]
-
-    const authButtons = [
-        { name: "Log In", href: "/auth?type=login", className: "rounded-full border-black text-lg", variant: "outline" },
-        { name: "Sign Up", href: "/auth?type=signup", className: "rounded-full bg-orange-600 hover:bg-orange-700 text-lg", variant: "default" },
-    ]
 
     return (
         <nav className="flex bg-white border-gray-500 dark:bg-zinc-950 min-h-16">
