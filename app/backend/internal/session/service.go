@@ -2,16 +2,11 @@ package session
 
 import (
 	"context"
-	"errors"
-	"log"
+	"fmt"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-)
-
-var (
-	errUserAlreadyExists error = errors.New("user already exists")
 )
 
 func (m Model) Get() ([]SessionModel, error) {
@@ -38,7 +33,7 @@ func (m Model) GetById(id primitive.ObjectID) (*SessionModel, error) {
 	err := m.Collection.FindOne(ctx, filter).Decode(&session)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errBadSessionID, err)
 	}
 	return &session, nil
 }
@@ -52,7 +47,7 @@ func (m Model) GetByUserId(userId primitive.ObjectID) ([]SessionModel, error) {
 	defer cursor.Close(ctx)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errBadUserID, err)
 	}
 
 	if err = cursor.All(ctx, &sessions); err != nil {
@@ -69,8 +64,7 @@ func (m Model) Add(add *AddSessionModel) (*SessionModel, error) {
 	}
 	for _, user := range userExists {
 		if user.ProviderName == add.ProviderName {
-			log.Print("user already exists with provider")
-			return nil, errUserAlreadyExists
+			return nil, fmt.Errorf("%w: %v", errUserAlreadyExists, add.ProviderName)
 		}
 	}
 	ctx := context.TODO()
@@ -87,7 +81,7 @@ func (m Model) Add(add *AddSessionModel) (*SessionModel, error) {
 	_, err = m.Collection.InsertOne(ctx, newSession)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errInsertSession, err)
 	}
 	return &newSession, nil
 }
@@ -106,7 +100,7 @@ func (m Model) UpdateById(id primitive.ObjectID, update *UpdateSessionModel) (*S
 	err = m.Collection.FindOne(ctx, filter).Decode(&updatedSession)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errSessionNotFound, err)
 	}
 	return &updatedSession, nil
 }
@@ -117,7 +111,7 @@ func (m Model) DeleteById(id primitive.ObjectID) error {
 	result, err := m.Collection.DeleteOne(ctx, filter)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("%w: %v", errSessionNotFound, err)
 	}
 	if result.DeletedCount == 0 {
 		return mongo.ErrNoDocuments
@@ -131,7 +125,7 @@ func (m Model) DeleteByUserId(userId primitive.ObjectID, providerName string) er
 	result, err := m.Collection.DeleteOne(ctx, filter)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("%w: %v", errSessionNotFound, err)
 	}
 	if result.DeletedCount == 0 {
 		return mongo.ErrNoDocuments
@@ -146,7 +140,7 @@ func (m Model) GetByToken(token string) (*SessionModel, error) {
 	err := m.Collection.FindOne(ctx, filter).Decode(&session)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errSessionNotFound, err)
 	}
 	return &session, nil
 }

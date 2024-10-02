@@ -16,20 +16,6 @@ import (
 	"trigger.com/trigger/pkg/fetch"
 )
 
-var (
-	errCredentialsNotFound         error = errors.New("could not get credentials from context")
-	errAuthorizationHeaderNotFound error = errors.New("could not get authorization header")
-	errAuthorizationTypeNone       error = errors.New("could not decypher auth type")
-	errTokenNotFound               error = errors.New("could not find token in authorization header")
-	errAuthTypeUndefined           error = errors.New("auth type is undefined")
-	errUserNotFound                error = errors.New("could not find user")
-	errUserTypeNone                error = errors.New("could not decypher user type")
-	errSessionNotFound             error = errors.New("could not find session")
-	errSessionTypeNone             error = errors.New("could not decypher session type")
-	errProviderSessionNotFound     error = errors.New("could not find provider session")
-	errSessionPatchFailed          error = errors.New("could not patch session")
-)
-
 func (m Model) Login(ctx context.Context) (string, error) {
 	gothUser, ok := ctx.Value(LoginCtxKey).(goth.User)
 

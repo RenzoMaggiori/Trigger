@@ -10,6 +10,7 @@ import (
 var (
 	errUserAlreadyExists error = errors.New("user already exists")
 	errUserNotFound      error = errors.New("user not found")
+	errBadUserID         error = errors.New("bad user id")
 
 	errCodes map[error]customerror.CustomError = map[error]customerror.CustomError{
 		errUserAlreadyExists: {
@@ -19,6 +20,10 @@ var (
 		errUserNotFound: {
 			Message: errUserNotFound.Error(),
 			Code:    http.StatusNotFound,
+		},
+		errBadUserID: {
+			Message: errBadUserID.Error(),
+			Code:    http.StatusBadRequest,
 		},
 	}
 )

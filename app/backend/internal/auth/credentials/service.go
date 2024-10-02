@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -20,15 +19,6 @@ import (
 	"trigger.com/trigger/pkg/jwt"
 )
 
-var (
-	errCredentialsNotFound         error = errors.New("could not get credentials from context")
-	errAuthorizationHeaderNotFound error = errors.New("could not get authorization header")
-	errAuthorizationTypeNone       error = errors.New("could not decypher auth type")
-	errTokenNotFound               error = errors.New("could not find token in authorization header")
-	errAuthTypeUndefined           error = errors.New("auth type is undefined")
-	errUserNotRetrieved            error = errors.New("could not retrieve user")
-	errSessionNotRetrieved         error = errors.New("could not retrieve session")
-)
 
 func (m Model) Login(ctx context.Context) (string, error) {
 	credentials, ok := ctx.Value(CredentialsCtxKey).(CredentialsModel)
@@ -45,7 +35,7 @@ func (m Model) Login(ctx context.Context) (string, error) {
 		},
 	))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("%w: %v", errUserNotRetrieved, err)
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
@@ -69,7 +59,7 @@ func (m Model) Login(ctx context.Context) (string, error) {
 		os.Getenv("TOKEN_SECRET"),
 	)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("%w: %v", errCreateToken, err)
 	}
 	res, err = fetch.Fetch(http.DefaultClient, fetch.NewFetchRequest(
 		http.MethodGet,
@@ -80,7 +70,7 @@ func (m Model) Login(ctx context.Context) (string, error) {
 		},
 	))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("%w: %v", errSessionNotRetrieved, err)
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
@@ -101,7 +91,7 @@ func (m Model) Login(ctx context.Context) (string, error) {
 	}
 
 	if userSession == nil {
-		return "", errors.New("user session not found")
+		return "", errSessionNotFound
 	}
 
 	expiry, err := jwt.Expiry(token, os.Getenv("TOKEN_SECRET"))
@@ -130,12 +120,12 @@ func (m Model) Login(ctx context.Context) (string, error) {
 	)
 	if err != nil {
 		log.Println(err)
-		return "", err
+		return "", fmt.Errorf("%w: %v", errSessionNotRetrieved, err)
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
 		log.Printf("invalid status code, received %s\n", res.Status)
-		return "", errors.New("unable to create user")
+		return "", fmt.Errorf("%w: %v", errCreateuser, err)
 	}
 	return token, nil
 }
@@ -164,12 +154,12 @@ func (m Model) Register(regsiterModel RegisterModel) (string, error) {
 
 	if err != nil {
 		log.Println(err)
-		return "", err
+		return "", fmt.Errorf("%w: %v", errCreateuser, err)
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
 		log.Printf("invalid status code, received %s\n", res.Status)
-		return "", errors.New("unable to create user")
+		return "", errCreateuser
 	}
 
 	user, err := decode.Json[user.UserModel](res.Body)
@@ -202,11 +192,11 @@ func (m Model) Register(regsiterModel RegisterModel) (string, error) {
 		),
 	)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("%w: %v", errCreateSession, err)
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		return "", errors.New("unable to create session")
+		return "", errCreateSession
 	}
 
 	accessToken, err := m.Login(context.WithValue(

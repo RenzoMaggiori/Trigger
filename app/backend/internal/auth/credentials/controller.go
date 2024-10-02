@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 
+	customerror "trigger.com/trigger/pkg/custom-error"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/jwt"
 )
@@ -33,8 +34,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		credentials,
 	))
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "eror while retrieving token", http.StatusNotFound)
+		customerror.Send(w, err, errCodes)
 		return
 	}
 

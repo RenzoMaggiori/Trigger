@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/markbates/goth/gothic"
+	customerror "trigger.com/trigger/pkg/custom-error"
 )
 
 const (
@@ -24,8 +25,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	accessToken, err := h.Service.Login(context.WithValue(r.Context(), LoginCtxKey, gothUser))
 
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "unable to login", http.StatusUnprocessableEntity)
+		customerror.Send(w, err, errCodes)
 		return
 	}
 
@@ -36,16 +36,14 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
 	user, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "Unable to complete the user auth", http.StatusUnprocessableEntity)
+		customerror.Send(w, err, errCodes)
 		return
 	}
 
 	// Store the user and the session in the database
 	accessToken, err := h.Service.Callback(user)
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "Unable to store user auth", http.StatusUnprocessableEntity)
+		customerror.Send(w, err, errCodes)
 		return
 	}
 	w.Header().Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
@@ -56,8 +54,7 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	// Remove the session from the database
 	_, err := h.Service.Logout(context.WithValue(r.Context(), AuthorizationHeaderCtxKey, r.Header.Get("Authorization")))
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "Unable to logout", http.StatusUnprocessableEntity)
+		customerror.Send(w, err, errCodes)
 		return
 	}
 	w.Header().Set("Location", "/")

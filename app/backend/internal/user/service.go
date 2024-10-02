@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"fmt"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -33,7 +34,7 @@ func (m Model) GetById(id primitive.ObjectID) (*UserModel, error) {
 	err := m.Collection.FindOne(ctx, filter).Decode(&user)
 
 	if err != nil {
-		return nil, errUserNotFound
+		return nil, fmt.Errorf("%w: %v", errUserNotFound, err)
 	}
 	return &user, nil
 }
@@ -45,7 +46,7 @@ func (m Model) GetByEmail(email string) (*UserModel, error) {
 	err := m.Collection.FindOne(ctx, filter).Decode(&user)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errUserNotFound, err)
 	}
 	return &user, nil
 }
@@ -53,7 +54,7 @@ func (m Model) GetByEmail(email string) (*UserModel, error) {
 func (m Model) Add(add *AddUserModel) (*UserModel, error) {
 	userExists, err := m.GetByEmail(add.Email)
 	if userExists != nil {
-		return nil, errUserAlreadyExists
+		return nil, fmt.Errorf("%w: %v", errUserAlreadyExists, err)
 	}
 
 	ctx := context.TODO()
@@ -86,7 +87,7 @@ func (m Model) UpdateById(id primitive.ObjectID, update *UpdateUserModel) (*User
 
 	_, err := m.Collection.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errUserNotFound, err)
 	}
 
 	var updatedUser UserModel
@@ -105,7 +106,7 @@ func (m Model) UpdateByEmail(email string, update *UpdateUserModel) (*UserModel,
 
 	_, err := m.Collection.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errUserNotFound, err)
 	}
 
 	var updatedUser UserModel
@@ -123,7 +124,7 @@ func (m Model) DeleteById(id primitive.ObjectID) error {
 	result, err := m.Collection.DeleteOne(ctx, filter)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("%w: %v", errUserNotFound, err)
 	}
 	if result.DeletedCount == 0 {
 		return mongo.ErrNoDocuments
@@ -137,7 +138,7 @@ func (m Model) DeleteByEmail(email string) error {
 	result, err := m.Collection.DeleteOne(ctx, filter)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("%w: %v", errUserNotFound, err)
 	}
 	if result.DeletedCount == 0 {
 		return mongo.ErrNoDocuments
