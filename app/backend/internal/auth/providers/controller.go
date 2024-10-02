@@ -10,7 +10,15 @@ import (
 )
 
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
-	gothic.BeginAuthHandler(w, r)
+	user, err := gothic.CompleteUserAuth(w, r)
+	if err != nil {
+		// redirect the user to provider oauth2 workflow
+		log.Println(err)
+		gothic.BeginAuthHandler(w, r)
+		return
+	}
+
+	// TODO: fix the thing
 }
 
 func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +42,7 @@ func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	gothic.Logout(w, r)
 	// Remove the session from the database
-	_, err := h.Service.Logout(context.WithValue(context.TODO(), ProviderCtxKey, r.Header.Get("Authorization")))
+	_, err := h.Service.Logout(context.WithValue(r.Context(), AuthorizationHeaderCtxKey, r.Header.Get("Authorization")))
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Unable to logout", http.StatusUnprocessableEntity)

@@ -22,7 +22,8 @@ type Model struct {
 
 type ProviderCtx string
 
-const ProviderCtxKey ProviderCtx = ProviderCtx("ProviderCtxKey")
+const AuthorizationHeaderCtxKey ProviderCtx = ProviderCtx("AuthorizationHeaderCtxKey")
+const UserCtxKey ProviderCtx = ProviderCtx("UserCtxKey")
 
 type SessionModel struct {
 	Id           primitive.ObjectID `json:"id" bson:"_id"`

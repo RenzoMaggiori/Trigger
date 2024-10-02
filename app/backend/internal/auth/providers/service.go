@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 
@@ -41,7 +40,7 @@ func (m Model) Callback(gothUser goth.User) (string, error) {
 	}
 
 	res, err := fetch.Fetch(
-		&http.Client{},
+		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodPost,
 			fmt.Sprintf("%s/api/user/add", os.Getenv("USER_SERVICE_BASE_URL")),
@@ -96,7 +95,7 @@ func (m Model) Callback(gothUser goth.User) (string, error) {
 }
 
 func (m Model) Logout(ctx context.Context) (string, error) {
-	accessToken, ok := ctx.Value(ProviderCtxKey).(string)
+	accessToken, ok := ctx.Value(AuthorizationHeaderCtxKey).(string)
 
 	_ = accessToken
 	if !ok {
