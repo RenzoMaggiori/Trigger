@@ -9,16 +9,28 @@ import (
 	"github.com/markbates/goth/gothic"
 )
 
+const (
+	authCookieName string = "Authorization"
+)
+
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
-	user, err := gothic.CompleteUserAuth(w, r)
+	gothUser, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
 		// redirect the user to provider oauth2 workflow
 		log.Println(err)
 		gothic.BeginAuthHandler(w, r)
 		return
 	}
+	accessToken, err := h.Service.Login(context.WithValue(r.Context(), LoginCtxKey, gothUser))
 
-	// TODO: fix the thing
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "unable to login", http.StatusUnprocessableEntity)
+		return
+	}
+
+	cookie := &http.Cookie{Name: authCookieName, Value: accessToken, Expires: gothUser.ExpiresAt}
+	http.SetCookie(w, cookie) // TODO: fix the thing
 }
 
 func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
