@@ -11,8 +11,7 @@ import (
 	"os"
 
 	"github.com/markbates/goth"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"trigger.com/trigger/internal/session"
 	"trigger.com/trigger/internal/user"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/fetch"
@@ -40,7 +39,6 @@ func (m Model) Callback(gothUser goth.User) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	log.Println("Registering user")
 
 	res, err := fetch.Fetch(
 		&http.Client{},
@@ -54,21 +52,18 @@ func (m Model) Callback(gothUser goth.User) (string, error) {
 		),
 	)
 	if err != nil {
-		log.Println(err)
 		return "", err
 	}
 	if res.StatusCode != http.StatusOK {
-		log.Printf("invalid status code, received %s\n", res.Status)
 		return "", errors.New("unable to create user")
 	}
-	fmt.Printf("%+v\n", res.Body)
+
 	user, err := decode.Json[user.UserModel](res.Body)
 	if err != nil {
-		log.Println("Decode Json: ", err)
 		return "", err
 	}
-	newSession := SessionModel{
-		Id:           primitive.NewObjectID(),
+
+	addSession := session.AddSessionModel{
 		UserId:       user.Id,
 		ProviderName: &gothUser.Provider,
 		AccessToken:  gothUser.AccessToken,
@@ -76,25 +71,37 @@ func (m Model) Callback(gothUser goth.User) (string, error) {
 		Expiry:       gothUser.ExpiresAt,
 		IdToken:      &gothUser.IDToken,
 	}
-	_, err = m.DB.Collection("session").InsertOne(context.TODO(), newSession)
-	fmt.Println("newSession", newSession)
+	body, err = json.Marshal(addSession)
 	if err != nil {
 		return "", err
+	}
+
+	res, err = fetch.Fetch(
+		http.DefaultClient,
+		fetch.NewFetchRequest(
+			http.MethodPost,
+			fmt.Sprintf("%s/api/session/add", os.Getenv("SESSION_SERVICE_BASE_URL")),
+			bytes.NewReader(body),
+			nil,
+		),
+	)
+	if err != nil {
+		return "", err
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return "", errors.New("unable to create session")
 	}
 	return gothUser.AccessToken, nil
 }
 
 func (m Model) Logout(ctx context.Context) (string, error) {
-	accessToken, ok := ctx.Value(CredentialsCtxKey).(string)
+	accessToken, ok := ctx.Value(ProviderCtxKey).(string)
 
+	_ = accessToken
 	if !ok {
 		return "", errCredentialsNotFound
 	}
-	filter := bson.M{"accessToken": accessToken}
-	_, err := m.DB.Collection("session").DeleteOne(ctx, filter)
-	if err != nil {
-		log.Println("could not delete session")
-		return "", err
-	}
+	// TODO: implement logout
 	return "", nil
 }

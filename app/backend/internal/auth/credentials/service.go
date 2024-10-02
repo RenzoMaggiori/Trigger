@@ -141,6 +141,7 @@ func (m Model) Login(ctx context.Context) (string, error) {
 }
 
 func (m Model) Logout(ctx context.Context) (string, error) {
+	// TODO: implement logout
 	return "", nil
 }
 
@@ -192,7 +193,7 @@ func (m Model) Register(regsiterModel RegisterModel) (string, error) {
 	}
 
 	res, err = fetch.Fetch(
-		&http.Client{},
+		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodPost,
 			fmt.Sprintf("%s/api/session/add", os.Getenv("SESSION_SERVICE_BASE_URL")),
@@ -201,12 +202,10 @@ func (m Model) Register(regsiterModel RegisterModel) (string, error) {
 		),
 	)
 	if err != nil {
-		log.Println(err)
 		return "", err
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		log.Printf("invalid status code, received %s\n", res.Status)
 		return "", errors.New("unable to create session")
 	}
 

@@ -5,7 +5,6 @@ import (
 
 	"github.com/markbates/goth"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 	"trigger.com/trigger/pkg/authenticator"
 )
 
@@ -19,10 +18,11 @@ type Handler struct {
 }
 
 type Model struct {
-	DB *mongo.Database
 }
 
-var CredentialsCtxKey = "CredentialsCtxKey"
+type ProviderCtx string
+
+const ProviderCtxKey ProviderCtx = ProviderCtx("ProviderCtxKey")
 
 type SessionModel struct {
 	Id           primitive.ObjectID `json:"id" bson:"_id"`
