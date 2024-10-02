@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, StyleSheet, SafeAreaView, ScrollView, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import Button from '@/components/Button';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import ButtonIcon from '@/components/ButtonIcon';
 
 export default function SignIn() {
     const [email, setEmail] = useState('');
@@ -14,43 +16,80 @@ export default function SignIn() {
         router.push('/(tabs)/HomeScreen');
     };
 
+    const handleSocialSignIn = (service: string) => {
+        router.push('/(tabs)/HomeScreen');
+        console.log(`Signing up with ${service}`);
+    };
+
+    const technologies = [
+        { name: 'Gmail', icon: <MaterialIcons name="email" size={30} color={Colors.light.gmail} /> },
+        { name: 'Github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
+        { name: 'Outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.outlook} /> },
+    ];
+
+    const data = {
+        logo: require('../assets/images/react-logo.png'),
+    };
+
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>SIGN IN</Text>
-            <TextInput
-                style={styles.input}
-                placeholder="Email"
-                value={email}
-                // onChangeText={setEmail}
-            />
-            <TextInput
-                style={styles.input}
-                placeholder="Password"
-                secureTextEntry
-                value={password}
-                // onChangeText={setPassword}
-            />
-            <Button
-                onPress={handleSignIn}
-                title="SIGN IN"
-            />
-            <Text style={styles.orText}>or</Text>
-            <Button
-                onPress={handleSignIn}
-                title="Services"
-                backgroundColor='#FFFFFF'
-                textColor='#000000'
-            />
-        </View>
+        <SafeAreaView style={styles.safeArea}>
+            <ScrollView contentContainerStyle={styles.scrollContainer}>
+                <View style={styles.navbar}>
+                    <Image source={data.logo} style={styles.logo} />
+                </View>
+                <TextInput
+                    style={styles.input}
+                    placeholder="Email"
+                    value={email}
+                    onChangeText={setEmail}
+                />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Password"
+                    secureTextEntry
+                    value={password}
+                    onChangeText={setPassword}
+                />
+                <Button
+                    onPress={handleSignIn}
+                    title="SIGN IN"
+                />
+                <View style={styles.separatorContainer}>
+                    <View style={styles.line} />
+                    <Text style={styles.orText}>or</Text>
+                    <View style={styles.line} />
+                </View>
+                {technologies.map((tech, index) => (
+                    <ButtonIcon
+                        key={index}
+                        onPress={() => handleSocialSignIn(tech.name)}
+                        title={"Continue with " + tech.name}
+                        icon={tech.icon}
+                        backgroundColor="#FFFFFF"
+                        borderCol={tech.icon.props.color}
+                    />
+                ))}
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
+    safeArea: {
         flex: 1,
-        padding: 16,
-        justifyContent: 'center',
         backgroundColor: Colors.light.background,
+    },
+    navbar: {
+        alignItems: 'center',
+    },
+    logo: {
+        width: 80,
+        height: 80,
+    },
+    scrollContainer: {
+        flexGrow: 1,
+        paddingHorizontal: 16,
+        justifyContent: 'flex-start',
     },
     title: {
         fontSize: 24,
@@ -78,7 +117,17 @@ const styles = StyleSheet.create({
     },
     orText: {
         textAlign: 'center',
-        marginVertical: 10,
+        marginHorizontal: 20,
+    },
+    separatorContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: 20,
+    },
+    line: {
+        flex: 1,
+        height: 1,
+        backgroundColor: '#ccc',
     },
     servicesButton: {
         padding: 15,
