@@ -17,7 +17,7 @@ func (m Model) Get() ([]UserModel, error) {
 	cursor, err := m.Collection.Find(ctx, filter)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errUserNotFound, err)
 	}
 	defer cursor.Close(ctx)
 
@@ -75,7 +75,7 @@ func (m Model) Add(add *AddUserModel) (*UserModel, error) {
 	_, err = m.Collection.InsertOne(ctx, newUser)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errUserNotCreated, err)
 	}
 	return &newUser, nil
 }
@@ -87,7 +87,7 @@ func (m Model) UpdateById(id primitive.ObjectID, update *UpdateUserModel) (*User
 
 	_, err := m.Collection.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errUserNotFound, err)
+		return nil, fmt.Errorf("%w: %v", errUserNotUpdated, err)
 	}
 
 	var updatedUser UserModel
@@ -106,7 +106,7 @@ func (m Model) UpdateByEmail(email string, update *UpdateUserModel) (*UserModel,
 
 	_, err := m.Collection.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errUserNotFound, err)
+		return nil, fmt.Errorf("%w: %v", errUserNotUpdated, err)
 	}
 
 	var updatedUser UserModel
@@ -124,7 +124,7 @@ func (m Model) DeleteById(id primitive.ObjectID) error {
 	result, err := m.Collection.DeleteOne(ctx, filter)
 
 	if err != nil {
-		return fmt.Errorf("%w: %v", errUserNotFound, err)
+		return fmt.Errorf("%w: %v", errUserNotDeleted, err)
 	}
 	if result.DeletedCount == 0 {
 		return mongo.ErrNoDocuments
@@ -138,7 +138,7 @@ func (m Model) DeleteByEmail(email string) error {
 	result, err := m.Collection.DeleteOne(ctx, filter)
 
 	if err != nil {
-		return fmt.Errorf("%w: %v", errUserNotFound, err)
+		return fmt.Errorf("%w: %v", errUserNotDeleted, err)
 	}
 	if result.DeletedCount == 0 {
 		return mongo.ErrNoDocuments
