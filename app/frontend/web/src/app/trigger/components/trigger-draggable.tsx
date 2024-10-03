@@ -1,16 +1,17 @@
 import { Card, CardContent } from '@/components/ui/card'
-import React from 'react'
+import React, { ReactElement } from 'react'
 
 
 export interface ServiceSetting {
-    type: string;
-    label: string;
+    type?: string;
+    label?: string;
+    component?: ReactElement<any, any>,
     options?: string[];
 }
 export interface Service {
     name: string;
     icon: React.ReactNode;
-    settings: ServiceSetting[]
+    settings: React.JSX.Element
 }
 
 interface TriggerDraggableProps extends React.HTMLAttributes<HTMLDivElement> {

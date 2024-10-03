@@ -1,85 +1,60 @@
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ServiceSetting } from "./trigger-draggable";
-import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CustomNode } from "../[triggerID]/page";
+import { Edge } from "@xyflow/react";
 import { Label } from "@/components/ui/label";
 
-interface ConfigMenuProps {
-    menu: ServiceSetting[];
-}
+export function ConfigMenu({ menu, parentNodes, node }: { menu: React.JSX.Element, parentNodes: CustomNode[], node: CustomNode | null }) {
+    const [selectedParent, setSelectedParent] = React.useState<string | null>(null);
 
-const InputComponent = ({ label }: { label: string }) => (
-    <div>
-        <label className="block font-medium mb-1">{label}</label>
-        <input type="text" placeholder={label} className="border p-2 w-full rounded-md" />
-    </div>
-);
+    const handleParentSelection = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const selectedId = e.target.value;
+        setSelectedParent(selectedId);
+    };
 
-const TextareaComponent = ({ label, options }: { label: string, options: string[] }) => (
-    <div>
-        <Label className="font-lg">{options[0]}</Label>
-        <Textarea placeholder={label} className="rezise-none"/>
-    </div>
-);
-
-const DropdownComponent = ({ label, options }: { label: string; options: string[] }) => (
-    <div>
-        <label className="block font-medium mb-1">{label}</label>
-        <select className="border p-2 w-full rounded-md">
-            {options.map((option, idx) => (
-                <option key={idx} value={option}>
-                    {option}
-                </option>
-            ))}
-        </select>
-    </div>
-);
-
-const CheckboxComponent = ({ label }: { label: string }) => (
-    <div>
-        <label className="flex items-center space-x-2">
-            <input type="checkbox" className="form-checkbox" />
-            <span>{label}</span>
-        </label>
-    </div>
-);
-
-const ButtonComponent = ({ label }: { label: string }) => (
-    <button className="bg-blue-500 text-white p-2 rounded-md w-full hover:bg-blue-600">{label}</button>
-);
-
-const componentMap: Record<string, React.FC<any>> = {
-    input: InputComponent,
-    textarea: TextareaComponent,
-    dropdown: DropdownComponent,
-    button: ButtonComponent,
-    checkbox: CheckboxComponent,
-};
-
-export function ConfigMenu({ menu }: ConfigMenuProps) {
     return (
-        <div className="flex flex-col gap-4">
-            {menu.map((setting, index) => {
+        <Card className="h-full w-[500px]">
+            <CardHeader>
+                <CardTitle className="flex items-center text-xl font-bold">{node?.data?.label} Settings</CardTitle>
+                <CardDescription className="ml-2 text-md">ID: {node?.id}</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="mb-4">
+                    <Label htmlFor="parent-node-dropdown" className="block text-sm font-medium text-gray-700">
+                        Information to Send
+                    </Label>
+                    <select
+                        id="parent-node-dropdown"
+                        value={selectedParent ?? ''}
+                        onChange={handleParentSelection}
+                        className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    >
+                        <option value="">None</option>
+                        <option value="Personalized">Personalized</option>
+                        {parentNodes.map((parentNode) => (
+                            <option key={parentNode.id} value={parentNode.id}>
+                                {parentNode.data.label}
+                            </option>
+                        ))}
+                    </select>
+                </div>
 
-                const Component = componentMap[setting.type];
-                return Component ? (
-                    <Card key={index} className="w-full">
-                        <CardHeader>
-                            <CardTitle className="text-xl">Settings</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <Component label={setting.label} options={setting.options} />
-                        </CardContent>
-                    </Card>
-                ) : (
+                {selectedParent === "Personalized" && (
+                    <div className="p-4 border border-gray-300 rounded-md">
+                        <h4 className="text-lg font-bold mb-2">Personalized Settings</h4>
+                        {menu}
+                    </div>
+                )}
 
-                    <Card key={index} className="w-full">
-                        <CardContent>
-                            <div className="text-gray-500">Unknown setting type: {setting.type}</div>
-                        </CardContent>
-                    </Card>
-                );
-            })}
-        </div>
+                {selectedParent && (
+                    <div className="mt-4">
+                        <h4 className="font-bold">Selected Parent Node ID:</h4>
+                        <p>{selectedParent}</p>
+                        <h4 className="font-bold">Parent Node Label:</h4>
+                        <p>{parentNodes.find((node) => node.id === selectedParent)?.data.label}</p>
+                    </div>
+                )}
+            </CardContent>
+        </Card>
     );
 }

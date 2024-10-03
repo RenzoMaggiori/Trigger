@@ -5,29 +5,24 @@ import { IoLogoGithub } from "react-icons/io";
 import { FaDiscord } from "react-icons/fa";
 import { Service, TriggerDraggable } from '../components/trigger-draggable';
 import { Button } from '@/components/ui/button';
-import { addEdge, ReactFlow, useEdgesState, useNodesState, type Node, type Edge, type OnNodesChange, type OnEdgesChange, applyNodeChanges, applyEdgeChanges, Background } from '@xyflow/react';
+import { addEdge, ReactFlow, useEdgesState, useNodesState, type Node, type Edge, type OnNodesChange, type OnEdgesChange, applyNodeChanges, applyEdgeChanges, Background, Connection } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { ConfigMenu } from '../components/config-menu';
-const initialNodes = [
-    { id: '1', position: { x: 0, y: 0 }, data: { label: '1' } },
-    { id: '2', position: { x: 0, y: 100 }, data: { label: '2' } },
-];
-const initialEdges = [{ id: 'e1-2', source: '1', target: '2' }];
+import { BiLogoGmail } from "react-icons/bi";
+import { PiMicrosoftOutlookLogo } from "react-icons/pi";
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { OutlookSettings } from '../components/service-settings';
 
 const services: Service[] = [
-    {
-        icon: <IoLogoGithub className='w-5 h-5 mr-2' />, name: "Github", settings: [
-            { type: "input", label: "text" }
-        ]
-    },
-    {
-        icon: <FaDiscord className='w-5 h-5 mr-2 text-blue-600' />, name: "Discord", settings: [
-            { type: "textarea", label: "writeHere", options: ["Message to Send"] }
-        ]
-    },
+    { icon: <IoLogoGithub className='w-5 h-5 mr-2' />, name: "Github", settings: <></> },
+    { icon: <FaDiscord className='w-5 h-5 mr-2 text-blue-600' />, name: "Discord", settings: <></> },
+    { icon: <BiLogoGmail className='w-5 h-5 mr-2 text-red-600' />, name: "Gmail", settings: <></> },
+    { icon: <PiMicrosoftOutlookLogo className='w-5 h-5 mr-2 text-sky-500' />, name: "Outlook", settings: <OutlookSettings /> },
 ];
 
-interface CustomNode extends Node {
+export interface CustomNode extends Node {
     data: {
         label: React.ReactNode;
         settings?: Service["settings"];
@@ -37,8 +32,9 @@ interface CustomNode extends Node {
 const Page = () => {
     const [nodes, setNodes] = React.useState<CustomNode[]>([]);
     const [edges, setEdges] = React.useState<Edge[]>([]);
-    const [settings, setSettings] = React.useState<Service["settings"]>([]);
-    const [draggedIndex, setDraggedIndex] = React.useState<number | null>(null);
+    const [settings, setSettings] = React.useState<Service["settings"]>();
+    const [parentNodes, setParentNodes] = React.useState<CustomNode[]>([]);
+    const [selectedNode, setSelectedNode] = React.useState<CustomNode | null>(null);
 
     const onNodesChange: OnNodesChange = React.useCallback(
         (changes) => setNodes((nds) => applyNodeChanges(changes, nds) as CustomNode[]),
@@ -49,11 +45,19 @@ const Page = () => {
         [setEdges],
     );
 
-    const onConnect = React.useCallback((params: any) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
-    const handleDragStart = (e: React.DragEvent<HTMLDivElement>, service: Service, index?: number): void => {
-        const serviceData = { name: service.name, index };
+    const onConnect = React.useCallback(
+        (params: Connection | Edge) => {
+            setEdges((eds) => addEdge(params, eds));
+            if (params.target) {
+                updateParentNodes(params.target);
+            }
+        },
+        [setEdges]
+    );
+
+    const handleDragStart = (e: React.DragEvent<HTMLDivElement>, service: Service): void => {
+        const serviceData = { name: service.name };
         e.dataTransfer.setData("service", JSON.stringify(serviceData));
-        if (index !== undefined) setDraggedIndex(index);
     };
 
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>): void => {
@@ -63,7 +67,7 @@ const Page = () => {
     const handleDrop = (e: React.DragEvent<HTMLDivElement>): void => {
         e.preventDefault();
         const reactFlowBounds = e.currentTarget.getBoundingClientRect();
-        const droppedService = JSON.parse(e.dataTransfer.getData("service")) as { name: string; index?: number };
+        const droppedService = JSON.parse(e.dataTransfer.getData("service")) as { name: string };
         const position = {
             x: e.clientX - reactFlowBounds.left,
             y: e.clientY - reactFlowBounds.top,
@@ -88,14 +92,32 @@ const Page = () => {
 
             setNodes((nds) => [...nds, newNode]);
         }
-
-        setDraggedIndex(null);
     };
 
     const handleNodeClick = (event: React.MouseEvent, node: CustomNode) => {
         if (node.data?.settings) {
             setSettings(node.data.settings);
+            updateParentNodes(node.id);
+            setSelectedNode(node);
         }
+    };
+
+    const updateParentNodes = (nodeId: string) => {
+        const parentNodes = findParentNodes(nodeId, edges, nodes);
+        setParentNodes(parentNodes);
+    };
+
+    const findParentNodes = (nodeId: string, edges: Edge[], nodes: CustomNode[], visited: Set<string> = new Set()): CustomNode[] => {
+        if (visited.has(nodeId)) return [];
+        visited.add(nodeId);
+
+        const parentEdges = edges.filter(edge => edge.target === nodeId);
+        const parentNodes = parentEdges.map(edge => nodes.find(node => node.id === edge.source)).filter(Boolean) as CustomNode[];
+
+        return [
+            ...parentNodes,
+            ...parentNodes.flatMap(parentNode => findParentNodes(parentNode.id, edges, nodes, visited)),
+        ];
     };
 
     return (
@@ -111,13 +133,12 @@ const Page = () => {
                                 onDragStart={(e) => handleDragStart(e, item)}
                                 className='cursor-move'
                             >
-                                <TriggerDraggable service={item} />
+                                <TriggerDraggable service={item} className='w-[200px]' />
                             </div>
                         ))}
                     </CardContent>
                 </Card>
             </div>
-
             <div className='w-full p-5'>
                 <Card className='w-full h-full'>
                     <CardContent
@@ -139,8 +160,8 @@ const Page = () => {
                 </Card>
             </div>
             <div className='p-5'>
-                {settings.length > 0 && (
-                    <ConfigMenu menu={settings}/>
+                {settings && (
+                    <ConfigMenu menu={settings} parentNodes={parentNodes} node={selectedNode} />
                 )}
             </div>
         </div>
