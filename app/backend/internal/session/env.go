@@ -1,4 +1,4 @@
-package user
+package session
 
 import (
 	"fmt"
@@ -14,7 +14,6 @@ import (
 var (
 	errEnvNotFound      string    = "Enviroment argument %s not found"
 	enviromentArguments [8]string = [...]string{
-
 		"MONGO_INITDB_ROOT_USERNAME",
 		"MONGO_INITDB_ROOT_PASSWORD",
 		"MONGO_PORT",
@@ -23,7 +22,6 @@ var (
 		"AUTH_SERVICE_BASE_URL",
 		"USER_SERVICE_BASE_URL",
 		"SESSION_SERVICE_BASE_URL",
-
 	}
 )
 

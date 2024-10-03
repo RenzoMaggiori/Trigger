@@ -21,7 +21,7 @@ func Auth(next http.Handler) http.Handler {
 			&http.Client{},
 			fetch.NewFetchRequest(
 				http.MethodPost,
-				fmt.Sprintf("%s/api/verify", os.Getenv("AUTH_SERVICE_BASE_URL")),
+				fmt.Sprintf("%s/api/auth/verify", os.Getenv("AUTH_SERVICE_BASE_URL")),
 				nil,
 				map[string]string{
 					"Authorization": r.Header.Get("Authorization"),

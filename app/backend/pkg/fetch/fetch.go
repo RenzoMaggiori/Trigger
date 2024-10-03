@@ -2,7 +2,9 @@ package fetch
 
 import (
 	"io"
+	"log"
 	"net/http"
+	"time"
 )
 
 type FetchRequest struct {
@@ -31,9 +33,11 @@ func Fetch(client *http.Client, request *FetchRequest) (*http.Response, error) {
 		req.Header.Set(k, v)
 	}
 
+	start := time.Now()
 	res, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
+	log.Printf("Fetching %s %s [%d] %s", req.Method, req.URL.Path, res.StatusCode, time.Since(start))
 	return res, nil
 }
