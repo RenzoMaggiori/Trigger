@@ -13,13 +13,13 @@ import { PiMicrosoftOutlookLogo } from "react-icons/pi";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { OutlookSettings } from '../components/service-settings';
+import { DiscordSettings, EmailSettings } from '../components/service-settings';
 
 const services: Service[] = [
     { icon: <IoLogoGithub className='w-5 h-5 mr-2' />, name: "Github", settings: <></> },
-    { icon: <FaDiscord className='w-5 h-5 mr-2 text-blue-600' />, name: "Discord", settings: <></> },
-    { icon: <BiLogoGmail className='w-5 h-5 mr-2 text-red-600' />, name: "Gmail", settings: <></> },
-    { icon: <PiMicrosoftOutlookLogo className='w-5 h-5 mr-2 text-sky-500' />, name: "Outlook", settings: <OutlookSettings /> },
+    { icon: <FaDiscord className='w-5 h-5 mr-2 text-blue-600' />, name: "Discord", settings: <DiscordSettings /> },
+    { icon: <BiLogoGmail className='w-5 h-5 mr-2 text-red-600' />, name: "Gmail", settings: <EmailSettings /> },
+    { icon: <PiMicrosoftOutlookLogo className='w-5 h-5 mr-2 text-sky-500' />, name: "Outlook", settings: <EmailSettings /> },
 ];
 
 export interface CustomNode extends Node {

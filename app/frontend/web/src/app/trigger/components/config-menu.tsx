@@ -46,7 +46,7 @@ export function ConfigMenu({ menu, parentNodes, node }: { menu: React.JSX.Elemen
                     </div>
                 )}
 
-                {selectedParent && (
+                {selectedParent && selectedParent != "Personalized" && (
                     <div className="mt-4">
                         <h4 className="font-bold">Selected Parent Node ID:</h4>
                         <p>{selectedParent}</p>
