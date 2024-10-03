@@ -51,8 +51,10 @@ export function Navbar() {
     const [isHomePage, setIsHomePage] = React.useState<Boolean>(false);
 
     React.useEffect(() => {
-        setIsHomePage(window.location.pathname === '/home');
-    }, [window.location.pathname]);
+        if (typeof window !== 'undefined') {
+            setIsHomePage(window.location.pathname === '/home');
+        }
+    }, []);
 
 
     return (
