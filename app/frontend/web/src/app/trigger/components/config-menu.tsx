@@ -1,16 +1,23 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CustomNode } from "../[triggerID]/page";
-import { Edge } from "@xyflow/react";
 import { Label } from "@/components/ui/label";
+import { Combox, Status } from "@/components/ui/combox";
+import { SiGooglegemini } from "react-icons/si";
 
 export function ConfigMenu({ menu, parentNodes, node }: { menu: React.JSX.Element, parentNodes: CustomNode[], node: CustomNode | null }) {
-    const [selectedParent, setSelectedParent] = React.useState<string | null>(null);
+    const [selectedStatus, setSelectedStatus] = React.useState<Status | null>(
+        null
+    )
 
-    const handleParentSelection = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const selectedId = e.target.value;
-        setSelectedParent(selectedId);
-    };
+    const combinedStatuses: Status[] = [
+        { label: <div className="flex flex-row items-center text-md font-bold"><SiGooglegemini className="mr-2"/> None</div>, value: "none" },
+        { label: <div className="flex flex-row items-center text-md font-bold"><SiGooglegemini className="mr-2 fill-purple-500"/> Personalized</div>, value: "Personalized" },
+        ...parentNodes.map((parentNode) => ({
+            label: parentNode.data.label as string,
+            value: parentNode.id,
+        })),
+    ];
 
     return (
         <Card className="h-full w-[500px]">
@@ -23,35 +30,22 @@ export function ConfigMenu({ menu, parentNodes, node }: { menu: React.JSX.Elemen
                     <Label htmlFor="parent-node-dropdown" className="block text-sm font-medium text-gray-700">
                         Information to Send
                     </Label>
-                    <select
-                        id="parent-node-dropdown"
-                        value={selectedParent ?? ''}
-                        onChange={handleParentSelection}
-                        className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    >
-                        <option value="">None</option>
-                        <option value="Personalized">Personalized</option>
-                        {parentNodes.map((parentNode) => (
-                            <option key={parentNode.id} value={parentNode.id}>
-                                {parentNode.data.label}
-                            </option>
-                        ))}
-                    </select>
+                    <Combox statuses={combinedStatuses} setSelectedStatus={setSelectedStatus} selectedStatus={selectedStatus} label="info" icon={<SiGooglegemini className="mr-2"/>}/>
                 </div>
 
-                {selectedParent === "Personalized" && (
+                {selectedStatus?.label === "Personalized" && (
                     <div className="p-4 border border-gray-300 rounded-md">
                         <h4 className="text-lg font-bold mb-2">Personalized Settings</h4>
                         {menu}
                     </div>
                 )}
 
-                {selectedParent && selectedParent != "Personalized" && (
+                {selectedStatus && selectedStatus.label != "Personalized" && (
                     <div className="mt-4">
                         <h4 className="font-bold">Selected Parent Node ID:</h4>
-                        <p>{selectedParent}</p>
+                        <p>{selectedStatus.value}</p>
                         <h4 className="font-bold">Parent Node Label:</h4>
-                        <p>{parentNodes.find((node) => node.id === selectedParent)?.data.label}</p>
+                        <p>{parentNodes.find((node) => node.id === selectedStatus.value)?.data.label}</p>
                     </div>
                 )}
             </CardContent>
