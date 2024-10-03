@@ -1,8 +1,8 @@
-package user
+package session
 
 import (
-	"fmt"
 	"net/http"
+	"fmt"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	customerror "trigger.com/trigger/pkg/custom-error"
@@ -10,7 +10,7 @@ import (
 	"trigger.com/trigger/pkg/encode"
 )
 
-func (h *Handler) GetUsers(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetSessions(w http.ResponseWriter, r *http.Request) {
 	users, err := h.Service.Get()
 
 	if err != nil {
@@ -18,16 +18,16 @@ func (h *Handler) GetUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err = encode.Json(w, users); err != nil {
-		customerror.Send(w, err, errCodes)
+		customerror.Send(w, err, errCodes)																						
 		return
 	}
 }
 
-func (h *Handler) GetUserById(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetSessionById(w http.ResponseWriter, r *http.Request) {
 	id, err := primitive.ObjectIDFromHex(r.PathValue("id"))
 
 	if err != nil {
-		error := fmt.Errorf("%w: %v", errBadUserID, err)
+		error := fmt.Errorf("%w: %v", errBadSessionID, err)
 		customerror.Send(w, error, errCodes)
 		return
 	}
@@ -43,10 +43,16 @@ func (h *Handler) GetUserById(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
-	email := r.PathValue("email")
+func (h *Handler) GetSessionByUserId(w http.ResponseWriter, r *http.Request) {
+	userId, err := primitive.ObjectIDFromHex(r.PathValue("user_id"))
 
-	user, err := h.Service.GetByEmail(email)
+	if err != nil {
+		error := fmt.Errorf("%w: %v", errBadUserID, err)
+		customerror.Send(w, error, errCodes)
+		return
+	}
+
+	user, err := h.Service.GetByUserId(userId)
 	if err != nil {
 		customerror.Send(w, err, errCodes)
 		return
@@ -57,9 +63,8 @@ func (h *Handler) GetUserByEmail(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) AddUser(w http.ResponseWriter, r *http.Request) {
-	add, err := decode.Json[AddUserModel](r.Body)
-
+func (h *Handler) AddSession(w http.ResponseWriter, r *http.Request) {
+	add, err := decode.Json[AddSessionModel](r.Body)
 	if err != nil {
 		customerror.Send(w, err, errCodes)
 		return
@@ -76,16 +81,16 @@ func (h *Handler) AddUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) UpdateUserById(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) UpdateSessionById(w http.ResponseWriter, r *http.Request) {
 	id, err := primitive.ObjectIDFromHex(r.PathValue("id"))
 
 	if err != nil {
-		error := fmt.Errorf("%w: %v", errBadUserID, err)
+		error := fmt.Errorf("%w: %v", errBadSessionID, err)
 		customerror.Send(w, error, errCodes)
 		return
 	}
 
-	update, err := decode.Json[UpdateUserModel](r.Body)
+	update, err := decode.Json[UpdateSessionModel](r.Body)
 	if err != nil {
 		customerror.Send(w, err, errCodes)
 		return
@@ -102,31 +107,11 @@ func (h *Handler) UpdateUserById(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) UpdateUserByEmail(w http.ResponseWriter, r *http.Request) {
-	email := r.PathValue("email")
-	update, err := decode.Json[UpdateUserModel](r.Body)
-
-	if err != nil {
-		customerror.Send(w, err, errCodes)
-		return
-	}
-
-	updatedUser, err := h.Service.UpdateByEmail(email, &update)
-	if err != nil {
-		customerror.Send(w, err, errCodes)
-		return
-	}
-	if err = encode.Json(w, updatedUser); err != nil {
-		customerror.Send(w, err, errCodes)
-		return
-	}
-}
-
-func (h *Handler) DeleteUserById(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) DeleteSessionById(w http.ResponseWriter, r *http.Request) {
 	id, err := primitive.ObjectIDFromHex(r.PathValue("id"))
 
 	if err != nil {
-		error := fmt.Errorf("%w: %v", errBadUserID, err)
+		error := fmt.Errorf("%w: %v", errBadSessionID, err)
 		customerror.Send(w, error, errCodes)
 		return
 	}
@@ -136,10 +121,15 @@ func (h *Handler) DeleteUserById(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) DeleteUserByEmail(w http.ResponseWriter, r *http.Request) {
-	email := r.PathValue("email")
+func (h *Handler) GetByToken(w http.ResponseWriter, r *http.Request) {
+	token := r.PathValue("access_token")
 
-	if err := h.Service.DeleteByEmail(email); err != nil {
+	session, err := h.Service.GetByToken(token)
+	if err != nil {
+		customerror.Send(w, err, errCodes)
+		return
+	}
+	if err = encode.Json(w, session); err != nil {
 		customerror.Send(w, err, errCodes)
 		return
 	}

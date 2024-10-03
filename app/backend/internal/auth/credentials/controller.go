@@ -1,17 +1,19 @@
-package auth
+package credentials
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+	customerror "trigger.com/trigger/pkg/custom-error"
 	"trigger.com/trigger/pkg/decode"
-	"trigger.com/trigger/pkg/fetch"
+	"trigger.com/trigger/pkg/jwt"
+)
+
+const (
+	authCookieName string = "Authorization"
 )
 
 var (
@@ -32,13 +34,22 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		credentials,
 	))
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "unable to proccess body", http.StatusUnprocessableEntity)
+		customerror.Send(w, err, errCodes)
 		return
 	}
 
-	// Cookie or Header?
-	w.Header().Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+	expires, err := jwt.Expiry(
+		accessToken,
+		os.Getenv("TOKEN_SECRET"),
+	)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	cookie := &http.Cookie{Name: authCookieName, Value: accessToken, Expires: expires}
+	http.SetCookie(w, cookie)
 }
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
@@ -54,49 +65,25 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body, err := json.Marshal(newUser.User)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "unable to proccess user", http.StatusUnprocessableEntity)
-		return
-	}
-
-	res, err := fetch.Fetch(
-		&http.Client{},
-		fetch.NewFetchRequest(
-			http.MethodPost,
-			fmt.Sprintf("%s/api/user", os.Getenv("USER_SERVICE_BASE_URL")),
-			bytes.NewReader(body),
-			nil,
-		),
-	)
-	if err != nil {
-		log.Println(err)
-		http.Error(w, "unable to create user", http.StatusInternalServerError)
-		return
-	}
-	if res.StatusCode != http.StatusOK {
-		log.Printf("invalid status code, received %s\n", res.Status)
-		http.Error(w, "unable to create user", http.StatusBadRequest)
-		return
-	}
-
-	accessToken, err := h.Service.Login(context.WithValue(
-		context.TODO(),
-		CredentialsCtxKey,
-		CredentialsModel{
-			Email:    newUser.User.Email,
-			Password: *newUser.User.Password,
-		},
-	))
+	accessToken, err := h.Service.Register(newUser)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "unable to login user", http.StatusInternalServerError)
 		return
 	}
 
-	// Cookie or Header?
-	w.Header().Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+	expires, err := jwt.Expiry(
+		accessToken,
+		os.Getenv("TOKEN_SECRET"),
+	)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	cookie := &http.Cookie{Name: authCookieName, Value: accessToken, Expires: expires}
+	http.SetCookie(w, cookie)
 }
 
 func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
@@ -109,7 +96,7 @@ func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
 
 	if err = h.Service.VerifyToken(token); err != nil {
 		log.Println(err)
-		http.Error(w, "unable to get authorization token", http.StatusBadRequest)
+		http.Error(w, "unable to retrieve the token from the db", http.StatusBadRequest)
 		return
 	}
 }
