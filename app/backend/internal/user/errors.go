@@ -15,7 +15,7 @@ var (
 	errCodes map[error]customerror.CustomError = map[error]customerror.CustomError{
 		errUserAlreadyExists: {
 			Message: errUserAlreadyExists.Error(),
-			Code:    http.StatusBadRequest,
+			Code:    http.StatusConflict,
 		},
 		errUserNotFound: {
 			Message: errUserNotFound.Error(),
