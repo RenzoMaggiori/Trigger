@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import React from 'react'
+import { useMenu } from './MenuProvider';
 
 
 const InputComponent = ({ label, placeholder, type }: { label: string, placeholder?: string, type?: string }) => {
@@ -18,21 +19,31 @@ const InputComponent = ({ label, placeholder, type }: { label: string, placehold
 }
 
 const EmailSettings = () => {
+    const { fields, setFields } = useMenu();
+
+    const handleFieldChange = (index: number, value: string) => {
+        const updatedFields = [...fields];
+        updatedFields[index] = value;
+        setFields(updatedFields);
+    };
+
     const inputs = [
         { label: "Destination", placeholder: "example@example.com" },
         { label: "Title", placeholder: "Example title..." },
         { label: "Subject", placeholder: "Example subject..." },
     ]
+
     return (
         <div className='flex flex-col gap-y-4'>
             {inputs.map((item, key) => (
                 <div key={key}>
-                    <InputComponent label={item.label} placeholder={item.placeholder} />
+                    <Label>{item.label}</Label>
+                    <Input placeholder={item.placeholder} onChange={(e) => handleFieldChange(key, e.target.value)}/>
                 </div>
             ))}
             <div>
                 <Label>Email body</Label>
-                <Textarea placeholder='Example body...' className='resize-none h-[200px]' />
+                <Textarea placeholder='Example body...' className='resize-none h-[200px]' onChange={(e) => handleFieldChange(inputs.length + 1, e.target.value)}/>
             </div>
         </div>
     );

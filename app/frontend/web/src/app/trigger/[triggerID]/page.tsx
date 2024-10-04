@@ -29,12 +29,28 @@ export interface CustomNode extends Node {
     };
 }
 
+export type NodesArrayItem = {
+    id: string
+    type: string
+    fields: Array<any>
+    parent_ids: Array<string>
+    child_ids: Array<string>
+    x_pos: number
+    y_pos: number
+}
+
+export type TriggerWorkspace = {
+    id: number
+    nodes: Array<NodesArrayItem>
+}
+
 const Page = () => {
     const [nodes, setNodes] = React.useState<CustomNode[]>([]);
     const [edges, setEdges] = React.useState<Edge[]>([]);
     const [settings, setSettings] = React.useState<Service["settings"]>();
     const [parentNodes, setParentNodes] = React.useState<CustomNode[]>([]);
     const [selectedNode, setSelectedNode] = React.useState<CustomNode | null>(null);
+    const [workspace, setWorkspace] = React.useState<TriggerWorkspace | null>(null);
 
     const onNodesChange: OnNodesChange = React.useCallback(
         (changes) => setNodes((nds) => applyNodeChanges(changes, nds) as CustomNode[]),
@@ -161,7 +177,11 @@ const Page = () => {
             </div>
             <div className='p-5'>
                 {settings && (
-                    <ConfigMenu menu={settings} parentNodes={parentNodes} node={selectedNode} />
+                    <ConfigMenu
+                        menu={settings}
+                        parentNodes={parentNodes}
+                        node={selectedNode}
+                    />
                 )}
             </div>
         </div>
