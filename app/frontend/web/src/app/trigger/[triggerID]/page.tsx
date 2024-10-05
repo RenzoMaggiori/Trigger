@@ -15,10 +15,10 @@ import { useMenu } from '@/app/trigger/components/MenuProvider';
 import { transformCustomNodes } from '@/app/trigger/lib/transform-custom-nodes';
 
 const services: Service[] = [
-    { icon: <IoLogoGithub className='w-5 h-5 mr-2' />, name: "Github", settings: GithubSettings },
-    { icon: <FaDiscord className='w-5 h-5 mr-2 text-blue-600' />, name: "Discord", settings: DiscordSettings },
-    { icon: <BiLogoGmail className='w-5 h-5 mr-2 text-red-600' />, name: "Gmail", settings: EmailSettings },
-    { icon: <PiMicrosoftOutlookLogo className='w-5 h-5 mr-2 text-sky-500' />, name: "Outlook", settings: EmailSettings },
+    // { icon: <IoLogoGithub className='w-5 h-5 mr-2' />, name: "Github", settings: GithubSettings },
+    // { icon: <FaDiscord className='w-5 h-5 mr-2 text-blue-600' />, name: "Discord", settings: DiscordSettings },
+    { icon: <BiLogoGmail className='w-5 h-5 mr-2 text-red-600' />, name: "Gmail", settings: "email" },
+    { icon: <PiMicrosoftOutlookLogo className='w-5 h-5 mr-2 text-sky-500' />, name: "Outlook", settings: "email" },
 ];
 
 export default function Page() {
@@ -27,22 +27,19 @@ export default function Page() {
     const [settings, setSettings] = React.useState<Service["settings"]>();
     const [parentNodes, setParentNodes] = React.useState<CustomNode[]>([]);
     const [selectedNode, setSelectedNode] = React.useState<CustomNode | null>(null);
-    const {triggerWorkspace, setTriggerWorkspace, setNodes} = useMenu()
+    const { triggerWorkspace, setTriggerWorkspace, setNodes } = useMenu()
 
     React.useEffect(() => {
-        setTriggerWorkspace({
-            id: 1,
-            nodes: [],
-        });
-    }, [setTriggerWorkspace]);
+        setTriggerWorkspace((prev) => prev || { id: 1, nodes: [] });
+    }, []);
+    
     React.useEffect(() => {
-        const transformedNodes = transformCustomNodes(customNodes, edges);
-
-        setTriggerWorkspace((prev) => prev ? { ...prev, nodes: transformedNodes } : null);
+        if (customNodes.length > 0 || edges.length > 0) {
+            const transformedNodes = transformCustomNodes(customNodes, edges);
+            setTriggerWorkspace((prev) => (prev ? { ...prev, nodes: transformedNodes } : null));
+        }
     }, [customNodes, edges]);
-
-    console.log(triggerWorkspace)
-
+    
     const onNodesChange: OnNodesChange = React.useCallback(
         (changes) => setCustomNodes((nds) => applyNodeChanges(changes, nds) as CustomNode[]),
         [setCustomNodes]

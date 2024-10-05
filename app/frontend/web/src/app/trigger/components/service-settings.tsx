@@ -25,7 +25,7 @@ function GithubSettings({ node }: { node: NodesArrayItem }) {
     )
 }
 
-function EmailSettings({ node }: { node: NodesArrayItem }) {
+function EmailSettings({node}: {node: NodesArrayItem} ) {
     const { triggerWorkspace, setFields } = useMenu();
 
     const handleFieldChange = (index: string, value: any) => {
@@ -38,6 +38,8 @@ function EmailSettings({ node }: { node: NodesArrayItem }) {
         { label: "Subject", placeholder: "Example subject..." },
     ]
 
+    if (!node)
+        return <div>no node found</div>
     const existingNode = triggerWorkspace?.nodes.filter((n) => n.id === node.id);
 
     return (

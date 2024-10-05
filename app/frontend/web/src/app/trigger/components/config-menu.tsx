@@ -5,17 +5,25 @@ import { Combox, Status } from "@/components/ui/combox";
 import { SiGooglegemini } from "react-icons/si";
 import { useMenu } from "./MenuProvider";
 import { CustomNode, NodesArrayItem } from "@/app/trigger/lib/types";
+import { DiscordSettings, EmailSettings, GithubSettings } from "./service-settings";
 
 type ConfigMenuType = {
-    menu: ({ node }: { node: NodesArrayItem }) => React.JSX.Element
+    menu: string
     parentNodes: CustomNode[]
     node: CustomNode | null
 }
 
+const settingsComponentMap: { [key: string]: React.ComponentType<{ node: NodesArrayItem }> } = {
+    email: EmailSettings,
+    discord: DiscordSettings,
+    github: GithubSettings,
+};
+
 export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
     const [selectedStatus, setSelectedStatus] = React.useState<Status | null>(null)
     const { triggerWorkspace } = useMenu()
-    const nodeItem = triggerWorkspace?.nodes.filter((n) => n.id === node?.id)
+    if (!node) return <div>node doesn't exist</div>
+    const nodeItem = triggerWorkspace?.nodes.filter((n) => n.id === node.id) ?? []
 
     const combinedStatuses: Status[] = [
         { label: <div className="flex flex-row items-center text-md font-bold"><SiGooglegemini className="mr-2" /> None</div>, value: "None" },
@@ -25,6 +33,8 @@ export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
             value: parentNode.id,
         })),
     ];
+
+    const SettingsComponent = settingsComponentMap[menu];
 
     return (
         <Card className="h-full w-[500px]">
@@ -40,10 +50,10 @@ export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
                     <Combox statuses={combinedStatuses} setSelectedStatus={setSelectedStatus} selectedStatus={selectedStatus} label="info" icon={<SiGooglegemini className="mr-2" />} />
                 </div>
 
-                {selectedStatus?.value === "Personalized" && nodeItem && nodeItem.length === 1 && (
+                {selectedStatus?.value === "Personalized" && (
                     <div className="p-4 border border-gray-300 rounded-md">
                         <h4 className="text-lg font-bold mb-2">Personalized Settings</h4>
-                        {menu({ node: nodeItem[0] })}
+                        <SettingsComponent node={nodeItem[0]} />
                     </div>
                 )}
 

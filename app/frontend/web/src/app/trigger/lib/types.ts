@@ -21,7 +21,7 @@ export type NodesArrayItem = {
 export interface Service {
     name: string;
     icon: React.ReactNode;
-    settings: ({node}: {node: NodesArrayItem}) => React.JSX.Element
+    settings: string
 }
 
 export type TriggerWorkspace = {
