@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"trigger.com/trigger/internal/action/action"
-	useraction "trigger.com/trigger/internal/action/user_action"
+	"trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/internal/user"
 	"trigger.com/trigger/pkg/arguments"
 	"trigger.com/trigger/pkg/middleware"
@@ -36,7 +36,7 @@ func main() {
 
 	userActionCollection := mongoClient.Database(
 		os.Getenv("MONGO_DB"),
-	).Collection("user_action")
+	).Collection("workspace")
 
 	ctx := context.WithValue(
 		context.TODO(),
@@ -45,13 +45,14 @@ func main() {
 	)
 	ctx = context.WithValue(
 		ctx,
-		useraction.UserActionCtxKey,
+		workspace.WorkspaceCtxKey,
 		userActionCollection,
 	)
 
 	router, err := router.Create(
 		ctx,
 		action.Router,
+		workspace.Router,
 	)
 	if err != nil {
 		log.Fatal(err)

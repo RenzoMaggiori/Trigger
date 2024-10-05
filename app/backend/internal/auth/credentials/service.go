@@ -19,7 +19,6 @@ import (
 	"trigger.com/trigger/pkg/jwt"
 )
 
-
 func (m Model) Login(ctx context.Context) (string, error) {
 	credentials, ok := ctx.Value(CredentialsCtxKey).(CredentialsModel)
 	if !ok {

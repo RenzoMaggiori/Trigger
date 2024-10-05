@@ -10,7 +10,7 @@ const ActionCtxKey string = "ActionCtxKey"
 type Service interface {
 	Get() ([]ActionModel, error)
 	GetById(primitive.ObjectID) (*ActionModel, error)
-	GetByActionType(actionType string) ([]ActionModel, error)
+	GetByProvider(provider string) ([]ActionModel, error)
 	Add(*AddActionModel) (*ActionModel, error)
 }
 
@@ -22,27 +22,17 @@ type Model struct {
 	Collection *mongo.Collection
 }
 
-type ActionType int
-
-const (
-	Trigger ActionType = iota
-	Action
-)
-
-var ActionTypeValue = map[string]ActionType{
-	"trigger": Trigger,
-	"action":  Action,
-}
-
 type ActionModel struct {
-	Id         primitive.ObjectID `json:"id" bson:"_id"`
-	Input      []string           `json:"input" bson:"input"`
-	Output     []string           `json:"output" bson:"output"`
-	ActionType string             `json:"action_type" bson:"action_type"`
+	Id       primitive.ObjectID `json:"id" bson:"_id"`
+	Input    []string           `json:"input" bson:"input"`
+	Output   []string           `json:"output" bson:"output"`
+	Provider string             `json:"provider" bson:"provider"`
+	Type     string             `json:"type" bson:"type"`
 }
 
 type AddActionModel struct {
-	Input      []string `json:"input" bson:"input"`
-	Output     []string `json:"output" bson:"output"`
-	ActionType string   `json:"action_type" bson:"action_type"`
+	Input    []string `json:"input" bson:"input"`
+	Output   []string `json:"output" bson:"output"`
+	Provider string   `json:"provider" bson:"provider"`
+	Type     string   `json:"type" bson:"type"`
 }

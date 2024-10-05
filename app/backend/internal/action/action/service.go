@@ -36,10 +36,10 @@ func (m Model) GetById(id primitive.ObjectID) (*ActionModel, error) {
 	return &session, nil
 }
 
-func (m Model) GetByActionType(actionType string) ([]ActionModel, error) {
+func (m Model) GetByProvider(provider string) ([]ActionModel, error) {
 	var sessions []ActionModel
 	ctx := context.TODO()
-	filter := bson.M{"action_type": actionType}
+	filter := bson.M{"provider": provider}
 	cursor, err := m.Collection.Find(ctx, filter)
 
 	defer cursor.Close(ctx)
@@ -58,10 +58,11 @@ func (m Model) Add(add *AddActionModel) (*ActionModel, error) {
 	ctx := context.TODO()
 
 	newAction := ActionModel{
-		Id:         primitive.NewObjectID(),
-		Input:      add.Input,
-		Output:     add.Output,
-		ActionType: add.ActionType,
+		Id:       primitive.NewObjectID(),
+		Input:    add.Input,
+		Output:   add.Output,
+		Provider: add.Provider,
+		Type:     add.Type,
 	}
 	_, err := m.Collection.InsertOne(ctx, newAction)
 
