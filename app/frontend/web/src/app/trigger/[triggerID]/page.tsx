@@ -3,58 +3,49 @@ import { Card, CardContent } from '@/components/ui/card'
 import React from 'react'
 import { IoLogoGithub } from "react-icons/io";
 import { FaDiscord } from "react-icons/fa";
-import { Service, TriggerDraggable } from '../components/trigger-draggable';
-import { Button } from '@/components/ui/button';
-import { addEdge, ReactFlow, useEdgesState, useNodesState, type Node, type Edge, type OnNodesChange, type OnEdgesChange, applyNodeChanges, applyEdgeChanges, Background, Connection } from '@xyflow/react';
+import { TriggerDraggable } from '@/app/trigger/components/trigger-draggable';
+import { addEdge, ReactFlow, type Edge, type OnNodesChange, type OnEdgesChange, applyNodeChanges, applyEdgeChanges, Background, Connection } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { ConfigMenu } from '../components/config-menu';
+import { ConfigMenu } from '@/app/trigger/components/config-menu';
 import { BiLogoGmail } from "react-icons/bi";
 import { PiMicrosoftOutlookLogo } from "react-icons/pi";
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { DiscordSettings, EmailSettings } from '../components/service-settings';
+import { DiscordSettings, EmailSettings, GithubSettings } from '@/app/trigger/components/service-settings';
+import { CustomNode, Service } from '@/app/trigger/lib/types';
+import { useMenu } from '@/app/trigger/components/MenuProvider';
+import { transformCustomNodes } from '@/app/trigger/lib/transform-custom-nodes';
 
 const services: Service[] = [
-    { icon: <IoLogoGithub className='w-5 h-5 mr-2' />, name: "Github", settings: <></> },
-    { icon: <FaDiscord className='w-5 h-5 mr-2 text-blue-600' />, name: "Discord", settings: <DiscordSettings /> },
-    { icon: <BiLogoGmail className='w-5 h-5 mr-2 text-red-600' />, name: "Gmail", settings: <EmailSettings /> },
-    { icon: <PiMicrosoftOutlookLogo className='w-5 h-5 mr-2 text-sky-500' />, name: "Outlook", settings: <EmailSettings /> },
+    { icon: <IoLogoGithub className='w-5 h-5 mr-2' />, name: "Github", settings: GithubSettings },
+    { icon: <FaDiscord className='w-5 h-5 mr-2 text-blue-600' />, name: "Discord", settings: DiscordSettings },
+    { icon: <BiLogoGmail className='w-5 h-5 mr-2 text-red-600' />, name: "Gmail", settings: EmailSettings },
+    { icon: <PiMicrosoftOutlookLogo className='w-5 h-5 mr-2 text-sky-500' />, name: "Outlook", settings: EmailSettings },
 ];
 
-export interface CustomNode extends Node {
-    data: {
-        label: React.ReactNode;
-        settings?: Service["settings"];
-    };
-}
-
-export type NodesArrayItem = {
-    id: string
-    type: string
-    fields: Array<any>
-    parent_ids: Array<string>
-    child_ids: Array<string>
-    x_pos: number
-    y_pos: number
-}
-
-export type TriggerWorkspace = {
-    id: number
-    nodes: Array<NodesArrayItem>
-}
-
-const Page = () => {
-    const [nodes, setNodes] = React.useState<CustomNode[]>([]);
+export default function Page() {
+    const [customNodes, setCustomNodes] = React.useState<CustomNode[]>([]);
     const [edges, setEdges] = React.useState<Edge[]>([]);
     const [settings, setSettings] = React.useState<Service["settings"]>();
     const [parentNodes, setParentNodes] = React.useState<CustomNode[]>([]);
     const [selectedNode, setSelectedNode] = React.useState<CustomNode | null>(null);
-    const [workspace, setWorkspace] = React.useState<TriggerWorkspace | null>(null);
+    const {triggerWorkspace, setTriggerWorkspace, setNodes} = useMenu()
+
+    React.useEffect(() => {
+        setTriggerWorkspace({
+            id: 1,
+            nodes: [],
+        });
+    }, [setTriggerWorkspace]);
+    React.useEffect(() => {
+        const transformedNodes = transformCustomNodes(customNodes, edges);
+
+        setTriggerWorkspace((prev) => prev ? { ...prev, nodes: transformedNodes } : null);
+    }, [customNodes, edges]);
+
+    console.log(triggerWorkspace)
 
     const onNodesChange: OnNodesChange = React.useCallback(
-        (changes) => setNodes((nds) => applyNodeChanges(changes, nds) as CustomNode[]),
-        [setNodes]
+        (changes) => setCustomNodes((nds) => applyNodeChanges(changes, nds) as CustomNode[]),
+        [setCustomNodes]
     );
     const onEdgesChange: OnEdgesChange = React.useCallback(
         (changes) => setEdges((eds) => applyEdgeChanges(changes, eds)),
@@ -92,7 +83,7 @@ const Page = () => {
         const newService = services.find((service) => service.name === droppedService.name);
         if (newService) {
             const newNode: CustomNode = {
-                id: `${droppedService.name}-${nodes.length}`,
+                id: `${droppedService.name}-${customNodes.length}`,
                 position,
                 data: {
                     label: (
@@ -106,7 +97,7 @@ const Page = () => {
                 style: { border: "1px solid #ccc", padding: 10 },
             };
 
-            setNodes((nds) => [...nds, newNode]);
+            setCustomNodes((nds) => [...nds, newNode]);
         }
     };
 
@@ -119,7 +110,7 @@ const Page = () => {
     };
 
     const updateParentNodes = (nodeId: string) => {
-        const parentNodes = findParentNodes(nodeId, edges, nodes);
+        const parentNodes = findParentNodes(nodeId, edges, customNodes);
         setParentNodes(parentNodes);
     };
 
@@ -163,7 +154,7 @@ const Page = () => {
                         onDrop={handleDrop}
                     >
                         <ReactFlow
-                            nodes={nodes}
+                            nodes={customNodes}
                             edges={edges}
                             onNodesChange={onNodesChange}
                             onEdgesChange={onEdgesChange}
@@ -187,5 +178,3 @@ const Page = () => {
         </div>
     );
 };
-
-export default Page;

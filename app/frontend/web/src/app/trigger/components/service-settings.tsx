@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import React from 'react'
 import { useMenu } from './MenuProvider';
+import { NodesArrayItem } from '../lib/types';
 
 
 const InputComponent = ({ label, placeholder, type }: { label: string, placeholder?: string, type?: string }) => {
@@ -18,13 +19,17 @@ const InputComponent = ({ label, placeholder, type }: { label: string, placehold
     );
 }
 
-const EmailSettings = () => {
-    const { fields, setFields } = useMenu();
+function GithubSettings({ node }: { node: NodesArrayItem }) {
+    return (
+        <div></div>
+    )
+}
 
-    const handleFieldChange = (index: number, value: string) => {
-        const updatedFields = [...fields];
-        updatedFields[index] = value;
-        setFields(updatedFields);
+function EmailSettings({ node }: { node: NodesArrayItem }) {
+    const { triggerWorkspace, setFields } = useMenu();
+
+    const handleFieldChange = (index: string, value: any) => {
+        setFields(node.id, { ...node.fields, [index]: value })
     };
 
     const inputs = [
@@ -33,23 +38,25 @@ const EmailSettings = () => {
         { label: "Subject", placeholder: "Example subject..." },
     ]
 
+    const existingNode = triggerWorkspace?.nodes.filter((n) => n.id === node.id);
+
     return (
         <div className='flex flex-col gap-y-4'>
             {inputs.map((item, key) => (
                 <div key={key}>
                     <Label>{item.label}</Label>
-                    <Input placeholder={item.placeholder} onChange={(e) => handleFieldChange(key, e.target.value)}/>
+                    <Input placeholder={item.placeholder} onChange={(e) => handleFieldChange(item.label, e.target.value)} value={existingNode ? existingNode[0].fields[item.label] : undefined} />
                 </div>
             ))}
             <div>
                 <Label>Email body</Label>
-                <Textarea placeholder='Example body...' className='resize-none h-[200px]' onChange={(e) => handleFieldChange(inputs.length + 1, e.target.value)}/>
+                <Textarea placeholder='Example body...' className='resize-none h-[200px]' onChange={(e) => handleFieldChange("Body", e.target.value)} />
             </div>
         </div>
     );
 }
 
-const DiscordSettings = () => {
+function DiscordSettings({ node }: { node: NodesArrayItem }) {
     const [messageType, setMessageType] = React.useState<string>('Normal');
     const [embedFields, setEmbedFields] = React.useState<{ name: string; value: string }[]>([]);
 
@@ -158,4 +165,4 @@ const DiscordSettings = () => {
     );
 }
 
-export { EmailSettings, DiscordSettings }
+export { EmailSettings, DiscordSettings, GithubSettings }

@@ -1,15 +1,21 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CustomNode, NodesArrayItem } from "../[triggerID]/page";
 import { Label } from "@/components/ui/label";
 import { Combox, Status } from "@/components/ui/combox";
 import { SiGooglegemini } from "react-icons/si";
-import { MenuProvider } from "./MenuProvider";
+import { useMenu } from "./MenuProvider";
+import { CustomNode, NodesArrayItem } from "@/app/trigger/lib/types";
 
-export function ConfigMenu({ menu, parentNodes, node }: { menu: React.JSX.Element, parentNodes: CustomNode[], node: CustomNode | null }) {
-    const [selectedStatus, setSelectedStatus] = React.useState<Status | null>(
-        null
-    )
+type ConfigMenuType = {
+    menu: ({ node }: { node: NodesArrayItem }) => React.JSX.Element
+    parentNodes: CustomNode[]
+    node: CustomNode | null
+}
+
+export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
+    const [selectedStatus, setSelectedStatus] = React.useState<Status | null>(null)
+    const { triggerWorkspace } = useMenu()
+    const nodeItem = triggerWorkspace?.nodes.filter((n) => n.id === node?.id)
 
     const combinedStatuses: Status[] = [
         { label: <div className="flex flex-row items-center text-md font-bold"><SiGooglegemini className="mr-2" /> None</div>, value: "None" },
@@ -34,12 +40,10 @@ export function ConfigMenu({ menu, parentNodes, node }: { menu: React.JSX.Elemen
                     <Combox statuses={combinedStatuses} setSelectedStatus={setSelectedStatus} selectedStatus={selectedStatus} label="info" icon={<SiGooglegemini className="mr-2" />} />
                 </div>
 
-                {selectedStatus?.value === "Personalized" && (
+                {selectedStatus?.value === "Personalized" && nodeItem && nodeItem.length === 1 && (
                     <div className="p-4 border border-gray-300 rounded-md">
                         <h4 className="text-lg font-bold mb-2">Personalized Settings</h4>
-                        <MenuProvider initialFields={ []}> {/*Add the fields if they are set*/}
-                            {menu}
-                        </MenuProvider>
+                        {menu({ node: nodeItem[0] })}
                     </div>
                 )}
 
