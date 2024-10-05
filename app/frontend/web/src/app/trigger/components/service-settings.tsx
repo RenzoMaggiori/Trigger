@@ -25,34 +25,41 @@ function GithubSettings({ node }: { node: NodesArrayItem }) {
     )
 }
 
-function EmailSettings({node}: {node: NodesArrayItem} ) {
-    const { triggerWorkspace, setFields } = useMenu();
+function EmailSettings({ node }: { node: NodesArrayItem }) {
+    const { setFields } = useMenu();
 
     const handleFieldChange = (index: string, value: any) => {
-        setFields(node.id, { ...node.fields, [index]: value })
+        setFields(node.id, { ...node.fields, [index]: value });
     };
 
     const inputs = [
         { label: "Destination", placeholder: "example@example.com" },
         { label: "Title", placeholder: "Example title..." },
         { label: "Subject", placeholder: "Example subject..." },
-    ]
+    ];
 
-    if (!node)
-        return <div>no node found</div>
-    const existingNode = triggerWorkspace?.nodes.filter((n) => n.id === node.id);
+    if (!node) return <div>No node found</div>;
 
     return (
-        <div className='flex flex-col gap-y-4'>
+        <div className="flex flex-col gap-y-4">
             {inputs.map((item, key) => (
-                <div key={key}>
+                <div key={`${node.id}-${key}`}>
                     <Label>{item.label}</Label>
-                    <Input placeholder={item.placeholder} onChange={(e) => handleFieldChange(item.label, e.target.value)} value={existingNode ? existingNode[0].fields[item.label] : undefined} />
+                    <Input
+                        placeholder={item.placeholder}
+                        onChange={(e) => handleFieldChange(item.label, e.target.value)}
+                        value={node.fields[item.label] || ""}
+                    />
                 </div>
             ))}
             <div>
                 <Label>Email body</Label>
-                <Textarea placeholder='Example body...' className='resize-none h-[200px]' onChange={(e) => handleFieldChange("Body", e.target.value)} />
+                <Textarea
+                    placeholder="Example body..."
+                    className="resize-none h-[200px]"
+                    onChange={(e) => handleFieldChange("Body", e.target.value)}
+                    value={node.fields["Body"] || ""}
+                />
             </div>
         </div>
     );
