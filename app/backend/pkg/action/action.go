@@ -6,7 +6,11 @@ import (
 	"trigger.com/trigger/internal/action/workspace"
 )
 
-type Action interface {
+type Trigger interface {
 	Watch(ctx context.Context, action workspace.ActionNodeModel) error
 	Webhook(ctx context.Context) error
+}
+
+type Action interface {
+	Action(ctx context.Context, action workspace.ActionNodeModel) error
 }

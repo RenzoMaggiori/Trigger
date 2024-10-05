@@ -1,15 +1,13 @@
-package gmail
+package reaction
 
 import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"trigger.com/trigger/pkg/action"
 )
 
-type WorkspaceCtx string
+type GmailReactionCtx string
 
-const WorkspaceCtxKey WorkspaceCtx = WorkspaceCtx("WorkspaceCtxKey")
-
-const AccessTokenCtxKey WorkspaceCtx = WorkspaceCtx("AuthorizationCtxKey")
+const AccessTokenCtxKey GmailReactionCtx = GmailReactionCtx("AuthorizationCtxKey")
 
 type Service interface {
 	action.Action

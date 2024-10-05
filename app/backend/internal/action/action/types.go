@@ -23,11 +23,15 @@ type Model struct {
 }
 
 type ActionModel struct {
-	Id       primitive.ObjectID `json:"id" bson:"_id"`
-	Input    []string           `json:"input" bson:"input"`
-	Output   []string           `json:"output" bson:"output"`
-	Provider string             `json:"provider" bson:"provider"`
-	Type     string             `json:"type" bson:"type"`
+	Id     primitive.ObjectID `json:"id" bson:"_id"`
+	Input  []string           `json:"input" bson:"input"`
+	Output []string           `json:"output" bson:"output"`
+	// provider name (gmail, discord, github, ...)
+	Provider string `json:"provider" bson:"provider"`
+	// "trigger" or "action"
+	Type string `json:"type" bson:"type"`
+	// what does the action do? (send-email, delete-email, watch-push, ...)
+	Action string `json:"action" bson:"action"`
 }
 
 type AddActionModel struct {
@@ -35,4 +39,5 @@ type AddActionModel struct {
 	Output   []string `json:"output" bson:"output"`
 	Provider string   `json:"provider" bson:"provider"`
 	Type     string   `json:"type" bson:"type"`
+	Action   string   `json:"action" bson:"action"`
 }

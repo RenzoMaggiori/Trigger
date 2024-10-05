@@ -4,7 +4,8 @@ import (
 	"context"
 	"log"
 
-	"trigger.com/trigger/internal/gmail"
+	"trigger.com/trigger/internal/gmail/reaction"
+	"trigger.com/trigger/internal/gmail/trigger"
 	"trigger.com/trigger/internal/user"
 	"trigger.com/trigger/pkg/arguments"
 	"trigger.com/trigger/pkg/middleware"
@@ -25,7 +26,8 @@ func main() {
 
 	router, err := router.Create(
 		context.TODO(),
-		gmail.Router,
+		trigger.Router,
+		reaction.Router,
 	)
 	if err != nil {
 		log.Fatal(err)

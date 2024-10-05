@@ -8,11 +8,10 @@ import (
 )
 
 var (
-	errActionNotFound error = errors.New("action not found")
-	errBadActionId    error = errors.New("bad action id")
-	errBadActionType  error = errors.New("bad action type")
-
-	errCodes map[error]customerror.CustomError = map[error]customerror.CustomError{
+	errActionNotFound error                             = errors.New("action not found")
+	errBadActionId    error                             = errors.New("bad action id")
+	errBadActionType  error                             = errors.New("bad action type")
+	errCodes          map[error]customerror.CustomError = map[error]customerror.CustomError{
 
 		errActionNotFound: {
 			Message: errActionNotFound.Error(),

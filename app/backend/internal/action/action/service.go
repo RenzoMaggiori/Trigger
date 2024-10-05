@@ -42,11 +42,10 @@ func (m Model) GetByProvider(provider string) ([]ActionModel, error) {
 	filter := bson.M{"provider": provider}
 	cursor, err := m.Collection.Find(ctx, filter)
 
-	defer cursor.Close(ctx)
-
 	if err != nil {
 		return nil, err
 	}
+	defer cursor.Close(ctx)
 
 	if err = cursor.All(ctx, &sessions); err != nil {
 		return nil, err
@@ -57,12 +56,16 @@ func (m Model) GetByProvider(provider string) ([]ActionModel, error) {
 func (m Model) Add(add *AddActionModel) (*ActionModel, error) {
 	ctx := context.TODO()
 
+	if add.Type != "trigger" && add.Type != "reaction" {
+		return nil, errBadActionType
+	}
 	newAction := ActionModel{
 		Id:       primitive.NewObjectID(),
 		Input:    add.Input,
 		Output:   add.Output,
 		Provider: add.Provider,
 		Type:     add.Type,
+		Action:   add.Action,
 	}
 	_, err := m.Collection.InsertOne(ctx, newAction)
 

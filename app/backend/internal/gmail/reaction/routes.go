@@ -1,4 +1,4 @@
-package gmail
+package reaction
 
 import (
 	"context"
@@ -18,8 +18,7 @@ func Router(ctx context.Context) (*router.Router, error) {
 		Service: Model{},
 	}
 
-	server.Handle("POST /watch", middlewares(http.HandlerFunc(handler.WatchGmail)))
-	server.Handle("POST /webhook", http.HandlerFunc(handler.WebhookGmail))
+	server.Handle("POST /send_email", middlewares(http.HandlerFunc(handler.SendEmail)))
 
-	return router.NewRouter("/services/gmail", server), nil
+	return router.NewRouter("/gmail/reaction", server), nil
 }
