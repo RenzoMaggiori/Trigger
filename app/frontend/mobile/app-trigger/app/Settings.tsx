@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Switch, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, Switch, ScrollView, Modal, TouchableOpacity } from 'react-native';
 import { FontAwesome5, Ionicons, FontAwesome } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
+import Button from '@/components/Button';
 
 const technologies = [
     { name: 'Google', icon: <Ionicons name="logo-google" size={30} color={Colors.light.google} /> },
@@ -11,7 +12,7 @@ const technologies = [
     { name: 'Outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.outlook} /> },
 ];
 
-export default function SettingsScreen() {
+export default function Settings() {
     return (
         <SafeAreaView style={styles.safeArea}>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -32,6 +33,16 @@ type Technology = {
 function TechnologyItem({ technology }: { technology: Technology }) {
     const [isProfileVisible, setIsProfileVisible] = useState(false);
     const [isConnected, setIsConnected] = useState(technology.connected);
+    const [modalVisible, setModalVisible] = useState(false);
+
+    const handleConnectDisconnect = () => {
+        setModalVisible(true);  // Mostrar el modal al presionar Connect/Disconnect
+    };
+
+    const confirmAction = () => {
+        setIsConnected(!isConnected);  // Cambia el estado de conexión
+        setModalVisible(false);  // Cierra el modal
+    };
 
     return (
         <View style={styles.card}>
@@ -59,13 +70,41 @@ function TechnologyItem({ technology }: { technology: Technology }) {
                     onValueChange={() => setIsProfileVisible(!isProfileVisible)}
                 />
             </View>
-            <View style={styles.switchRow}>
-                <Text>Connection</Text>
-                <Switch
-                    value={isConnected}
-                    onValueChange={() => setIsConnected(!isConnected)}
+            <View style={styles.buttonConnect}>
+                <Button
+                    title={isConnected ? 'Disconnect' : 'Connect'}
+                    onPress={handleConnectDisconnect}
+                    backgroundColor={Colors.light.tint}
+                    textColor="#FFFFFF"
+                    buttonWidth="45%"
+                    paddingV={7.5}
                 />
             </View>
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>
+                            {isConnected ? `Disconnect ${technology.name}` : `Connect ${technology.name}`}
+                        </Text>
+                        <Text style={styles.modalMessage}>
+                            Are you sure you want to make this change?
+                        </Text>
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.cancelButton}>
+                                <Text style={styles.buttonText}>CANCEL</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={confirmAction} style={styles.acceptButton}>
+                                <Text style={styles.buttonText}>ACCEPT</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -132,5 +171,56 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+    },
+    buttonConnect: {
+        marginTop: 20,
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+    },
+
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    },
+    modalContent: {
+        width: 300,
+        backgroundColor: '#fff',
+        padding: 20,
+        borderRadius: 10,
+        alignItems: 'center',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 15,
+    },
+    modalMessage: {
+        fontSize: 16,
+        marginBottom: 20,
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+    cancelButton: {
+        backgroundColor: '#d3d3d3',
+        padding: 10,
+        borderRadius: 5,
+        width: '45%',
+        alignItems: 'center',
+    },
+    acceptButton: {
+        backgroundColor: Colors.light.tint,
+        padding: 10,
+        borderRadius: 5,
+        width: '45%',
+        alignItems: 'center',
+    },
+    buttonText: {
+        color: '#fff',
+        fontWeight: 'bold',
     },
 });

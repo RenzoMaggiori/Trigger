@@ -7,12 +7,13 @@ interface ButtonProps {
     backgroundColor?: string;
     textColor?: string;
     buttonWidth?: DimensionValue;
+    paddingV?: DimensionValue;
     style?: ViewStyle;
 }
 
-const Button: React.FC<ButtonProps> = ({ onPress, title, backgroundColor = '#0a7ea4', textColor = '#FFFFFF', buttonWidth = '100%', style }) => {
+const Button: React.FC<ButtonProps> = ({ onPress, title, backgroundColor = '#0a7ea4', textColor = '#FFFFFF', buttonWidth = '100%', paddingV = 15, style }) => {
     return (
-        <TouchableOpacity style={[styles.button, { backgroundColor, width: buttonWidth }, style]} onPress={onPress}>
+        <TouchableOpacity style={[styles.button, { backgroundColor, width: buttonWidth, paddingVertical: paddingV }, style]} onPress={onPress}>
             <Text style={[styles.buttonText, { color: textColor }]}>{title}</Text>
         </TouchableOpacity>
     );
@@ -22,7 +23,7 @@ const styles = StyleSheet.create({
     button: {
         borderWidth: 1,
         borderColor: '#ddd',
-        padding: 15,
+        paddingHorizontal: 15,
         borderRadius: 30,
         alignItems: 'center',
         justifyContent: 'center',

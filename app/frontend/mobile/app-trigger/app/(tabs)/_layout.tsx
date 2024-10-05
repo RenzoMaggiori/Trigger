@@ -26,7 +26,7 @@ export default function TabLayout() {
 
   const handleSettings = () => {
     closeMenu();
-    router.push('/SettingsScreen' as const);
+    router.push('/Settings' as const);
   };
 
   const handleTriggersPress = (onPress: (e: GestureResponderEvent) => void) => (e: GestureResponderEvent) => {

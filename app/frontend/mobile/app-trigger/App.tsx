@@ -5,7 +5,7 @@ import LandingPage from './app/LandingPage';
 import SignIn from './app/SignIn';
 import SignUp from './app/SignUp';
 import TabLayout from './navigation/TabLayout';
-import SettingsScreen from './app/SettingsScreen';
+import Settings from './app/Settings';
 
 const Stack = createStackNavigator();
 
@@ -47,8 +47,8 @@ export default function App() {
                             options={{ headerShown: false }}
                         />
                         <Stack.Screen
-                            name="SettingsScreen"
-                            component={SettingsScreen}
+                            name="Settings"
+                            component={Settings}
                             options={{ headerShown: false }}
                         />
                     </>
