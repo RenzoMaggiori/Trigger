@@ -1,177 +1,228 @@
-"use client"
-import { Card, CardContent } from '@/components/ui/card'
-import React from 'react'
+"use client";
+
+import { Card, CardContent } from "@/components/ui/card";
+import React from "react";
 import { IoLogoGithub } from "react-icons/io";
 import { FaDiscord } from "react-icons/fa";
-import { TriggerDraggable } from '@/app/trigger/components/trigger-draggable';
-import { addEdge, ReactFlow, type Edge, type OnNodesChange, type OnEdgesChange, applyNodeChanges, applyEdgeChanges, Background, Connection } from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
-import { ConfigMenu } from '@/app/trigger/components/config-menu';
+import { TriggerDraggable } from "@/app/trigger/components/trigger-draggable";
+import {
+  addEdge,
+  ReactFlow,
+  type Edge,
+  type OnNodesChange,
+  type OnEdgesChange,
+  applyNodeChanges,
+  applyEdgeChanges,
+  Background,
+  Connection,
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
+import { ConfigMenu } from "@/app/trigger/components/config-menu";
 import { BiLogoGmail } from "react-icons/bi";
 import { PiMicrosoftOutlookLogo } from "react-icons/pi";
-import { DiscordSettings, EmailSettings, GithubSettings } from '@/app/trigger/components/service-settings';
-import { CustomNode, Service } from '@/app/trigger/lib/types';
-import { useMenu } from '@/app/trigger/components/MenuProvider';
-import { transformCustomNodes } from '@/app/trigger/lib/transform-custom-nodes';
+import { CustomNode, Service } from "@/app/trigger/lib/types";
+import { useMenu } from "@/app/trigger/components/MenuProvider";
+import { transformCustomNodes } from "@/app/trigger/lib/transform-custom-nodes";
 
 const services: Service[] = [
-    // { icon: <IoLogoGithub className='w-5 h-5 mr-2' />, name: "Github", settings: GithubSettings },
-    // { icon: <FaDiscord className='w-5 h-5 mr-2 text-blue-600' />, name: "Discord", settings: DiscordSettings },
-    { icon: <BiLogoGmail className='w-5 h-5 mr-2 text-red-600' />, name: "Gmail", settings: "email" },
-    { icon: <PiMicrosoftOutlookLogo className='w-5 h-5 mr-2 text-sky-500' />, name: "Outlook", settings: "email" },
+  {
+    icon: <IoLogoGithub className="w-5 h-5 mr-2" />,
+    name: "Github",
+    settings: "github",
+  },
+  {
+    icon: <FaDiscord className="w-5 h-5 mr-2 text-blue-600" />,
+    name: "Discord",
+    settings: "discord",
+  },
+  {
+    icon: <BiLogoGmail className="w-5 h-5 mr-2 text-red-600" />,
+    name: "Gmail",
+    settings: "email",
+  },
+  {
+    icon: <PiMicrosoftOutlookLogo className="w-5 h-5 mr-2 text-sky-500" />,
+    name: "Outlook",
+    settings: "email",
+  },
 ];
 
 export default function Page() {
-    const [customNodes, setCustomNodes] = React.useState<CustomNode[]>([]);
-    const [edges, setEdges] = React.useState<Edge[]>([]);
-    const [settings, setSettings] = React.useState<Service["settings"]>();
-    const [parentNodes, setParentNodes] = React.useState<CustomNode[]>([]);
-    const [selectedNode, setSelectedNode] = React.useState<CustomNode | null>(null);
-    const { triggerWorkspace, setTriggerWorkspace, setNodes } = useMenu()
+  const [customNodes, setCustomNodes] = React.useState<CustomNode[]>([]);
+  const [edges, setEdges] = React.useState<Edge[]>([]);
+  const [settings, setSettings] = React.useState<Service["settings"]>();
+  const [parentNodes, setParentNodes] = React.useState<CustomNode[]>([]);
+  const [selectedNode, setSelectedNode] = React.useState<CustomNode | null>(
+    null,
+  );
+  const { setTriggerWorkspace, setNodes } = useMenu();
 
-    React.useEffect(() => {
-        setTriggerWorkspace((prev) => prev || { id: 1, nodes: [] });
-    }, []);
-    
-    React.useEffect(() => {
-        if (customNodes.length > 0 || edges.length > 0) {
-            const transformedNodes = transformCustomNodes(customNodes, edges);
-            setTriggerWorkspace((prev) => (prev ? { ...prev, nodes: transformedNodes } : null));
-        }
-    }, [customNodes, edges]);
-    
-    const onNodesChange: OnNodesChange = React.useCallback(
-        (changes) => setCustomNodes((nds) => applyNodeChanges(changes, nds) as CustomNode[]),
-        [setCustomNodes]
-    );
-    const onEdgesChange: OnEdgesChange = React.useCallback(
-        (changes) => setEdges((eds) => applyEdgeChanges(changes, eds)),
-        [setEdges],
-    );
+  React.useEffect(() => {
+    setTriggerWorkspace((prev) => prev || { id: 1, nodes: {} });
+  }, []);
 
-    const onConnect = React.useCallback(
-        (params: Connection | Edge) => {
-            setEdges((eds) => addEdge(params, eds));
-            if (params.target) {
-                updateParentNodes(params.target);
-            }
+  React.useEffect(() => {
+    if (customNodes.length > 0 || edges.length > 0) {
+      const transformedNodes = transformCustomNodes(customNodes, edges);
+      setNodes(transformedNodes);
+    }
+  }, [customNodes, edges]);
+
+  const onNodesChange: OnNodesChange = React.useCallback(
+    (changes) => {
+      console.log("nodes changed");
+      setCustomNodes((nds) => applyNodeChanges(changes, nds) as CustomNode[]);
+    },
+    [setCustomNodes],
+  );
+  const onEdgesChange: OnEdgesChange = React.useCallback(
+    (changes) => {
+      console.log("edges changed");
+      setEdges((eds) => applyEdgeChanges(changes, eds));
+    },
+    [setEdges],
+  );
+
+  const onConnect = React.useCallback(
+    (params: Connection | Edge) => {
+      setEdges((eds) => addEdge(params, eds));
+      if (params.target) {
+        updateParentNodes(params.target);
+      }
+    },
+    [setEdges],
+  );
+
+  const handleDragStart = (
+    e: React.DragEvent<HTMLDivElement>,
+    service: Service,
+  ): void => {
+    const serviceData = { name: service.name };
+    e.dataTransfer.setData("service", JSON.stringify(serviceData));
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>): void => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>): void => {
+    e.preventDefault();
+    const reactFlowBounds = e.currentTarget.getBoundingClientRect();
+    const droppedService = JSON.parse(e.dataTransfer.getData("service")) as {
+      name: string;
+    };
+    const position = {
+      x: e.clientX - reactFlowBounds.left,
+      y: e.clientY - reactFlowBounds.top,
+    };
+
+    const newService = services.find(
+      (service) => service.name === droppedService.name,
+    );
+    if (newService) {
+      const newNode: CustomNode = {
+        id: `${droppedService.name}-${customNodes.length}`,
+        position,
+        data: {
+          label: (
+            <div className="p-2 flex items-center gap-2">
+              {newService.icon}
+              <p className="font-bold">{newService.name}</p>
+            </div>
+          ),
+          settings: newService.settings,
         },
-        [setEdges]
-    );
+        style: { border: "1px solid #ccc", padding: 10 },
+      };
 
-    const handleDragStart = (e: React.DragEvent<HTMLDivElement>, service: Service): void => {
-        const serviceData = { name: service.name };
-        e.dataTransfer.setData("service", JSON.stringify(serviceData));
-    };
+      setCustomNodes((nds) => [...nds, newNode]);
+    }
+  };
 
-    const handleDragOver = (e: React.DragEvent<HTMLDivElement>): void => {
-        e.preventDefault();
-    };
+  const handleNodeClick = (event: React.MouseEvent, node: CustomNode) => {
+    if (node.data?.settings) {
+      setSettings(node.data.settings);
+      updateParentNodes(node.id);
+      setSelectedNode(node);
+    }
+  };
 
-    const handleDrop = (e: React.DragEvent<HTMLDivElement>): void => {
-        e.preventDefault();
-        const reactFlowBounds = e.currentTarget.getBoundingClientRect();
-        const droppedService = JSON.parse(e.dataTransfer.getData("service")) as { name: string };
-        const position = {
-            x: e.clientX - reactFlowBounds.left,
-            y: e.clientY - reactFlowBounds.top,
-        };
+  const updateParentNodes = (nodeId: string) => {
+    const parentNodes = findParentNodes(nodeId, edges, customNodes);
+    setParentNodes(parentNodes);
+  };
 
-        const newService = services.find((service) => service.name === droppedService.name);
-        if (newService) {
-            const newNode: CustomNode = {
-                id: `${droppedService.name}-${customNodes.length}`,
-                position,
-                data: {
-                    label: (
-                        <div className="p-2 flex items-center gap-2">
-                            {newService.icon}
-                            <p className="font-bold">{newService.name}</p>
-                        </div>
-                    ),
-                    settings: newService.settings,
-                },
-                style: { border: "1px solid #ccc", padding: 10 },
-            };
+  const findParentNodes = (
+    nodeId: string,
+    edges: Edge[],
+    nodes: CustomNode[],
+    visited: Set<string> = new Set(),
+  ): CustomNode[] => {
+    if (visited.has(nodeId)) return [];
+    visited.add(nodeId);
 
-            setCustomNodes((nds) => [...nds, newNode]);
-        }
-    };
+    const parentEdges = edges.filter((edge) => edge.target === nodeId);
+    const parentNodes = parentEdges
+      .map((edge) => nodes.find((node) => node.id === edge.source))
+      .filter(Boolean) as CustomNode[];
 
-    const handleNodeClick = (event: React.MouseEvent, node: CustomNode) => {
-        if (node.data?.settings) {
-            setSettings(node.data.settings);
-            updateParentNodes(node.id);
-            setSelectedNode(node);
-        }
-    };
+    return [
+      ...parentNodes,
+      ...parentNodes.flatMap((parentNode) =>
+        findParentNodes(parentNode.id, edges, nodes, visited),
+      ),
+    ];
+  };
 
-    const updateParentNodes = (nodeId: string) => {
-        const parentNodes = findParentNodes(nodeId, edges, customNodes);
-        setParentNodes(parentNodes);
-    };
+  return (
+    <div className="flex h-screen w-full overflow-hidden">
+      <div className="w-auto p-5">
+        <Card className="h-full">
+          <p className="font-bold text-2xl p-3">Services</p>
+          <CardContent className="flex flex-col items-center justify-start h-full py-5 gap-4">
+            {services.map((item, key) => (
+              <div
+                key={key}
+                draggable
+                onDragStart={(e) => handleDragStart(e, item)}
+                className="cursor-move"
+              >
+                <TriggerDraggable service={item} className="w-[200px]" />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+      <div className="w-full p-5">
+        <Card className="w-full h-full">
+          <CardContent
+            className="flex flex-row flex-wrap py-5 gap-x-4 h-full"
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+          >
+            <ReactFlow
+              nodes={customNodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              onNodeClick={handleNodeClick}
+            >
+              <Background />
+            </ReactFlow>
+          </CardContent>
+        </Card>
+      </div>
+      <div className="p-5">
+        {settings && (
+          <ConfigMenu
+            menu={settings}
+            parentNodes={parentNodes}
+            node={selectedNode}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
 
-    const findParentNodes = (nodeId: string, edges: Edge[], nodes: CustomNode[], visited: Set<string> = new Set()): CustomNode[] => {
-        if (visited.has(nodeId)) return [];
-        visited.add(nodeId);
-
-        const parentEdges = edges.filter(edge => edge.target === nodeId);
-        const parentNodes = parentEdges.map(edge => nodes.find(node => node.id === edge.source)).filter(Boolean) as CustomNode[];
-
-        return [
-            ...parentNodes,
-            ...parentNodes.flatMap(parentNode => findParentNodes(parentNode.id, edges, nodes, visited)),
-        ];
-    };
-
-    return (
-        <div className='flex h-screen w-full overflow-hidden'>
-            <div className='w-auto p-5'>
-                <Card className='h-full'>
-                    <p className='font-bold text-2xl p-3'>Services</p>
-                    <CardContent className='flex flex-col items-center justify-start h-full py-5 gap-4'>
-                        {services.map((item, key) => (
-                            <div
-                                key={key}
-                                draggable
-                                onDragStart={(e) => handleDragStart(e, item)}
-                                className='cursor-move'
-                            >
-                                <TriggerDraggable service={item} className='w-[200px]' />
-                            </div>
-                        ))}
-                    </CardContent>
-                </Card>
-            </div>
-            <div className='w-full p-5'>
-                <Card className='w-full h-full'>
-                    <CardContent
-                        className='flex flex-row flex-wrap py-5 gap-x-4 h-full'
-                        onDragOver={handleDragOver}
-                        onDrop={handleDrop}
-                    >
-                        <ReactFlow
-                            nodes={customNodes}
-                            edges={edges}
-                            onNodesChange={onNodesChange}
-                            onEdgesChange={onEdgesChange}
-                            onConnect={onConnect}
-                            onNodeClick={handleNodeClick}
-                        >
-                            <Background />
-                        </ReactFlow>
-                    </CardContent>
-                </Card>
-            </div>
-            <div className='p-5'>
-                {settings && (
-                    <ConfigMenu
-                        menu={settings}
-                        parentNodes={parentNodes}
-                        node={selectedNode}
-                    />
-                )}
-            </div>
-        </div>
-    );
-};

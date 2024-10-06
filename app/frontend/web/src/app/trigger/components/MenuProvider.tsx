@@ -1,54 +1,87 @@
-"use client"
-import React from 'react';
-import { NodesArrayItem, TriggerWorkspace } from '@/app/trigger/lib/types';
+"use client";
+import React from "react";
+import { NodeItem, TriggerWorkspace } from "@/app/trigger/lib/types";
 
 type MenuContextType = {
-    triggerWorkspace: TriggerWorkspace | null
-    setNodes: (nodes: NodesArrayItem[]) => void
-    setFields: (nodeID: NodesArrayItem["id"], fields: Record<string, any>) => void
-    setTriggerWorkspace: React.Dispatch<React.SetStateAction<TriggerWorkspace | null>>
-}
+  triggerWorkspace: TriggerWorkspace | null;
+  setNodes: (nodes: Record<string, NodeItem>) => void;
+  setFields: (nodeID: NodeItem["id"], fields: Record<string, any>) => void;
+  setTriggerWorkspace: React.Dispatch<
+    React.SetStateAction<TriggerWorkspace | null>
+  >;
+};
 
 type MenuProviderType = {
-    children: React.ReactNode
-    initialWorkspace?: TriggerWorkspace | null;
-}
+  children: React.ReactNode;
+  initialWorkspace?: TriggerWorkspace | null;
+};
 
 const MenuContext = React.createContext<MenuContextType | undefined>(undefined);
 
 export const useMenu = () => {
-    const context = React.useContext(MenuContext);
-    if (!context) {
-        throw new Error('useMenu must be used within a MenuProvider');
-    }
-    return context;
+  const context = React.useContext(MenuContext);
+  if (!context) {
+    throw new Error("useMenu must be used within a MenuProvider");
+  }
+  return context;
 };
 
-export function MenuProvider({ children, initialWorkspace = null }: MenuProviderType) {
-    const [triggerWorkspace, setTriggerWorkspace] = React.useState<TriggerWorkspace | null>(initialWorkspace);
+export function MenuProvider({
+  children,
+  initialWorkspace = null,
+}: MenuProviderType) {
+  const [triggerWorkspace, setTriggerWorkspace] =
+    React.useState<TriggerWorkspace | null>(initialWorkspace);
 
-    const setNodes = (nodes: NodesArrayItem[]) => {
-        setTriggerWorkspace((prev) => {
-            if (!prev)
-                return prev
-            return { ...prev, nodes }
-        })
-    }
+  const setNodes = (nodes: Record<string, NodeItem>) => {
+    setTriggerWorkspace((prev) => {
+      if (!prev) return prev;
 
-    const setFields = (nodeID: NodesArrayItem["id"], fields: Record<string, any>) => {
-        if (!triggerWorkspace) return;
-    
-        const updatedNodes = triggerWorkspace.nodes.map((node) =>
-            node.id === nodeID ? { ...node, fields } : node
-        );
-        setNodes(updatedNodes);
+      const updates = { ...prev.nodes };
+      Object.entries(nodes).forEach(([id, newNode]) => {
+        const existingNode = updates[id];
+
+        // If the node exists, merge fields, otherwise just add the new node
+        if (existingNode) {
+          updates[id] = {
+            ...existingNode,
+            ...newNode,
+            fields: {
+              ...existingNode.fields,
+              ...newNode.fields,
+            },
+          };
+        } else {
+          updates[id] = newNode;
+        }
+      });
+      return {
+        ...prev,
+        nodes: updates,
+      };
+    });
+  };
+
+  const setFields = (nodeID: NodeItem["id"], fields: Record<string, any>) => {
+    if (!triggerWorkspace) return;
+
+    const node = triggerWorkspace.nodes[nodeID];
+    if (!node) return;
+    const updates: NodeItem = {
+      ...node,
+      fields: {
+        ...node.fields,
+        ...fields,
+      },
     };
-    
+    setNodes({ [nodeID]: updates });
+  };
 
-
-    return (
-        <MenuContext.Provider value={{ triggerWorkspace, setNodes, setFields, setTriggerWorkspace }}>
-            {children}
-        </MenuContext.Provider>
-    );
-};
+  return (
+    <MenuContext.Provider
+      value={{ triggerWorkspace, setNodes, setFields, setTriggerWorkspace }}
+    >
+      {children}
+    </MenuContext.Provider>
+  );
+}
