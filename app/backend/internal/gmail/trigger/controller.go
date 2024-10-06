@@ -29,18 +29,28 @@ func (h *Handler) WatchGmail(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) WebhookGmail(w http.ResponseWriter, r *http.Request) {
 
-	body, err := decode.Json[Event](r.Body)
+	event, err := decode.Json[Event](r.Body)
 
 	if err != nil {
 		customerror.Send(w, err, errCodes)
 	}
 
-	log.Printf("Webhook triggered, received body=%+v\n", body)
+	// log.Printf("Webhook triggered, received body=%+v\n", event)
 
-	err = h.Service.Webhook(context.TODO())
+	err = h.Service.Webhook(context.WithValue(context.TODO(), GmailEventCtxKey, event))
 
 	if err != nil {
 		customerror.Send(w, err, errCodes)
 		return
+	}
+}
+
+func (h *Handler) StopGmail(w http.ResponseWriter, r *http.Request) {
+	accessToken := r.Header.Get("Authorization")
+
+	err := h.Service.Stop(context.WithValue(context.TODO(), AccessTokenCtxKey, accessToken))
+
+	if err != nil {
+		customerror.Send(w, err, errCodes)
 	}
 }

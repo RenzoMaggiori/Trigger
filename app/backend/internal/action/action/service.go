@@ -53,6 +53,18 @@ func (m Model) GetByProvider(provider string) ([]ActionModel, error) {
 	return sessions, nil
 }
 
+func (m Model) GetByAction(action string) (*ActionModel, error) {
+	var session ActionModel
+	ctx := context.TODO()
+	filter := bson.M{"action": action}
+	err := m.Collection.FindOne(ctx, filter).Decode(&session)
+
+	if err != nil {
+		return nil, errActionNotFound
+	}
+	return &session, nil
+}
+
 func (m Model) Add(add *AddActionModel) (*ActionModel, error) {
 	ctx := context.TODO()
 

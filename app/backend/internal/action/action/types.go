@@ -10,7 +10,8 @@ const ActionCtxKey string = "ActionCtxKey"
 type Service interface {
 	Get() ([]ActionModel, error)
 	GetById(primitive.ObjectID) (*ActionModel, error)
-	GetByProvider(provider string) ([]ActionModel, error)
+	GetByProvider(string) ([]ActionModel, error)
+	GetByAction(string) (*ActionModel, error)
 	Add(*AddActionModel) (*ActionModel, error)
 }
 

@@ -49,9 +49,24 @@ func (h *Handler) GetActionById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetActionsByProvider(w http.ResponseWriter, r *http.Request) {
-	actionType := r.PathValue("provider")
+	provider := r.PathValue("provider")
 
-	user, err := h.Service.GetByProvider(actionType)
+	user, err := h.Service.GetByProvider(provider)
+	if err != nil {
+		log.Print(err)
+		customerror.Send(w, err, errCodes)
+		return
+	}
+	if err = encode.Json(w, user); err != nil {
+		log.Print(err)
+		customerror.Send(w, err, errCodes)
+		return
+	}
+}
+func (h *Handler) GetActionByAction(w http.ResponseWriter, r *http.Request) {
+	action := r.PathValue("action")
+
+	user, err := h.Service.GetByAction(action)
 	if err != nil {
 		log.Print(err)
 		customerror.Send(w, err, errCodes)

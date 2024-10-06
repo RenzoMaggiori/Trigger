@@ -18,7 +18,7 @@ type Service interface {
 	GetById(context.Context, primitive.ObjectID) (*WorkspaceModel, error)
 	GetByUserId(context.Context, primitive.ObjectID) ([]WorkspaceModel, error)
 	Add(context.Context, *AddWorkspaceModel) (*WorkspaceModel, error)
-	UpdateActionCompleted(context.Context, primitive.ObjectID, string) (*WorkspaceModel, error)
+	UpdateActionCompleted(context.Context, UpdateActionCompletedModel) ([]WorkspaceModel, error)
 	// UpdateById(context.Context, primitive.ObjectID, *UpdateUserActionModel) (*UserActionModel, error)
 	// DeleteById(context.Context, primitive.ObjectID) error
 }
@@ -75,4 +75,9 @@ type UpdateActionNodeModel struct {
 	Children []string           `json:"children" bson:"children"`
 	XPos     float32            `json:"x_pos" bson:"x_pos"`
 	YPos     float32            `json:"y_pos" bson:"y_pos"`
+}
+
+type UpdateActionCompletedModel struct {
+	UserId   primitive.ObjectID `json:"user_id"`
+	ActionId primitive.ObjectID `json:"action_id"`
 }

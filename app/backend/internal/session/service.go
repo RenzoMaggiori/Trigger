@@ -41,7 +41,7 @@ func (m Model) GetById(id primitive.ObjectID) (*SessionModel, error) {
 func (m Model) GetByUserId(userId primitive.ObjectID) ([]SessionModel, error) {
 	var sessions []SessionModel
 	ctx := context.TODO()
-	filter := bson.M{"userId": userId}
+	filter := bson.M{"user_id": userId}
 	cursor, err := m.Collection.Find(ctx, filter)
 
 	defer cursor.Close(ctx)
@@ -121,7 +121,7 @@ func (m Model) DeleteById(id primitive.ObjectID) error {
 
 func (m Model) DeleteByUserId(userId primitive.ObjectID, providerName string) error {
 	ctx := context.TODO()
-	filter := bson.M{"userId": userId, "providerName": providerName}
+	filter := bson.M{"userId": userId, "provider_name": providerName}
 	result, err := m.Collection.DeleteOne(ctx, filter)
 
 	if err != nil {
@@ -136,7 +136,7 @@ func (m Model) DeleteByUserId(userId primitive.ObjectID, providerName string) er
 func (m Model) GetByToken(token string) (*SessionModel, error) {
 	var session SessionModel
 	ctx := context.TODO()
-	filter := bson.M{"accessToken": token}
+	filter := bson.M{"access_token": token}
 	err := m.Collection.FindOne(ctx, filter).Decode(&session)
 
 	if err != nil {

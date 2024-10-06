@@ -92,19 +92,17 @@ func (h *Handler) AddWorkspace(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) UpdateActionCompletedWorkspace(w http.ResponseWriter, r *http.Request) {
-	workspaceId, err := primitive.ObjectIDFromHex(r.PathValue("workspace_id"))
+
+	update, err := decode.Json[UpdateActionCompletedModel](r.Body)
 	if err != nil {
-		error := fmt.Errorf("%w: %v", errBadWorkspaceId, err)
-		customerror.Send(w, error, errCodes)
+		customerror.Send(w, err, errCodes)
 		return
 	}
-	nodeId := r.PathValue("node_id")
 	accessToken := r.Header.Get("Authorization")
 
 	updatedWorkspace, err := h.Service.UpdateActionCompleted(
 		context.WithValue(context.TODO(), AccessTokenCtxKey, accessToken),
-		workspaceId,
-		nodeId,
+		update,
 	)
 
 	if err != nil {

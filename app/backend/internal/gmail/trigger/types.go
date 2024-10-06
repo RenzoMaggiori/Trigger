@@ -11,6 +11,8 @@ const WorkspaceCtxKey WorkspaceCtx = WorkspaceCtx("WorkspaceCtxKey")
 
 const AccessTokenCtxKey WorkspaceCtx = WorkspaceCtx("AuthorizationCtxKey")
 
+const GmailEventCtxKey WorkspaceCtx = WorkspaceCtx("GmailEventCtxKey")
+
 type Service interface {
 	action.Trigger
 }
