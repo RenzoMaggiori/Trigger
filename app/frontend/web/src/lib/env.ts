@@ -5,11 +5,10 @@ const envClientSchema = z.object({
 });
 
 function getClientEnv() {
-  if (window === undefined) {
+  if (typeof window === undefined) {
     throw new Error("Not in the client");
   }
 
-  console.log(process.env);
   const { data, error } = envClientSchema.safeParse(process.env);
   if (error) {
     console.error(error);
