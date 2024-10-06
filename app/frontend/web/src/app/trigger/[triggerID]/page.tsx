@@ -70,14 +70,12 @@ export default function Page() {
 
   const onNodesChange: OnNodesChange = React.useCallback(
     (changes) => {
-      console.log("nodes changed");
       setCustomNodes((nds) => applyNodeChanges(changes, nds) as CustomNode[]);
     },
     [setCustomNodes],
   );
   const onEdgesChange: OnEdgesChange = React.useCallback(
     (changes) => {
-      console.log("edges changed");
       setEdges((eds) => applyEdgeChanges(changes, eds));
     },
     [setEdges],
@@ -225,4 +223,3 @@ export default function Page() {
     </div>
   );
 }
-

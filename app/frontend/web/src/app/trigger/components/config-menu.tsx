@@ -89,7 +89,10 @@ export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
           <Combox
             statuses={combinedStatuses}
             setSelectedStatus={handleStatusChange}
-            selectedStatus={combinedStatuses.find((status) => status.value === nodeStatus) || null}
+            selectedStatus={
+              combinedStatuses.find((status) => status.value === nodeStatus) ||
+              null
+            }
             label="info"
             icon={<SiGooglegemini className="mr-2" />}
           />
@@ -108,10 +111,7 @@ export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
             <p>{nodeStatus}</p>
             <h4 className="font-bold">Parent Node Label:</h4>
             <p>
-              {
-                parentNodes.find((node) => node.id === nodeStatus)?.data
-                  .label
-              }
+              {parentNodes.find((node) => node.id === nodeStatus)?.data.label}
             </p>
           </div>
         )}
@@ -119,4 +119,3 @@ export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
     </Card>
   );
 }
-
