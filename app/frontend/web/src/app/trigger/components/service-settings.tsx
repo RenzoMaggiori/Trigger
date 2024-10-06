@@ -35,7 +35,6 @@ function GithubSettings({ node }: { node: NodeItem }) {
 function EmailSettings({ node }: { node: NodeItem }) {
   const { setFields } = useMenu();
 
-  console.log(node);
   const handleFieldChange = (index: string, value: any) => {
     setFields(node.id, { ...node.fields, [index]: value });
   };

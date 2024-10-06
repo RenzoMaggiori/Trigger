@@ -30,15 +30,18 @@ const settingsComponentMap = {
 };
 
 export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
-  const [selectedStatus, setSelectedStatus] = React.useState<Status | null>(
-    null,
-  );
-  const { triggerWorkspace } = useMenu();
+  const { triggerWorkspace, setFields } = useMenu();
+
   if (!node) return <div>custom node doesn't exist</div>;
 
-  console.log(triggerWorkspace);
   const nodeItem = triggerWorkspace?.nodes[node.id];
   if (!nodeItem) return <div>could not find node</div>;
+
+  const nodeStatus = nodeItem.fields.selectedStatus || "None";
+
+  const handleStatusChange = (status: Status | null) => {
+    setFields(node.id, { selectedStatus: status?.value || "None" });
+  };
 
   const combinedStatuses: Status[] = [
     {
@@ -85,35 +88,33 @@ export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
           </Label>
           <Combox
             statuses={combinedStatuses}
-            setSelectedStatus={setSelectedStatus}
-            selectedStatus={selectedStatus}
+            setSelectedStatus={handleStatusChange}
+            selectedStatus={combinedStatuses.find((status) => status.value === nodeStatus) || null}
             label="info"
             icon={<SiGooglegemini className="mr-2" />}
           />
         </div>
 
-        {selectedStatus?.value === "Personalized" && (
+        {nodeStatus === "Personalized" && (
           <div className="p-4 border border-gray-300 rounded-md">
             <h4 className="text-lg font-bold mb-2">Personalized Settings</h4>
             <SettingsComponent node={nodeItem} />
           </div>
         )}
 
-        {selectedStatus &&
-          selectedStatus.value != "Personalized" &&
-          selectedStatus.value != "None" && (
-            <div className="mt-4">
-              <h4 className="font-bold">Selected Parent Node ID:</h4>
-              <p>{selectedStatus.value}</p>
-              <h4 className="font-bold">Parent Node Label:</h4>
-              <p>
-                {
-                  parentNodes.find((node) => node.id === selectedStatus.value)
-                    ?.data.label
-                }
-              </p>
-            </div>
-          )}
+        {nodeStatus !== "Personalized" && nodeStatus !== "None" && (
+          <div className="mt-4">
+            <h4 className="font-bold">Selected Parent Node ID:</h4>
+            <p>{nodeStatus}</p>
+            <h4 className="font-bold">Parent Node Label:</h4>
+            <p>
+              {
+                parentNodes.find((node) => node.id === nodeStatus)?.data
+                  .label
+              }
+            </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
