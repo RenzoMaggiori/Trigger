@@ -20,7 +20,7 @@ export class CredentialsService {
             if (response.status !== 200) {
                 throw new Error('Register failed');
             }
-            return response.json();
+            return;
             
         } catch (error) {
             console.error("Register error:", error);

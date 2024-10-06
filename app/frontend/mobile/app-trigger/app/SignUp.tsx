@@ -24,7 +24,6 @@ export default function SignUp() {
         await CredentialsService.register(email, password)
             .then(() => router.push('/(tabs)/HomeScreen'))
             .catch((error) => {
-                console.log("SIGN UP ERROR", error);
                 setErrorMessage("Something went wrong\nPlease try again.");
                 setModalVisible(true);
             });
