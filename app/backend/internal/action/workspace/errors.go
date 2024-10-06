@@ -16,7 +16,7 @@ var (
 	errCreatingWorkspace  error                             = errors.New("error while creating workspace")
 	errFetchingActions    error                             = errors.New("could not fetch actions")
 	errActionTypeNone     error                             = errors.New("could not decypher action type")
-	errActionWatch        error                             = errors.New("action watch failed")
+	errAction             error                             = errors.New("action service failed")
 	errActionNodeTypeNone error                             = errors.New("could not decypher action node type")
 	errCodes              map[error]customerror.CustomError = map[error]customerror.CustomError{
 		errWorkspaceNotFound: {
@@ -51,12 +51,12 @@ var (
 			Message: errActionTypeNone.Error(),
 			Code:    http.StatusNotFound,
 		},
-		errActionWatch: {
-			Message: errActionWatch.Error(),
-			Code:    http.StatusInternalServerError,
-		},
 		errActionNodeTypeNone: {
 			Message: errActionNodeTypeNone.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		errAction: {
+			Message: errAction.Error(),
 			Code:    http.StatusInternalServerError,
 		},
 	}

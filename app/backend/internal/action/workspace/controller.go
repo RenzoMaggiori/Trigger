@@ -91,6 +91,32 @@ func (h *Handler) AddWorkspace(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *Handler) UpdateActionCompletedWorkspace(w http.ResponseWriter, r *http.Request) {
+	workspaceId, err := primitive.ObjectIDFromHex(r.PathValue("workspace_id"))
+	if err != nil {
+		error := fmt.Errorf("%w: %v", errBadWorkspaceId, err)
+		customerror.Send(w, error, errCodes)
+		return
+	}
+	nodeId := r.PathValue("node_id")
+	accessToken := r.Header.Get("Authorization")
+
+	updatedWorkspace, err := h.Service.UpdateActionCompleted(
+		context.WithValue(context.TODO(), AccessTokenCtxKey, accessToken),
+		workspaceId,
+		nodeId,
+	)
+
+	if err != nil {
+		customerror.Send(w, err, errCodes)
+		return
+	}
+	if err = encode.Json(w, updatedWorkspace); err != nil {
+		customerror.Send(w, err, errCodes)
+		return
+	}
+}
+
 // func (h *Handler) UpdateById(w http.ResponseWriter, r *http.Request) {
 // 	id, err := primitive.ObjectIDFromHex(r.PathValue("id"))
 

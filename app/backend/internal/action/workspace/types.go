@@ -18,6 +18,7 @@ type Service interface {
 	GetById(context.Context, primitive.ObjectID) (*WorkspaceModel, error)
 	GetByUserId(context.Context, primitive.ObjectID) ([]WorkspaceModel, error)
 	Add(context.Context, *AddWorkspaceModel) (*WorkspaceModel, error)
+	UpdateActionCompleted(context.Context, primitive.ObjectID, string) (*WorkspaceModel, error)
 	// UpdateById(context.Context, primitive.ObjectID, *UpdateUserActionModel) (*UserActionModel, error)
 	// DeleteById(context.Context, primitive.ObjectID) error
 }
@@ -36,16 +37,24 @@ type WorkspaceModel struct {
 	Nodes  []ActionNodeModel  `json:"nodes" bson:"nodes"`
 }
 
+// status : solved / active / inactive
+// solved: it is what it says on the tin
+// active: waiting for an action to happen
+// inactive: depends on other actions / triggers
+
 type ActionNodeModel struct {
 	NodeId   string             `json:"node_id" bson:"node_id"`
 	ActionId primitive.ObjectID `json:"action_id" bson:"action_id"`
 	Fields   []any              `json:"fields" bson:"fields"`
 	Parents  []string           `json:"parents" bson:"parents"`
 	Children []string           `json:"children" bson:"children"`
-	Solved   bool               `json:"solved" bson:"solved"`
-	Active   bool               `json:"active" bson:"active"`
+	Status   string             `json:"status" bson:"status"`
 	XPos     float32            `json:"x_pos" bson:"x_pos"`
 	YPos     float32            `json:"y_pos" bson:"y_pos"`
+}
+
+type AddWorkspaceModel struct {
+	Nodes []AddActionNodeModel `json:"nodes" bson:"nodes"`
 }
 
 type AddActionNodeModel struct {
@@ -58,16 +67,12 @@ type AddActionNodeModel struct {
 	YPos     float32            `json:"y_pos" bson:"y_pos"`
 }
 
-type AddWorkspaceModel struct {
-	Nodes []AddActionNodeModel `json:"nodes" bson:"nodes"`
+type UpdateActionNodeModel struct {
+	NodeId   string             `json:"node_id" bson:"node_id"`
+	ActionId primitive.ObjectID `json:"action_id" bson:"action_id"`
+	Fields   []any              `json:"fields" bson:"fields"`
+	Parents  []string           `json:"parents" bson:"parents"`
+	Children []string           `json:"children" bson:"children"`
+	XPos     float32            `json:"x_pos" bson:"x_pos"`
+	YPos     float32            `json:"y_pos" bson:"y_pos"`
 }
-
-// type UpdateActionNode struct {
-// 	ActionId   string   `json:"id" bson:"action_id"`
-// 	ActionType string   `json:"action_type" bson:"action_type"`
-// 	Fields     []any    `json:"fields" bson:"fields"`
-// 	Parents    []string `json:"parents" bson:"parents"`
-// 	Children   []string `json:"children" bson:"children"`
-// 	XPos       float32  `json:"x_pos" bson:"x_pos"`
-// 	YPos       float32  `json:"y_pos" bson:"y_pos"`
-// }
