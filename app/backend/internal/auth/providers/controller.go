@@ -3,7 +3,6 @@ package providers
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/markbates/goth/gothic"
@@ -18,7 +17,6 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	gothUser, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
 		// redirect the user to provider oauth2 workflow
-		log.Println(err)
 		gothic.BeginAuthHandler(w, r)
 		return
 	}

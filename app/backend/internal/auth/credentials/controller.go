@@ -2,8 +2,6 @@ package credentials
 
 import (
 	"context"
-	"errors"
-	"log"
 	"net/http"
 	"os"
 
@@ -16,15 +14,10 @@ const (
 	authCookieName string = "Authorization"
 )
 
-var (
-	errPasswordNotFound error = errors.New("password not found")
-)
-
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	credentials, err := decode.Json[CredentialsModel](r.Body)
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "unable to proccess body", http.StatusUnprocessableEntity)
+		customerror.Send(w, err, errCodes)
 		return
 	}
 
@@ -43,8 +36,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		os.Getenv("TOKEN_SECRET"),
 	)
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		customerror.Send(w, err, errCodes)
 		return
 	}
 
@@ -55,20 +47,17 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	newUser, err := decode.Json[RegisterModel](r.Body)
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "unable to proccess body", http.StatusUnprocessableEntity)
+		customerror.Send(w, err, errCodes)
 		return
 	}
 	if newUser.User.Password == nil {
-		log.Println(errPasswordNotFound)
-		http.Error(w, errPasswordNotFound.Error(), http.StatusUnprocessableEntity)
+		customerror.Send(w, errCredentialsNotFound, errCodes)
 		return
 	}
 
 	accessToken, err := h.Service.Register(newUser)
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "unable to login user", http.StatusInternalServerError)
+		customerror.Send(w, err, errCodes)
 		return
 	}
 
@@ -77,8 +66,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		os.Getenv("TOKEN_SECRET"),
 	)
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		customerror.Send(w, err, errCodes)
 		return
 	}
 
@@ -89,14 +77,12 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
 	token, err := h.Service.GetToken(r.Header.Get("Authorization"))
 	if err != nil {
-		log.Println(err)
-		http.Error(w, "unable to get authorization token", http.StatusBadRequest)
+		customerror.Send(w, err, errCodes)
 		return
 	}
 
 	if err = h.Service.VerifyToken(token); err != nil {
-		log.Println(err)
-		http.Error(w, "unable to retrieve the token from the db", http.StatusBadRequest)
+		customerror.Send(w, err, errCodes)
 		return
 	}
 }
