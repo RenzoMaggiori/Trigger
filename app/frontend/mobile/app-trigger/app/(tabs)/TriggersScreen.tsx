@@ -6,38 +6,31 @@ import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import TechBox from '@/components/actions/TechBox';
 import Draggable from '@/components/actions/Draggable';
+import ActionReactionList from '@/components/actions/ActionReactionList';
+import Video from '@/components/actions/Video';
 
 interface ActionBox {
     name: string;
     icon: React.ReactElement;
-    id: number;
 }
 
 const technologies: ActionBox[] = [
-    { id: 0, name: 'Google', icon: <Ionicons name="logo-google" size={30} color={Colors.light.google} /> },
-    { id: 0, name: 'Github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
-    { id: 0, name: 'Outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.outlook} /> },
-    { id: 0, name: 'Slack', icon: <FontAwesome5 name="slack" size={30} color={Colors.light.slack} /> },
-    { id: 0, name: 'Discord', icon: <FontAwesome5 name="discord" size={30} color={Colors.light.discord} /> },
+    { name: 'Google', icon: <Ionicons name="logo-google" size={30} color={Colors.light.google} /> },
+    { name: 'Github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
+    { name: 'Outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.outlook} /> },
+    { name: 'Slack', icon: <FontAwesome5 name="slack" size={30} color={Colors.light.slack} /> },
+    { name: 'Discord', icon: <FontAwesome5 name="discord" size={30} color={Colors.light.discord} /> },
 ];
 
 export default function TriggersScreen() {
-    const [selectedComponents, setSelectedComponents] = useState<ActionBox[]>([]);
+    const [service, setService] = useState<ActionBox | undefined>(undefined);
 
-    const handlePress = (techName: string) => {
-        setSelectedComponents(prev => {
-            const foundTech = technologies.find(tech => tech.name === techName);
-            if (foundTech) {
-                foundTech.id = Math.random();
-                return [...prev, foundTech];
-            }
-            return prev;
-        });
-    };
-
-    const handleDelete = (techId: number) => {
-        setSelectedComponents(prev => prev.filter(tech => tech.id !== techId));
-    };
+    const addService = (techName: string) => {
+        const foundTech = technologies.find(tech => tech.name === techName);
+        if (foundTech) {
+            setService(foundTech);
+        }
+    }
 
     return (
         <View style={styles.container}>
@@ -45,24 +38,20 @@ export default function TriggersScreen() {
                 <Text style={styles.servicesTitle}>Services</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.servicesList}>
                     {technologies.map((tech, index) => (
-                        <TouchableOpacity key={index} style={styles.techItem} onPress={() => handlePress(tech.name)}>
+                        <TouchableOpacity key={index} style={styles.techItem} onPress={() => addService(tech.name)}>
                             <View style={styles.iconContainer}>{tech.icon}</View>
                             <Text style={styles.techName}>{tech.name}</Text>
                         </TouchableOpacity>
                     ))}
                 </ScrollView>
             </View>
-            <GestureHandlerRootView style={styles.manageActions}>
-                {selectedComponents.map((component, index) => (
-                    <Draggable key={`${component.name}-${index}-`}>
-                        <TechBox
-                            name={component.name}
-                            icon={component.icon}
-                            onDelete={() => handleDelete(component.id)}
-                        />
-                    </Draggable>
-                ))}
-            </GestureHandlerRootView>
+
+            <View style={styles.manageActions}>
+                <ScrollView showsVerticalScrollIndicator={false}>
+                    <ActionReactionList tech={service}/>
+                </ScrollView>
+            </View>
+
         </View>
     );
 }
@@ -76,13 +65,14 @@ const styles = StyleSheet.create({
         marginTop: 10,
         padding: 20,
         borderRadius: 10,
+        backgroundColor: Colors.light.grey,
         marginHorizontal: 10,
-        backgroundColor: '#ffdab9',
+        height: "100%",
     },
     servicesContainer: {
         marginTop: 10,
         padding: 20,
-        backgroundColor: Colors.light.tintLight,
+        backgroundColor: Colors.light.grey,
         borderRadius: 10,
         marginHorizontal: 10,
     },

@@ -1,38 +1,51 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import Animated from 'react-native-reanimated';
-// @ts-ignore
-import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeIn, FadeInUp, FadeOut, FadeOutUp, Layout } from 'react-native-reanimated';
+import { AntDesign } from '@expo/vector-icons';
 
 interface ActionBox {
+    index: number;
+    id: number;
     name: string;
+    initialState: React.MutableRefObject<boolean>;
     icon: React.ReactElement;
 }
 
 interface TechBoxProps extends ActionBox {
-    onDelete: () => void;
+    onDelete: (id: number) => void;
 }
 
-export default function TechBox({ name, icon, onDelete }: TechBoxProps) {
+export default function TechBox({ index, id, name, icon, initialState, onDelete }: TechBoxProps) {
 
     return (
-    <Animated.View style={styles.contentBox}>
-        <Animated.View style={styles.box}>
-            <TouchableOpacity style={{ position: 'absolute', top: 5, left: 5 }} onPress={onDelete}>
-                <Ionicons name="close" size={20} color="red" />
-            </TouchableOpacity>
-            <View style={styles.iconContainer}>{icon}</View>
-            <Text style={styles.techName}>{name}</Text>
-        </Animated.View>
+    <Animated.View style={styles.boxContent} entering={initialState.current ? FadeIn.delay(100 * index) : FadeIn} exiting={FadeOut} layout={Layout.delay(50)}>
+        <TouchableOpacity style={styles.deleteButton} onPress={() => onDelete(id)}>
+            <AntDesign name="closecircle" size={25} color="red" />
+        </TouchableOpacity>
+        <View style={styles.iconContainer}>{icon}</View>
+        <Text style={styles.techName}>{name}</Text>
+        <Text style={styles.techName}>{id}</Text>
     </Animated.View>
     );
 }
 
 const styles = StyleSheet.create({
-    contentBox: {
+    boxContent: {
+        height: 100,
+        width: '90%',
+        backgroundColor: 'white',
         justifyContent: 'center',
         alignItems: 'center',
-        flex: 1,
+        marginVertical: 10,
+        alignSelf: 'center',
+        borderRadius: 10,
+        elevation: 5,
+    },
+    deleteButton: {
+        position: 'absolute',
+        top: 10,
+        left: 10,
+        zIndex: 1,
     },
     iconContainer: {
         marginBottom: 5,
@@ -40,13 +53,5 @@ const styles = StyleSheet.create({
     techName: {
         fontSize: 16,
         fontWeight: 'bold',
-    },
-    box: {
-        width: 100,
-        height: 100,
-        backgroundColor: '#ebebeb',
-        borderRadius: 15,
-        justifyContent: 'center',
-        alignItems: 'center',
     },
 });
