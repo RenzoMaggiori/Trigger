@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 import { cn } from "@/lib/utils";
-import { getEnv } from "@/lib/env";
+import { env } from "@/lib/env";
 
 interface ProvidersProps {
   providers: {
@@ -18,7 +18,6 @@ interface ProvidersProps {
 }
 
 export function Providers({ providers }: ProvidersProps) {
-  const env = getEnv();
   return (
     <div className="flex flex-col w-full justify-center items-center text-center gap-5">
       {providers.map((p, key) => (

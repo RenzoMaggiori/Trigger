@@ -1,18 +1,26 @@
 import { z } from "zod";
 
-const envClientSchema = z.object({
+export const withDevDefault = <T extends z.ZodTypeAny>(
+  schema: T,
+  val: z.infer<T>,
+) => (process.env["NODE_ENV"] !== "production" ? schema.default(val) : schema);
+
+const envSchema = z.object({
   NEXT_PUBLIC_AUTH_SERVICE_URL: z.string().url(),
 });
 
-export function getEnv() {
-  if (typeof window === undefined) {
-    throw new Error("Not in the client");
-  }
+function getEnv() {
+  const { success, data, error } = envSchema.safeParse({
+    NEXT_PUBLIC_AUTH_SERVICE_URL: process.env.NEXT_PUBLIC_AUTH_SERVICE_URL,
+  });
 
-  const { data, error } = envClientSchema.safeParse(process.env);
-  if (error) {
-    console.error(error);
-    throw new Error(error.toString());
+  if (!success) {
+    throw new Error(
+      "❌ Invalid environment variables:" +
+        JSON.stringify(error.format(), null, 4),
+    );
   }
   return data;
 }
+
+export const env = getEnv();

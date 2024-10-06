@@ -1,7 +1,11 @@
-"use client"
+"use client";
 import WordFadeIn from "@/components/magicui/word-fade-in";
 import { Button } from "@/components/ui/button";
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
 import AutoScroll from "embla-carousel-auto-scroll";
 import Link from "next/link";
 import React from "react";
@@ -15,21 +19,22 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { Footer } from "@/components/ui/footer";
 
 export default function Home() {
-  const plugin = React.useRef(
-    AutoScroll({ startDelay: 0 })
-  )
+  const plugin = React.useRef(AutoScroll({ startDelay: 0 }));
   const slogan = [
     "Connect and Automate Effortlessly",
-    "Trigger empowers you to connect services seamlessly. Automate tasks and enhance productivity by turning your ideas into efficient workflows."
+    "Trigger empowers you to connect services seamlessly. Automate tasks and enhance productivity by turning your ideas into efficient workflows.",
   ];
   const services = [
     { name: "Gmail", icon: <BiLogoGmail className="mr-2 hidden md:block" /> },
     { name: "Discord", icon: <FaDiscord className="mr-2 hidden md:block" /> },
     { name: "Github", icon: <IoLogoGithub className="mr-2 hidden md:block" /> },
     { name: "Slack", icon: <FaSlack className="mr-2 hidden md:block" /> },
-    { name: "Outlook", icon: <PiMicrosoftOutlookLogo className="mr-2 hidden md:block" /> },
-  ]
-  
+    {
+      name: "Outlook",
+      icon: <PiMicrosoftOutlookLogo className="mr-2 hidden md:block" />,
+    },
+  ];
+
   // TODO: Add href to start with google
   return (
     <div className="flex flex-1 flex-col w-full justify-center">
@@ -41,13 +46,22 @@ export default function Home() {
           <WordFadeIn as="p" words={slogan[1]} />
         </div>
         <div className="max-w-md mx-auto flex flex-col md:flex-row gap-x-7">
-          <Button className="w-full rounded-full text-lg py-6 px-12 mt-5 bg-orange-600 hover:bg-orange-700 text-white hover:text-white" variant="outline" asChild>
-            <Link href="/auth?type=signup">
-              Start with Email
-            </Link>
+          <Button
+            className="w-full rounded-full text-lg py-6 px-12 mt-5 bg-orange-600 hover:bg-orange-700 text-white hover:text-white"
+            variant="outline"
+            asChild
+          >
+            <Link href="/auth?type=register">Start with Email</Link>
           </Button>
-          <Button className="w-full rounded-full border-black bg-white text-lg p-6 mt-5" variant="outline" asChild>
-            <Link href="http://localhost:8000/api/auth/gmail/provider" className="flex items-center">
+          <Button
+            className="w-full rounded-full border-black bg-white text-lg p-6 mt-5"
+            variant="outline"
+            asChild
+          >
+            <Link
+              href="http://localhost:8000/api/auth/gmail/provider"
+              className="flex items-center"
+            >
               <FcGoogle className="mr-2 text-2xl" /> Start with Google
             </Link>
           </Button>
@@ -55,7 +69,7 @@ export default function Home() {
         <div className="flex flex-col w-1/2 mt-10">
           <Carousel
             opts={{
-              loop: true
+              loop: true,
             }}
             plugins={[plugin.current]}
             onMouseEnter={plugin.current.stop}
@@ -65,7 +79,10 @@ export default function Home() {
               {services.concat(services).map((item, index) => (
                 <CarouselItem key={index} className="basis-1/2 md:basis-1/4">
                   <div className="p-1">
-                    <span className="text-xl md:text-3xl font-semibold flex items-center justify-center text-muted-foreground">{item.icon}{item.name}</span>
+                    <span className="text-xl md:text-3xl font-semibold flex items-center justify-center text-muted-foreground">
+                      {item.icon}
+                      {item.name}
+                    </span>
                   </div>
                 </CarouselItem>
               ))}

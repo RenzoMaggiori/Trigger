@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { login } from "@/app/auth/lib/auth";
+import { register } from "@/app/auth/lib/auth";
 import { Providers } from "@/app/auth/components/providers";
 
 const formSchema = z.object({
@@ -28,7 +28,7 @@ const formSchema = z.object({
   password: z.string(),
 });
 
-export function Login() {
+export function Register() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -39,7 +39,7 @@ export function Login() {
 
   const mutation = useMutation({
     mutationFn: (values: z.infer<typeof formSchema>) =>
-      login(values.email, values.password),
+      register(values.email, values.password),
     onSuccess: () => {
       form.reset({});
     },
@@ -68,12 +68,11 @@ export function Login() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <Card>
-          <CardHeader className="text-xl font-bold">Log in</CardHeader>
+          <CardHeader className="text-xl font-bold">Register</CardHeader>
           <CardContent className="space-y-5 text-xl">
-            {/* Continue with Credentials */}
-            {inputs.map(({ name, label, type, placeholder }, index) => (
+            {/* Start with Credentials */}
+            {inputs.map(({ name, label, type, placeholder }) => (
               <FormField
-                key={index}
                 control={form.control}
                 name={name}
                 render={({ field }) => (
@@ -91,29 +90,29 @@ export function Login() {
               className="flex w-full items-center justify-center rounded-full bg-orange-600 hover:bg-orange-700"
               type="submit"
             >
-              Log in
+              Register
             </Button>
             <p className="flex items-center justify-center font-bold text-lg py-2">
               or
             </p>
-            {/* Continue with Provider */}
+            {/* Start with Provider */}
             <Providers
               providers={[
                 {
                   name: "google",
-                  text: "Continue with google",
+                  text: "Start with google",
                   icon: <FcGoogle className="mr-2" />,
                 },
                 {
                   name: "github",
-                  text: "Continue with Github",
+                  text: "Start with Github",
                   className:
                     "bg-zinc-800 text-white hover:bg-zinc-950 hover:text-white",
                   icon: <FiGithub className="mr-2" />,
                 },
                 {
                   name: "outlook",
-                  text: "Continue with Outlook",
+                  text: "Start with Outlook",
                   className:
                     "bg-sky-600 text-white hover:bg-sky-700 hover:text-white",
                   icon: <PiMicrosoftOutlookLogo className="mr-2" />,

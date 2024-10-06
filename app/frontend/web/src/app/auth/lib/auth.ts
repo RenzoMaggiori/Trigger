@@ -1,8 +1,8 @@
-import { getEnv } from "@/lib/env";
+"use client";
 
+import { env } from "@/lib/env";
 
 export async function login(email: string, password: string) {
-  const env = getEnv();
   const res = await fetch(
     `${env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/auth/login`,
     {
@@ -24,7 +24,6 @@ export async function login(email: string, password: string) {
 }
 
 export async function register(email: string, password: string) {
-  const env = getEnv();
   const res = await fetch(
     `${env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/auth/register`,
     {
@@ -46,4 +45,3 @@ export async function register(email: string, password: string) {
   }
   console.log(res);
 }
-
