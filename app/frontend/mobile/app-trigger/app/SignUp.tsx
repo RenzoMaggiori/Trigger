@@ -20,7 +20,6 @@ export default function SignUp() {
     const router = useRouter();
 
     const handleSignUp = async () => {
-        console.log('Signing up');
         await CredentialsService.register(email, password)
             .then(() => router.push('/(tabs)/HomeScreen'))
             .catch((error) => {
