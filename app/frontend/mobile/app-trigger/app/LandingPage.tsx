@@ -32,7 +32,7 @@ export default function LandingPage() {
     };
 
     const technologies = [
-        { name: 'Gmail', icon: <MaterialIcons name="email" size={30} color={Colors.light.tintLight} /> },
+        { name: 'Google', icon: <Ionicons name="logo-google" size={30} color={Colors.light.tintLight} /> },
         { name: 'Discord', icon: <FontAwesome5 name="discord" size={30} color={Colors.light.tintLight} /> },
         { name: 'Github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.tintLight} /> },
         { name: 'Slack', icon: <FontAwesome name="slack" size={30} color={Colors.light.tintLight} /> },

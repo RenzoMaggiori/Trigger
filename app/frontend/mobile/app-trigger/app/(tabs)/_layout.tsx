@@ -21,7 +21,12 @@ export default function TabLayout() {
   const router = useRouter();
 
   const handleLogout = () => {
-    router.push('/LandingPage');
+    router.push('/LandingPage' as const);
+  };
+
+  const handleSettings = () => {
+    closeMenu();
+    router.push('/Settings' as const);
   };
 
   const handleTriggersPress = (onPress: (e: GestureResponderEvent) => void) => (e: GestureResponderEvent) => {
@@ -57,7 +62,7 @@ export default function TabLayout() {
           >
             <View style={styles.sideMenu}>
               <Menu.Item
-                onPress={() => { }}
+                onPress={handleSettings}
                 title="Settings"
                 leadingIcon={() => <MaterialIcons name="settings" size={24} color={Colors.light.tint} />}
               />
