@@ -23,6 +23,9 @@ import { PiMicrosoftOutlookLogo } from "react-icons/pi";
 import { CustomNode, Service } from "@/app/trigger/lib/types";
 import { useMenu } from "@/app/trigger/components/MenuProvider";
 import { transformCustomNodes } from "@/app/trigger/lib/transform-custom-nodes";
+import { Button } from "@/components/ui/button";
+import { useMutation } from "@tanstack/react-query";
+import { send_workspace } from "@/app/trigger/lib/send-workspace"
 
 const services: Service[] = [
   {
@@ -55,7 +58,7 @@ export default function Page() {
   const [selectedNode, setSelectedNode] = React.useState<CustomNode | null>(
     null,
   );
-  const { setTriggerWorkspace, setNodes } = useMenu();
+  const { triggerWorkspace, setTriggerWorkspace, setNodes } = useMenu();
 
   React.useEffect(() => {
     setTriggerWorkspace((prev) => prev || { id: 1, nodes: {} });
@@ -172,6 +175,19 @@ export default function Page() {
     ];
   };
 
+  const mutation = useMutation({
+    mutationFn: send_workspace,
+    onSuccess: () => {
+      window.location.href = `/home`;
+    }
+  });
+
+  const handleOnClick = () => {
+    if (!triggerWorkspace)
+      return
+    mutation.mutate(triggerWorkspace);
+  };
+
   return (
     <div className="flex h-screen w-full overflow-hidden">
       <div className="w-auto p-5">
@@ -188,6 +204,9 @@ export default function Page() {
                 <TriggerDraggable service={item} className="w-[200px]" />
               </div>
             ))}
+            <Button className="w-full text-md rounded-full bg-gradient-to-r from-blue-500 via-violet-500 to-fuchsia-500 hover:bg-gradient-to-r hover:from-blue-600 hover:via-violet-600 hover:to-fuchsia-600 animate-gradient text-white" onClick={handleOnClick}>
+              Deploy Trigger
+            </Button>
           </CardContent>
         </Card>
       </div>
