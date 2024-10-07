@@ -174,10 +174,8 @@ func (m Model) Add(ctx context.Context, add *AddWorkspaceModel) (*WorkspaceModel
 	if err != nil {
 		return nil, err
 	}
+
 	newWorkspace = *workspacePtr
-	if err != nil {
-		return nil, err
-	}
 	_, err = m.Collection.InsertOne(ctx, newWorkspace)
 	if err != nil {
 		return nil, errCreatingWorkspace
@@ -231,7 +229,7 @@ func (m Model) UpdateActionCompleted(ctx context.Context, updateActionCompleted 
 }
 
 func (m Model) UpdateById(ctx context.Context, id primitive.ObjectID, update *UpdateWorkspaceModel) (*WorkspaceModel, error) {
-	filter := bson.M{"_id": id, "solved": false}
+	filter := bson.M{"_id": id}
 	updateData := bson.M{"$set": update}
 
 	_, err := m.Collection.UpdateOne(ctx, filter, updateData)

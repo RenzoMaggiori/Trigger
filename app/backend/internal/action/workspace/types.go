@@ -67,6 +67,7 @@ type AddActionNodeModel struct {
 	YPos     float32            `json:"y_pos" bson:"y_pos"`
 }
 type UpdateActionNodeModel struct {
+	NodeId   string   `json:"node_id" bson:"node_id"`
 	Fields   []any    `json:"fields" bson:"fields"`
 	Parents  []string `json:"parents" bson:"parents"`
 	Children []string `json:"children" bson:"children"`
