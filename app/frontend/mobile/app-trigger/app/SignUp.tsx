@@ -23,7 +23,7 @@ export default function SignUp() {
         await CredentialsService.register(email, password)
             .then(() => router.push('/(tabs)/HomeScreen'))
             .catch((error) => {
-                setErrorMessage("Something went wrong\nPlease try again.");
+                setErrorMessage(error.message + "\nPlease try again.");
                 setModalVisible(true);
             });
     };

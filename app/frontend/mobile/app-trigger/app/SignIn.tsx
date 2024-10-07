@@ -16,12 +16,10 @@ export default function SignIn() {
     const router = useRouter();
 
     const handleSignIn = async () => {
-        console.log('Signing in');
         await CredentialsService.login(email, password)
             .then(() => router.push('/(tabs)/HomeScreen'))
             .catch((error) => {
-                console.log("catch", error);
-                setErrorMessage("Incorrect username or password.\nPlease try again.");
+                setErrorMessage(error.message + "\nPlease try again.");
                 setModalVisible(true);
             });
     };

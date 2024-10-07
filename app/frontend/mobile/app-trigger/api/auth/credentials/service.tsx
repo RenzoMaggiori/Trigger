@@ -1,5 +1,5 @@
 const IP = process.env['IPv4'];
-const BASE_URL = `http://${IP}:8080/api/auth`;
+const BASE_URL = `http://${IP}:8000/api/auth`;
 
 export class CredentialsService {
     //? REGISTER
@@ -18,8 +18,10 @@ export class CredentialsService {
                 }),
             });
             if (response.status !== 200) {
-                throw new Error('Register failed');
+                console.log('register failed', response.status);
+                throw new Error('Something went wrong.');
             }
+            console.log('successful register');
             return;
         } catch (error) {
             console.error("Catched Register Error:", error);
@@ -42,8 +44,10 @@ export class CredentialsService {
             });
 
             if (response.status !== 200) {
-                throw new Error('Login failed');
+                console.log('login failed', response.status);
+                throw new Error('Incorrect username or password.');
             }
+            console.log('successful login');
             return;
         } catch (error) {
             console.error("Catched Login Error:", error);
