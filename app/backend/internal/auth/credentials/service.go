@@ -34,11 +34,12 @@ func (m Model) Login(ctx context.Context) (string, error) {
 		},
 	))
 	if err != nil {
-		return "", fmt.Errorf("%w: %v", errUserNotRetrieved, err)
+		log.Println("fetch [:8081/api/user/email] error")
+		return "", fmt.Errorf("%w: %v", errUserNotFound, err)
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		return "", errUserNotRetrieved
+		return "", errUserNotFound
 	}
 
 	user, err := decode.Json[user.UserModel](res.Body)
@@ -58,6 +59,7 @@ func (m Model) Login(ctx context.Context) (string, error) {
 		os.Getenv("TOKEN_SECRET"),
 	)
 	if err != nil {
+		log.Println("Credentials Login [jwt.Create] error")
 		return "", fmt.Errorf("%w: %v", errCreateToken, err)
 	}
 	res, err = fetch.Fetch(http.DefaultClient, fetch.NewFetchRequest(
@@ -69,6 +71,7 @@ func (m Model) Login(ctx context.Context) (string, error) {
 		},
 	))
 	if err != nil {
+		log.Println("Credentials Login fetch [:8082/api/session/user_id/{id}] error")
 		return "", fmt.Errorf("%w: %v", errSessionNotRetrieved, err)
 	}
 	defer res.Body.Close()
@@ -118,12 +121,11 @@ func (m Model) Login(ctx context.Context) (string, error) {
 		),
 	)
 	if err != nil {
-		log.Println(err)
+		log.Println("Credentials Login fetch [:8082/api/session/id/{id}] error")
 		return "", fmt.Errorf("%w: %v", errSessionNotRetrieved, err)
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		log.Printf("invalid status code, received %s\n", res.Status)
 		return "", fmt.Errorf("%w: %v", errCreateuser, err)
 	}
 	return token, nil
@@ -152,12 +154,11 @@ func (m Model) Register(regsiterModel RegisterModel) (string, error) {
 	)
 
 	if err != nil {
-		log.Println(err)
+		log.Println("Credentials Register fetch [:8081/api/user/add] error")
 		return "", fmt.Errorf("%w: %v", errCreateuser, err)
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		log.Printf("invalid status code, received %s\n", res.Status)
 		return "", errCreateuser
 	}
 
@@ -191,6 +192,7 @@ func (m Model) Register(regsiterModel RegisterModel) (string, error) {
 		),
 	)
 	if err != nil {
+		log.Println("Credentials Register fetch [:8082/api/session/add] error")
 		return "", fmt.Errorf("%w: %v", errCreateSession, err)
 	}
 	defer res.Body.Close()
@@ -242,7 +244,9 @@ func (m Model) VerifyToken(token string) error {
 			"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
 		}))
 	if err != nil {
-		return err
+		log.Println("Credentials VerifyToken fetch [:8082/api/session/access_token] error")
+		return fmt.Errorf("%w: %v", errTokenNotFound, err)
+
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {

@@ -11,7 +11,7 @@ var (
 	errCredentialsNotFound         error = errors.New("could not get credentials from context")
 	errAuthorizationHeaderNotFound error = errors.New("could not get authorization header")
 	errAuthorizationTypeNone       error = errors.New("could not decypher auth type")
-	errTokenNotFound               error = errors.New("could not find token in authorization header")
+	errTokenNotFound               error = errors.New("could not find/verify token")
 	errAuthTypeUndefined           error = errors.New("auth type is undefined")
 	errUserNotFound                error = errors.New("could not find user")
 	errUserTypeNone                error = errors.New("could not decypher user type")
@@ -35,7 +35,7 @@ var (
 		},
 		errTokenNotFound: {
 			Message: errTokenNotFound.Error(),
-			Code:    http.StatusNotFound,
+			Code:    http.StatusUnauthorized,
 		},
 		errAuthTypeUndefined: {
 			Message: errAuthTypeUndefined.Error(),

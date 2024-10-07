@@ -93,7 +93,7 @@ func (m Model) UpdateById(id primitive.ObjectID, update *UpdateSessionModel) (*S
 
 	_, err := m.Collection.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errSessionNotUpdated, err)
 	}
 
 	var updatedSession SessionModel
@@ -111,7 +111,7 @@ func (m Model) DeleteById(id primitive.ObjectID) error {
 	result, err := m.Collection.DeleteOne(ctx, filter)
 
 	if err != nil {
-		return fmt.Errorf("%w: %v", errSessionNotFound, err)
+		return fmt.Errorf("%w: %v", errSessionNotDeleted, err)
 	}
 	if result.DeletedCount == 0 {
 		return mongo.ErrNoDocuments
@@ -125,7 +125,7 @@ func (m Model) DeleteByUserId(userId primitive.ObjectID, providerName string) er
 	result, err := m.Collection.DeleteOne(ctx, filter)
 
 	if err != nil {
-		return fmt.Errorf("%w: %v", errSessionNotFound, err)
+		return fmt.Errorf("%w: %v", errSessionNotDeleted, err)
 	}
 	if result.DeletedCount == 0 {
 		return mongo.ErrNoDocuments

@@ -12,9 +12,9 @@ var (
 	errCredentialsNotFound         error = errors.New("could not get credentials from context")
 	errAuthorizationHeaderNotFound error = errors.New("could not get authorization header")
 	errAuthorizationTypeNone       error = errors.New("could not decypher auth type")
-	errTokenNotFound               error = errors.New("could not find token in authorization header")
+	errTokenNotFound               error = errors.New("could not find/verify token")
 	errAuthTypeUndefined           error = errors.New("auth type is undefined")
-	errUserNotRetrieved            error = errors.New("could not retrieve user")
+	errUserNotFound            	   error = errors.New("user not found")
 	errSessionNotRetrieved         error = errors.New("could not retrieve session")
 	errCreateToken                 error = errors.New("unable to create token")
 	errSessionNotFound             error = errors.New("session not found")
@@ -23,7 +23,7 @@ var (
 	errCodes map[error]customerror.CustomError = map[error]customerror.CustomError{
 		errCredentialsNotFound: {
 			Message: errCredentialsNotFound.Error(),
-			Code:    http.StatusNotFound,
+			Code:    http.StatusUnprocessableEntity,
 		},
 		errAuthorizationHeaderNotFound: {
 			Message: errAuthorizationHeaderNotFound.Error(),
@@ -35,7 +35,7 @@ var (
 		},
 		errTokenNotFound: {
 			Message: errTokenNotFound.Error(),
-			Code:    http.StatusNotFound,
+			Code:    http.StatusUnauthorized,
 		},
 		errAuthTypeUndefined: {
 			Message: errAuthTypeUndefined.Error(),
@@ -49,8 +49,8 @@ var (
 			Message: errSessionNotRetrieved.Error(),
 			Code:    http.StatusNotFound,
 		},
-		errUserNotRetrieved: {
-			Message: errUserNotRetrieved.Error(),
+		errUserNotFound: {
+			Message: errUserNotFound.Error(),
 			Code:    http.StatusNotFound,
 		},
 		errCreateToken: {
