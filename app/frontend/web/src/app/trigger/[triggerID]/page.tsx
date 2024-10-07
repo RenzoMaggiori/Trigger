@@ -20,7 +20,7 @@ import "@xyflow/react/dist/style.css";
 import { ConfigMenu } from "@/app/trigger/components/config-menu";
 import { BiLogoGmail } from "react-icons/bi";
 import { PiMicrosoftOutlookLogo } from "react-icons/pi";
-import { CustomNode, Service } from "@/app/trigger/lib/types";
+import { CustomNode, NodeItem, Service } from "@/app/trigger/lib/types";
 import { useMenu } from "@/app/trigger/components/MenuProvider";
 import { transformCustomNodes } from "@/app/trigger/lib/transform-custom-nodes";
 import { Button } from "@/components/ui/button";
@@ -61,7 +61,7 @@ export default function Page() {
   const { triggerWorkspace, setTriggerWorkspace, setNodes } = useMenu();
 
   React.useEffect(() => {
-    setTriggerWorkspace((prev) => prev || { id: 1, nodes: {} });
+    setTriggerWorkspace((prev) => prev || { id: "a", nodes: {} });
   }, []);
 
   React.useEffect(() => {
@@ -177,7 +177,23 @@ export default function Page() {
 
   const mutation = useMutation({
     mutationFn: send_workspace,
-    onSuccess: () => {
+    onSuccess: (data) => {
+      const nodes: Record<string, NodeItem> = {}
+      for (const n of data.nodes) {
+        nodes[n.node_id] = {
+          id: n.node_id,
+          type: n.action_id,
+          fields: n.fields,
+          parent_ids: n.parents,
+          child_ids: n.children,
+          x_pos: n.x_pos,
+          y_pos: n.y_pos
+        }
+      }
+      setTriggerWorkspace({
+        id: data.id,
+        nodes: nodes
+      })
       window.location.href = `/home`;
     }
   });

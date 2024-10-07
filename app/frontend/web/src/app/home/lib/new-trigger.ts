@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { env } from "@/lib/env";
 
-const triggerSchema = z.object({
+export const triggerSchema = z.object({
   id: z.string(),
   userId: z.string(),
   nodes: z.array(
