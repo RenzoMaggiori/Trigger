@@ -2,7 +2,9 @@ package providers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/markbates/goth/gothic"
@@ -62,6 +64,7 @@ func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(24 * time.Hour),
 	}
 	http.SetCookie(w, cookie)
+	http.Redirect(w, r, fmt.Sprintf("%s/home", os.Getenv("WEB_BASE_URL")), http.StatusPermanentRedirect)
 }
 
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
