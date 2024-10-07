@@ -122,31 +122,31 @@ func (h *Handler) UpdateActionCompletedWorkspace(w http.ResponseWriter, r *http.
 	}
 }
 
-// func (h *Handler) UpdateById(w http.ResponseWriter, r *http.Request) {
-// 	id, err := primitive.ObjectIDFromHex(r.PathValue("id"))
+func (h *Handler) UpdateById(w http.ResponseWriter, r *http.Request) {
+	id, err := primitive.ObjectIDFromHex(r.PathValue("id"))
 
-// 	if err != nil {
-// 		error := fmt.Errorf("%w: %v", errBadWorkspaceId, err)
-// 		customerror.Send(w, error, errCodes)
-// 		return
-// 	}
+	if err != nil {
+		error := fmt.Errorf("%w: %v", errBadWorkspaceId, err)
+		customerror.Send(w, error, errCodes)
+		return
+	}
 
-// 	update, err := decode.Json[UpdateWorkspaceModel](r.Body)
-// 	if err != nil {
-// 		customerror.Send(w, err, errCodes)
-// 		return
-// 	}
+	update, err := decode.Json[UpdateWorkspaceModel](r.Body)
+	if err != nil {
+		customerror.Send(w, err, errCodes)
+		return
+	}
 
-// 	updatedWorkspace, err := h.Service.UpdateById(context.TODO(), id, &update)
-// 	if err != nil {
-// 		customerror.Send(w, err, errCodes)
-// 		return
-// 	}
-// 	if err = encode.Json(w, updatedWorkspace); err != nil {
-// 		customerror.Send(w, err, errCodes)
-// 		return
-// 	}
-// }
+	updatedWorkspace, err := h.Service.UpdateById(context.TODO(), id, &update)
+	if err != nil {
+		customerror.Send(w, err, errCodes)
+		return
+	}
+	if err = encode.Json(w, updatedWorkspace); err != nil {
+		customerror.Send(w, err, errCodes)
+		return
+	}
+}
 
 // func (h *Handler) DeleteById(w http.ResponseWriter, r *http.Request) {
 // 	id, err := primitive.ObjectIDFromHex(r.PathValue("id"))

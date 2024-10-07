@@ -19,7 +19,7 @@ type Service interface {
 	GetByUserId(context.Context, primitive.ObjectID) ([]WorkspaceModel, error)
 	Add(context.Context, *AddWorkspaceModel) (*WorkspaceModel, error)
 	UpdateActionCompleted(context.Context, UpdateActionCompletedModel) ([]WorkspaceModel, error)
-	// UpdateById(context.Context, primitive.ObjectID, *UpdateUserActionModel) (*UserActionModel, error)
+	UpdateById(context.Context, primitive.ObjectID, *UpdateWorkspaceModel) (*WorkspaceModel, error)
 	// DeleteById(context.Context, primitive.ObjectID) error
 }
 
@@ -66,15 +66,16 @@ type AddActionNodeModel struct {
 	XPos     float32            `json:"x_pos" bson:"x_pos"`
 	YPos     float32            `json:"y_pos" bson:"y_pos"`
 }
-
 type UpdateActionNodeModel struct {
-	NodeId   string             `json:"node_id" bson:"node_id"`
-	ActionId primitive.ObjectID `json:"action_id" bson:"action_id"`
-	Fields   []any              `json:"fields" bson:"fields"`
-	Parents  []string           `json:"parents" bson:"parents"`
-	Children []string           `json:"children" bson:"children"`
-	XPos     float32            `json:"x_pos" bson:"x_pos"`
-	YPos     float32            `json:"y_pos" bson:"y_pos"`
+	Fields   []any    `json:"fields" bson:"fields"`
+	Parents  []string `json:"parents" bson:"parents"`
+	Children []string `json:"children" bson:"children"`
+	XPos     float32  `json:"x_pos" bson:"x_pos"`
+	YPos     float32  `json:"y_pos" bson:"y_pos"`
+}
+
+type UpdateWorkspaceModel struct {
+	Nodes []UpdateActionNodeModel `json:"nodes" bson:"nodes"`
 }
 
 type UpdateActionCompletedModel struct {

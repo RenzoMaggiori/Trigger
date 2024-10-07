@@ -230,24 +230,24 @@ func (m Model) UpdateActionCompleted(ctx context.Context, updateActionCompleted 
 	return workspaces, nil
 }
 
-// func (m Model) UpdateById(ctx context.Context, id primitive.ObjectID, update *UpdateWorkspaceModel) (*WorkspaceModel, error) {
-// 	filter := bson.M{"_id": id, "solved": false}
-// 	updateData := bson.M{"$set": update}
+func (m Model) UpdateById(ctx context.Context, id primitive.ObjectID, update *UpdateWorkspaceModel) (*WorkspaceModel, error) {
+	filter := bson.M{"_id": id, "solved": false}
+	updateData := bson.M{"$set": update}
 
-// 	_, err := m.Collection.UpdateOne(ctx, filter, updateData)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("%w: %v", errUserActionNotFound, err)
-// 	}
+	_, err := m.Collection.UpdateOne(ctx, filter, updateData)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", errWorkspaceNotFound, err)
+	}
 
-// 	var updatedUserAction WorkspaceModel
-// 	err = m.Collection.FindOne(ctx, filter).Decode(&updatedUserAction)
+	var updatedUserAction WorkspaceModel
+	err = m.Collection.FindOne(ctx, filter).Decode(&updatedUserAction)
 
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return &updatedUserAction, nil
+	if err != nil {
+		return nil, err
+	}
+	return &updatedUserAction, nil
 
-// }
+}
 
 // func (m Model) DeleteById(ctx context.Context, id primitive.ObjectID) error {
 // 	filter := bson.M{"_id": id}
