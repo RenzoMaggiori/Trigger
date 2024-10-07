@@ -21,6 +21,7 @@ export const Colors = {
     github: '#24292E',
     slack: '#4A154B',
     outlook: '#0072C6',
+    grey: '#d6dbdf',
   },
   dark: {
     text: '#ECEDEE',

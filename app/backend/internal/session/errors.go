@@ -10,6 +10,8 @@ import (
 var (
 	errUserAlreadyExists error = errors.New("user already exists with provider")
 	errSessionNotFound   error = errors.New("session not found")
+	errSessionNotUpdated   error = errors.New("session not updated")
+	errSessionNotDeleted   error = errors.New("session not deleted")
 	errBadSessionID      error = errors.New("bad session id")
 	errBadUserID         error = errors.New("bad user id")
 	errInsertSession     error = errors.New("could not insert session")
@@ -34,6 +36,14 @@ var (
 		errInsertSession: {
 			Message: errInsertSession.Error(),
 			Code:    http.StatusInternalServerError,
+		},
+		errSessionNotUpdated: {
+			Message: errSessionNotUpdated.Error(),
+			Code:    http.StatusBadRequest,
+		},
+		errSessionNotDeleted: {
+			Message: errSessionNotDeleted.Error(),
+			Code:    http.StatusBadRequest,
 		},
 	}
 )
