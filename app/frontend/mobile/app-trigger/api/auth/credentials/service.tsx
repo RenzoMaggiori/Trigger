@@ -19,9 +19,7 @@ export class CredentialsService {
             if (response.status !== 200) {
                 throw new Error('Login failed');
             }
-
             return;
-
         } catch (error) {
             console.error("Catched Login Error:", error);
             throw error;

@@ -12,8 +12,18 @@ export default function SignIn() {
 
     const router = useRouter();
 
-    const handleSignIn = () => {
-        router.push('/(tabs)/HomeScreen');
+    const handleSignUp = async () => {
+        await CredentialsService.register(email, password)
+            .then(() => router.push('/(tabs)/HomeScreen'))
+            .catch((error) => {
+                setErrorMessage("Something went wrong\nPlease try again.");
+                setModalVisible(true);
+            });
+    };
+
+    const handleDismissError = () => {
+        setModalVisible(false);
+        setErrorMessage("");
     };
 
     const handleSocialSignIn = (service: string) => {
