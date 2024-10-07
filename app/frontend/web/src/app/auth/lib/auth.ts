@@ -1,6 +1,4 @@
-"use server";
-
-import { redirect } from "next/navigation";
+"use client";
 
 import { env } from "@/lib/env";
 
@@ -23,8 +21,7 @@ export async function login(email: string, password: string) {
   if (!res.ok) {
     throw new Error(`invalid status code: ${res.status}`);
   }
-  console.log("user logged in");
-  redirect("/home");
+  window.location.href = "/home";
 }
 
 export async function register(email: string, password: string) {
@@ -48,6 +45,5 @@ export async function register(email: string, password: string) {
   if (!res.ok) {
     throw new Error(`invalid status code: ${res.status}`);
   }
-  console.log("user registered");
-  redirect("/home");
+  window.location.href = "/home";
 }

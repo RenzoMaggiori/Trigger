@@ -40,7 +40,15 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie := &http.Cookie{Name: authCookieName, Value: accessToken, Expires: expires}
+	cookie := &http.Cookie{
+		Name:     authCookieName,
+		Value:    accessToken,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+		Secure:   false, // TODO: true when in production
+		Expires:  expires,
+	}
 	http.SetCookie(w, cookie)
 }
 
@@ -70,7 +78,15 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie := &http.Cookie{Name: authCookieName, Value: accessToken, Expires: expires}
+	cookie := &http.Cookie{
+		Name:     authCookieName,
+		Value:    accessToken,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+		Secure:   false, // TODO: true when in production
+		Expires:  expires,
+	}
 	http.SetCookie(w, cookie)
 }
 
