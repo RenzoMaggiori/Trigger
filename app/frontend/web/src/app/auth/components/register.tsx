@@ -71,8 +71,9 @@ export function Register() {
           <CardHeader className="text-xl font-bold">Register</CardHeader>
           <CardContent className="space-y-5 text-xl">
             {/* Start with Credentials */}
-            {inputs.map(({ name, label, type, placeholder }) => (
+            {inputs.map(({ name, label, type, placeholder }, index) => (
               <FormField
+                key={index}
                 control={form.control}
                 name={name}
                 render={({ field }) => (
