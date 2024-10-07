@@ -1,12 +1,14 @@
 package middleware
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
 	"trigger.com/trigger/pkg/fetch"
+	"trigger.com/trigger/pkg/jwt"
 )
 
 type Handler struct {
@@ -14,6 +16,8 @@ type Handler struct {
 }
 
 type TokenCtx string
+
+const TokenCtxKey = TokenCtx("TokenCtxKey")
 
 func Auth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -39,6 +43,20 @@ func Auth(next http.Handler) http.Handler {
 			return
 		}
 
-		next.ServeHTTP(w, r)
+		token, err := jwt.FromRequest(r.Header.Get("Authorization"))
+		if err != nil {
+			log.Println(err)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+			return
+		}
+		log.Println("middleware: ", token)
+		next.ServeHTTP(
+			w,
+			r.WithContext(
+				context.WithValue(
+					r.Context(), TokenCtxKey, token,
+				),
+			),
+		)
 	})
 }

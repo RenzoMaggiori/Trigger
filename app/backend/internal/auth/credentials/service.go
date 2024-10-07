@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"trigger.com/trigger/internal/session"
@@ -211,22 +210,6 @@ func (m Model) Register(regsiterModel RegisterModel) (string, error) {
 	}
 
 	return accessToken, nil
-}
-
-func (m Model) GetToken(authorizationHeader string) (string, error) {
-	if authorizationHeader == "" {
-		return "", errAuthorizationHeaderNotFound
-	}
-
-	if strings.HasPrefix(authorizationHeader, "Bearer ") {
-		parts := strings.Split(authorizationHeader, " ")
-		if len(parts) < 2 || parts[0] != "Bearer" {
-			return "", errTokenNotFound
-		}
-		return parts[1], nil
-	}
-	// TODO: check for oauth token
-	return "", errAuthorizationTypeNone
 }
 
 func (m Model) VerifyToken(token string) error {

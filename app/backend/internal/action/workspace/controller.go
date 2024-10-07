@@ -2,6 +2,7 @@ package workspace
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	customerror "trigger.com/trigger/pkg/custom-error"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/encode"
+	"trigger.com/trigger/pkg/middleware"
 )
 
 func (h *Handler) GetWorkspace(w http.ResponseWriter, r *http.Request) {
@@ -72,15 +74,20 @@ func (h *Handler) GetWorkspacesByUserId(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *Handler) AddWorkspace(w http.ResponseWriter, r *http.Request) {
-	accessToken := r.Header.Get("Authorization")
-	add, err := decode.Json[AddWorkspaceModel](r.Body)
+	token, ok := r.Context().Value(middleware.TokenCtxKey).(string)
+	log.Println("handler: ", token)
+	if !ok {
+		customerror.Send(w, errors.New("could not find token"), errCodes)
+		return
+	}
 
+	add, err := decode.Json[AddWorkspaceModel](r.Body)
 	if err != nil {
 		customerror.Send(w, err, errCodes)
 		return
 	}
 
-	newWorkspace, err := h.Service.Add(context.WithValue(context.TODO(), AccessTokenCtxKey, accessToken), &add)
+	newWorkspace, err := h.Service.Add(context.WithValue(context.TODO(), AccessTokenCtxKey, token), &add)
 	if err != nil {
 		customerror.Send(w, err, errCodes)
 		return

@@ -91,9 +91,9 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
-	token, err := h.Service.GetToken(r.Header.Get("Authorization"))
+	token, err := jwt.FromRequest(r.Header.Get("Authorization"))
 	if err != nil {
-		customerror.Send(w, err, errCodes)
+		customerror.Send(w, errAuthorizationHeaderNotFound, errCodes)
 		return
 	}
 
