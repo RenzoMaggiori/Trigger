@@ -19,7 +19,6 @@ import (
 	"trigger.com/trigger/pkg/jwt"
 )
 
-
 func (m Model) Login(ctx context.Context) (string, error) {
 	credentials, ok := ctx.Value(CredentialsCtxKey).(CredentialsModel)
 	if !ok {
@@ -155,7 +154,6 @@ func (m Model) Register(regsiterModel RegisterModel) (string, error) {
 	)
 
 	if err != nil {
-		log.Println("Credentials Register fetch [:8081/api/user/add] error")
 		return "", fmt.Errorf("%w: %v", errCreateuser, err)
 	}
 	defer res.Body.Close()
@@ -165,7 +163,6 @@ func (m Model) Register(regsiterModel RegisterModel) (string, error) {
 
 	user, err := decode.Json[user.UserModel](res.Body)
 	if err != nil {
-		log.Println(err)
 		return "", err
 	}
 
@@ -179,7 +176,6 @@ func (m Model) Register(regsiterModel RegisterModel) (string, error) {
 	}
 	body, err = json.Marshal(addSession)
 	if err != nil {
-		log.Println(err)
 		return "", err
 	}
 
@@ -189,11 +185,12 @@ func (m Model) Register(regsiterModel RegisterModel) (string, error) {
 			http.MethodPost,
 			fmt.Sprintf("%s/api/session/add", os.Getenv("SESSION_SERVICE_BASE_URL")),
 			bytes.NewReader(body),
-			nil,
+			map[string]string{
+				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
+			},
 		),
 	)
 	if err != nil {
-		log.Println("Credentials Register fetch [:8082/api/session/add] error")
 		return "", fmt.Errorf("%w: %v", errCreateSession, err)
 	}
 	defer res.Body.Close()
@@ -245,7 +242,6 @@ func (m Model) VerifyToken(token string) error {
 			"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
 		}))
 	if err != nil {
-		log.Println("Credentials VerifyToken fetch [:8082/api/session/access_token] error")
 		return fmt.Errorf("%w: %v", errTokenNotFound, err)
 
 	}

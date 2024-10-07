@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
+
 import { Navbar } from "@/components/ui/navbar";
+import { Provider } from "@/lib/providers";
 
 export const metadata: Metadata = {
   title: "Trigger",
@@ -15,8 +17,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="flex flex-col h-screen bg-gray-200 dark:bg-zinc-900">
-        <Navbar/>
-        {children}
+        <Navbar />
+        <Provider>{children}</Provider>
       </body>
     </html>
   );
