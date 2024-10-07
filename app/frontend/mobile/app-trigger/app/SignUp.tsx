@@ -1,14 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, SafeAreaView, ScrollView, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Image, Modal, Pressable, TouchableNativeFeedback } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import Button from '@/components/Button';
-import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { MaterialIcons, Ionicons, FontAwesome, FontAwesome5 } from '@expo/vector-icons';
 import ButtonIcon from '@/components/ButtonIcon';
+import { CredentialsService } from '@/api/auth/credentials/service';
 
-export default function SignIn() {
+export default function SignUp() {
+    const [name, setName] = useState('');
+    const [surname, setSurname] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+
+    const [modalVisible, setModalVisible] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
 
     const router = useRouter();
 
@@ -26,13 +33,13 @@ export default function SignIn() {
         setErrorMessage("");
     };
 
-    const handleSocialSignIn = (service: string) => {
+    const handleSocialSignUp = (service: string) => {
         router.push('/(tabs)/HomeScreen');
         console.log(`Signing up with ${service}`);
     };
 
     const technologies = [
-        { name: 'Google', icon: <Ionicons name="logo-google" size={30} color={Colors.light.google} />},
+        { name: 'Google', icon: <Ionicons name="logo-google" size={30} color={Colors.light.google} /> },
         { name: 'Github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
         { name: 'Outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.outlook} /> },
     ];
@@ -49,6 +56,18 @@ export default function SignIn() {
                 </View>
                 <TextInput
                     style={styles.input}
+                    placeholder="Name"
+                    value={name}
+                    onChangeText={setName}
+                />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Surname"
+                    value={surname}
+                    onChangeText={setSurname}
+                />
+                <TextInput
+                    style={styles.input}
                     placeholder="Email"
                     value={email}
                     onChangeText={setEmail}
@@ -60,9 +79,16 @@ export default function SignIn() {
                     value={password}
                     onChangeText={setPassword}
                 />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Confirm Password"
+                    secureTextEntry
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                />
                 <Button
-                    onPress={handleSignIn}
-                    title="SIGN IN"
+                    onPress={handleSignUp}
+                    title="SIGN UP"
                 />
                 <View style={styles.separatorContainer}>
                     <View style={styles.line} />
@@ -72,7 +98,7 @@ export default function SignIn() {
                 {technologies.map((tech, index) => (
                     <ButtonIcon
                         key={index}
-                        onPress={() => handleSocialSignIn(tech.name)}
+                        onPress={() => handleSocialSignUp(tech.name)}
                         title={"Continue with " + tech.name}
                         icon={tech.icon}
                         backgroundColor="#FFFFFF"
@@ -80,6 +106,29 @@ export default function SignIn() {
                     />
                 ))}
             </ScrollView>
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={handleDismissError}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.errorMessage} numberOfLines={2}>
+                            {errorMessage}
+                        </Text>
+                        <View style={styles.separator} />
+                        <TouchableNativeFeedback
+                            onPress={handleDismissError}
+                            background={TouchableNativeFeedback.Ripple('#f2f0eb', false)}
+                        >
+                            <View style={styles.dismissButton}>
+                                <Text style={styles.dismissButtonText}>DONE</Text>
+                            </View>
+                        </TouchableNativeFeedback>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 }
@@ -105,7 +154,7 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: 'bold',
         textAlign: 'center',
-        marginBottom: 20,
+        marginVertical: 20,
     },
     input: {
         borderWidth: 1,
@@ -114,14 +163,14 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         borderRadius: 8,
     },
-    signInButton: {
+    signUpButton: {
         backgroundColor: Colors.light.tabIconSelected,
         padding: 15,
         borderRadius: 8,
         alignItems: 'center',
         marginBottom: 10,
     },
-    signInButtonText: {
+    signUpButtonText: {
         color: '#fff',
         fontSize: 16,
     },
@@ -148,5 +197,40 @@ const styles = StyleSheet.create({
     },
     servicesButtonText: {
         color: Colors.light.tabIconSelected,
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "rgba(0,0,0,0.5)",
+    },
+    modalContent: {
+        backgroundColor: "#fff",
+        padding: 20,
+        borderRadius: 4,
+        width: "80%",
+        elevation: 5,
+    },
+    errorMessage: {
+        color: "#f25749",
+        marginBottom: 10,
+        marginTop: 10,
+        textAlign: "center",
+        fontSize: 16,
+    },
+    dismissButton: {
+        marginTop: 10,
+        padding: 10,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    dismissButtonText: {
+        color: "#f25749",
+        fontWeight: "bold",
+    },
+    separator: {
+        height: 1,
+        backgroundColor: "#f2f0eb",
+        marginVertical: 12,
     },
 });
