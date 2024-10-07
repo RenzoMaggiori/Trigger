@@ -51,7 +51,7 @@ func (m Model) Login(ctx context.Context) (string, error) {
 		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodGet,
-			fmt.Sprintf("%s/api/session/user_id/%s", os.Getenv("SESSION_SERVICE_BASE_URL"), user.Id),
+			fmt.Sprintf("%s/api/session/user_id/%s", os.Getenv("SESSION_SERVICE_BASE_URL"), user.Id.Hex()),
 			nil,
 			map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
@@ -165,7 +165,9 @@ func (m Model) Callback(gothUser goth.User) (string, error) {
 				http.MethodPost,
 				fmt.Sprintf("%s/api/session/add", os.Getenv("SESSION_SERVICE_BASE_URL")),
 				bytes.NewReader(body),
-				nil,
+				map[string]string{
+					"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
+				},
 			),
 		)
 		if err != nil {
