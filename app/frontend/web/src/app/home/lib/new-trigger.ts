@@ -1,9 +1,10 @@
+"use server"
+
 import { env } from '@/lib/env';
 import { cookies } from 'next/headers';
-import React from 'react'
 
 export async function newtrigger() {
-    const access_token = cookies().get("access_toke")?.value;
+    const access_token = cookies().get("access_token")?.value;
     const res = await fetch(
         `${env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/`,
         {
