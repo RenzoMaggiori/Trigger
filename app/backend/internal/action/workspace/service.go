@@ -64,7 +64,7 @@ func (m Model) GetByUserId(ctx context.Context, userId primitive.ObjectID) ([]Wo
 
 func initWorkspaceActions(workspace WorkspaceModel, accessToken string) (*WorkspaceModel, error) {
 
-	for _, node := range workspace.Nodes {
+	for i, node := range workspace.Nodes {
 		if node.Status == "pending" {
 			res, err := fetch.Fetch(http.DefaultClient, fetch.NewFetchRequest(
 				http.MethodGet,
@@ -95,6 +95,7 @@ func initWorkspaceActions(workspace WorkspaceModel, accessToken string) (*Worksp
 				return nil, err
 			}
 			// Call the reaction / trigger
+
 			res, err = fetch.Fetch(
 				http.DefaultClient,
 				fetch.NewFetchRequest(
@@ -113,7 +114,7 @@ func initWorkspaceActions(workspace WorkspaceModel, accessToken string) (*Worksp
 			if res.StatusCode != http.StatusOK {
 				return nil, errAction
 			}
-			node.Status = "active"
+			workspace.Nodes[i].Status = "active"
 		}
 	}
 	return &workspace, nil
@@ -187,13 +188,12 @@ func (m Model) Add(ctx context.Context, add *AddWorkspaceModel) (*WorkspaceModel
 func (m Model) UpdateActionCompleted(ctx context.Context, updateActionCompleted UpdateActionCompletedModel) ([]WorkspaceModel, error) {
 	accessToken := ctx.Value(AccessTokenCtxKey).(string)
 	workspaces, err := m.GetByUserId(ctx, updateActionCompleted.UserId)
-
 	if err != nil {
 		return nil, errWorkspaceNotFound
 	}
 	for _, workspace := range workspaces {
 		for i, node := range workspace.Nodes {
-			if node.Status == "active" && node.ActionId == updateActionCompleted.ActionId {
+			if node.Status == "active" && node.ActionId.Hex() == updateActionCompleted.Action {
 				workspace.Nodes[i].Status = "completed"
 				for _, child := range node.Children {
 					for j := range workspace.Nodes {

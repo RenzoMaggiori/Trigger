@@ -12,7 +12,6 @@ import (
 	"os"
 	"strings"
 
-	"trigger.com/trigger/internal/action/action"
 	"trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/internal/user"
 	"trigger.com/trigger/pkg/decode"
@@ -82,33 +81,33 @@ func (m Model) Webhook(ctx context.Context) error {
 
 	fmt.Printf("eventData: %v\n", eventData)
 
+	// res, err := fetch.Fetch(
+	// 	http.DefaultClient,
+	// 	fetch.NewFetchRequest(
+	// 		http.MethodGet,
+	// 		fmt.Sprintf("%s/api/action/action/watch", os.Getenv("ACTION_SERVICE_BASE_URL")),
+	// 		nil,
+	// 		map[string]string{
+	// 			"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
+	// 		},
+	// 	),
+	// )
+
+	// if err != nil {
+	// 	return errActionNotFound
+	// }
+	// defer res.Body.Close()
+	// if res.StatusCode != http.StatusOK {
+	// 	return err
+	// }
+
+	// action, err := decode.Json[action.ActionModel](res.Body)
+
+	if err != nil {
+		return err
+	}
+
 	res, err := fetch.Fetch(
-		http.DefaultClient,
-		fetch.NewFetchRequest(
-			http.MethodGet,
-			fmt.Sprintf("%s/api/action/action/watch", os.Getenv("ACTION_SERVICE_BASE_URL")),
-			nil,
-			map[string]string{
-				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
-			},
-		),
-	)
-
-	if err != nil {
-		return errActionNotFound
-	}
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		return err
-	}
-
-	action, err := decode.Json[action.ActionModel](res.Body)
-
-	if err != nil {
-		return err
-	}
-
-	res, err = fetch.Fetch(
 		&http.Client{},
 		fetch.NewFetchRequest(
 			http.MethodGet,
@@ -135,8 +134,8 @@ func (m Model) Webhook(ctx context.Context) error {
 	}
 
 	update := workspace.UpdateActionCompletedModel{
-		ActionId: action.Id,
-		UserId:   user.Id,
+		Action: "6703e7859a59cf30fd0615df",
+		UserId: user.Id,
 	}
 
 	body, err := json.Marshal(update)
@@ -148,8 +147,8 @@ func (m Model) Webhook(ctx context.Context) error {
 	res, err = fetch.Fetch(
 		http.DefaultClient,
 		fetch.NewFetchRequest(
-			http.MethodPost,
-			fmt.Sprintf("%s/api/workspace/completed_action/", os.Getenv("ACTION_SERVICE_BASE_URL")),
+			http.MethodPatch,
+			fmt.Sprintf("%s/api/workspace/completed_action", os.Getenv("ACTION_SERVICE_BASE_URL")),
 			bytes.NewReader(body),
 			map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),

@@ -33,7 +33,7 @@ type Model struct {
 
 type WorkspaceModel struct {
 	Id     primitive.ObjectID `json:"id" bson:"_id"`
-	UserId primitive.ObjectID `json:"userId" bson:"userId"`
+	UserId primitive.ObjectID `json:"user_id" bson:"user_id"`
 	Nodes  []ActionNodeModel  `json:"nodes" bson:"nodes"`
 }
 
@@ -80,6 +80,6 @@ type UpdateWorkspaceModel struct {
 }
 
 type UpdateActionCompletedModel struct {
-	UserId   primitive.ObjectID `json:"user_id"`
-	ActionId primitive.ObjectID `json:"action_id"`
+	UserId primitive.ObjectID `json:"user_id"`
+	Action string             `json:"action_id"`
 }
