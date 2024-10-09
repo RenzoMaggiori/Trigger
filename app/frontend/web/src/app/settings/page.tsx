@@ -70,7 +70,7 @@ const page = () => {
     const handleSwitchChange = (serviceIndex: number, fieldKey: string, provider: string) => {
         const updatedServices = [...serviceList];
         if (fieldKey === "Connection")
-            updatedServices[serviceIndex].fields[fieldKey] ? window.location.href = `${env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/sync?=${provider}` : window.location.href = `${env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/disconect?=${provider}`
+            updatedServices[serviceIndex].fields[fieldKey] ? window.location.href = `${env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/auth/sync?=${provider}` : window.location.href = `${env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/auth/disconect?=${provider}`
         updatedServices[serviceIndex].fields[fieldKey] = !updatedServices[serviceIndex].fields[fieldKey];
         setServiceList(updatedServices);
     };
