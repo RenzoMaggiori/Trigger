@@ -155,60 +155,76 @@ func (m Model) Add(ctx context.Context, add *AddWorkspaceModel) (*WorkspaceModel
 	return &newWorkspace, nil
 }
 
+// ActionCompleted updates the workspaces based on the provided action completion details.
+//
+// This method performs the following steps:
+// 1. Retrieves the access token from the context.
+// 2. Fetches the workspaces associated with the user ID from the updateActionCompleted model.
+// 3. Concurrently processes each workspace to run actions and update the workspace nodes.
+// 4. Updates the workspace in the database and collects the updated workspaces.
+//
+// Parameters:
+// - ctx: The context for the request, which should contain the access token.
+// - updateActionCompleted: The model containing the details of the action completion.
+//
+// Returns:
+// - A slice of updated WorkspaceModel objects.
+// - An error if any step in the process fails.
 func (m Model) ActionCompleted(ctx context.Context, updateActionCompleted ActionCompletedModel) ([]WorkspaceModel, error) {
 	accessToken, ok := ctx.Value(AccessTokenCtxKey).(string)
 	if !ok {
 		return nil, fmt.Errorf("access token missing or invalid")
 	}
-
 	workspaces, err := m.GetByUserId(ctx, updateActionCompleted.UserId)
 	if err != nil {
 		return nil, err
 	}
 	var (
-		updateErr         error
 		wg                sync.WaitGroup
 		mu                sync.Mutex
 		updatedWorkspaces []WorkspaceModel
+		errChan           = make(chan error, len(workspaces))
 	)
+
+	processWorkspace := func(workspace WorkspaceModel) {
+		defer wg.Done()
+		updatedWorkspace, err := runWorkspaceActions(workspace, updateActionCompleted, accessToken)
+		if err != nil {
+			errChan <- err
+			return
+		}
+		filter := bson.M{"_id": workspace.Id}
+		update := bson.M{
+			"$set": bson.M{"nodes": updatedWorkspace.Nodes},
+		}
+		updateResult, err := m.Collection.UpdateOne(ctx, filter, update)
+		if err != nil {
+			errChan <- err
+			return
+		}
+		if updateResult.MatchedCount == 0 {
+			errChan <- errWorkspaceNotFound
+			return
+		}
+		mu.Lock()
+		updatedWorkspaces = append(updatedWorkspaces, updatedWorkspace)
+		mu.Unlock()
+	}
 
 	for _, workspace := range workspaces {
 		wg.Add(1)
-		go func(workspace WorkspaceModel) {
-			defer wg.Done()
-			updatedWorkspace, err := runWorkspaceActions(workspace, updateActionCompleted, accessToken)
-			if err != nil {
-				mu.Lock()
-				updateErr = err
-				mu.Unlock()
-				return
-			}
-			filter := bson.M{"_id": workspace.Id}
-			update := bson.M{
-				"$set": bson.M{"nodes": updatedWorkspace.Nodes},
-			}
-			updateResult, err := m.Collection.UpdateOne(ctx, filter, update)
-			if err != nil {
-				mu.Lock()
-				updateErr = err
-				mu.Unlock()
-				return
-			}
-			if updateResult.MatchedCount == 0 {
-				mu.Lock()
-				updateErr = errWorkspaceNotFound
-				mu.Unlock()
-				return
-			}
-			mu.Lock()
-			updatedWorkspaces = append(updatedWorkspaces, updatedWorkspace)
-			mu.Unlock()
-		}(workspace)
+		go processWorkspace(workspace)
 	}
+
 	wg.Wait()
-	if updateErr != nil {
-		return nil, updateErr
+	close(errChan)
+
+	for err := range errChan {
+		if err != nil {
+			return nil, err
+		}
 	}
+
 	return updatedWorkspaces, nil
 }
 
