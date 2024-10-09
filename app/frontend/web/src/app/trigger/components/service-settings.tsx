@@ -28,15 +28,15 @@ const InputComponent = ({
   );
 };
 
-function GithubSettings({ node, type }: { node: NodeItem , type: string}) {
+function GithubSettings({ node, type }: { node: NodeItem, type: string }) {
   return <div></div>;
 }
 
-function EmailSettings({ node, type }: { node: NodeItem , type: string}) {
+function EmailSettings({ node, type }: { node: NodeItem, type: string }) {
   const { setFields } = useMenu();
 
   const handleFieldChange = (type: string, index: string, value: any) => {
-    setFields(node.id, { ...node.fields, [type]: {[index]: value  }});
+    setFields(node.id, { ...node.fields, [type]: { [index]: value } });
   };
 
   const inputs = [
@@ -48,31 +48,45 @@ function EmailSettings({ node, type }: { node: NodeItem , type: string}) {
   if (!node) return <div>No node found</div>;
 
   return (
-    <div className="flex flex-col gap-y-4">
-      {inputs.map((item, key) => (
-        <div key={`${node.id}-${key}`}>
-          <Label>{item.label}</Label>
-          <Input
-            placeholder={item.placeholder}
-            onChange={(e) => handleFieldChange(type, item.label, e.target.value)}
-            value={node.fields[type]?.[item.label] || ""}
-          />
+    <>
+      {type === "reaction" ? (
+
+        <div className="flex flex-col gap-y-4">
+          {inputs.map((item, key) => (
+            <div key={`${node.id}-${key}`}>
+              <Label>{item.label}</Label>
+              <Input
+                placeholder={item.placeholder}
+                onChange={(e) => handleFieldChange(type, item.label, e.target.value)}
+                value={node.fields[type]?.[item.label] || ""}
+              />
+            </div>
+          ))}
+          <div>
+            <Label>Email body</Label>
+            <Textarea
+              placeholder="Example body..."
+              className="resize-none h-[200px]"
+              onChange={(e) => handleFieldChange(type, "Body", e.target.value)}
+              value={node.fields[type]?.["Body"] || ""}
+            />
+          </div>
         </div>
-      ))}
-      <div>
-        <Label>Email body</Label>
-        <Textarea
-          placeholder="Example body..."
-          className="resize-none h-[200px]"
-          onChange={(e) => handleFieldChange(type, "Body", e.target.value)}
-          value={node.fields[type]?.["Body"] || ""}
-        />
-      </div>
-    </div>
+      ) : (
+        <div className="flex flex-col gap-y-4">
+          <Label>Source</Label>
+              <Input
+                placeholder="example@example.com"
+                onChange={(e) => handleFieldChange(type, "Source", e.target.value)}
+                value={node.fields[type]?.["Source"] || ""}
+              />
+        </div>
+      )}
+    </>
   );
 }
 
-function DiscordSettings({ node, type }: { node: NodeItem , type: string}) {
+function DiscordSettings({ node, type }: { node: NodeItem, type: string }) {
   const [messageType, setMessageType] = React.useState<string>("Normal");
   const [embedFields, setEmbedFields] = React.useState<
     { name: string; value: string }[]
