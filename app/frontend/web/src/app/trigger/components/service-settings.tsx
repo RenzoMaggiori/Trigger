@@ -28,15 +28,15 @@ const InputComponent = ({
   );
 };
 
-function GithubSettings({ node }: { node: NodeItem }) {
+function GithubSettings({ node, type }: { node: NodeItem , type: string}) {
   return <div></div>;
 }
 
-function EmailSettings({ node }: { node: NodeItem }) {
+function EmailSettings({ node, type }: { node: NodeItem , type: string}) {
   const { setFields } = useMenu();
 
   const handleFieldChange = (type: string, index: string, value: any) => {
-    setFields(node.id, { ...node.fields, [type]: { [index]: value } });
+    setFields(node.id, { ...node.fields, [type]: {[index]: value  }});
   };
 
   const inputs = [
@@ -54,8 +54,8 @@ function EmailSettings({ node }: { node: NodeItem }) {
           <Label>{item.label}</Label>
           <Input
             placeholder={item.placeholder}
-            onChange={(e) => handleFieldChange("reaction", item.label, e.target.value)}
-            value={node.fields[item.label] || ""}
+            onChange={(e) => handleFieldChange(type, item.label, e.target.value)}
+            value={node.fields[type]?.[item.label] || ""}
           />
         </div>
       ))}
@@ -64,15 +64,15 @@ function EmailSettings({ node }: { node: NodeItem }) {
         <Textarea
           placeholder="Example body..."
           className="resize-none h-[200px]"
-          onChange={(e) => handleFieldChange("reaction", "Body", e.target.value)}
-          value={node.fields["Body"] || ""}
+          onChange={(e) => handleFieldChange(type, "Body", e.target.value)}
+          value={node.fields[type]?.["Body"] || ""}
         />
       </div>
     </div>
   );
 }
 
-function DiscordSettings({ node }: { node: NodeItem }) {
+function DiscordSettings({ node, type }: { node: NodeItem , type: string}) {
   const [messageType, setMessageType] = React.useState<string>("Normal");
   const [embedFields, setEmbedFields] = React.useState<
     { name: string; value: string }[]
