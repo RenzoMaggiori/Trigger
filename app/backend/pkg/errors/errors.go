@@ -22,9 +22,12 @@ var (
 	ErrUserNotFound        error                             = errors.New("user not found")
 	ErrUserTypeNone        error                             = errors.New("could not decypher user type")
 	ErrSettingAction       error                             = errors.New("error while setting trigger or reaction")
+	ErrCompletingAction    error                             = errors.New("error while completing action")
 	ErrSessionNotRetrieved error                             = errors.New("error while retrieving session")
 	ErrSessionNotCreated   error                             = errors.New("error while creating session")
 	ErrAccessTokenCtxKey   error                             = errors.New("could not retrieve access token from context")
+	ErrFailedToCreateEmail error                             = errors.New("failed to create raw email")
+	ErrFailedToSendEmail   error                             = errors.New("failed to send email")
 	ErrCodes               map[error]customerror.CustomError = map[error]customerror.CustomError{
 		ErrWorkspaceNotFound: {
 			Message: ErrWorkspaceNotFound.Error(),
@@ -78,6 +81,10 @@ var (
 			Message: ErrSettingAction.Error(),
 			Code:    http.StatusInternalServerError,
 		},
+		ErrCompletingAction: {
+			Message: ErrCompletingAction.Error(),
+			Code:    http.StatusInternalServerError,
+		},
 		ErrActionNotFound: {
 			Message: ErrActionNotFound.Error(),
 			Code:    http.StatusNotFound,
@@ -92,6 +99,14 @@ var (
 		},
 		ErrAccessTokenCtxKey: {
 			Message: ErrAccessTokenCtxKey.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrFailedToCreateEmail: {
+			Message: ErrFailedToCreateEmail.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrFailedToSendEmail: {
+			Message: ErrFailedToSendEmail.Error(),
 			Code:    http.StatusInternalServerError,
 		},
 	}

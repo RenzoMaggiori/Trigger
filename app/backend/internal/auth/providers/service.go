@@ -61,15 +61,10 @@ func (m Model) Callback(gothUser goth.User) (string, error) {
 	}
 
 	user, code, err := user.AddUserRequest(os.Getenv("ADMIN_TOKEN"), addUser)
-
-	if err != nil {
-		return "", err
-	}
 	if code == http.StatusOK {
 		if err != nil {
 			return "", err
 		}
-
 		addSession := session.AddSessionModel{
 			UserId:       user.Id,
 			ProviderName: &gothUser.Provider,

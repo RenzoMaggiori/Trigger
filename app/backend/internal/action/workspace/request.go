@@ -72,3 +72,34 @@ func StopActionRequest(accessToken string, workspace *WorkspaceModel, actionNode
 
 	return res.StatusCode, nil
 }
+
+func ActionCompletedRequest(accessToken string, update ActionCompletedModel) (int, error) {
+	body, err := json.Marshal(update)
+
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	res, err := fetch.Fetch(
+		http.DefaultClient,
+		fetch.NewFetchRequest(
+			http.MethodPatch,
+			fmt.Sprintf("%s/api/workspace/completed_action", os.Getenv("ACTION_SERVICE_BASE_URL")),
+			bytes.NewReader(body),
+			map[string]string{
+				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
+				"Content-Type":  "application/json",
+			},
+		),
+	)
+	if err != nil {
+		return res.StatusCode, err
+	}
+
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return res.StatusCode, errors.ErrCompletingAction
+	}
+
+	return res.StatusCode, nil
+}

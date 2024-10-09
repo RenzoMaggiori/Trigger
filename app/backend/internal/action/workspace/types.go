@@ -83,6 +83,7 @@ type UpdateWorkspaceModel struct {
 }
 
 type ActionCompletedModel struct {
-	Action string `json:"action_id"`
-	Fields any    `json:"fields"`
+	Action string         `json:"action_id"`
+	UserId string         `json:"user_id"`
+	Output map[string]any `json:"output"`
 }

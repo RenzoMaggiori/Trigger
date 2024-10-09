@@ -135,16 +135,14 @@ func (m Model) ActionCompleted(ctx context.Context, updateActionCompleted Action
 	if !ok {
 		return nil, fmt.Errorf("access token missing or invalid")
 	}
-
-	user, _, err := session.GetSessionByTokenRequest(accessToken)
+	session, _, err := session.GetSessionByTokenRequest(accessToken)
 	if err != nil {
 		return nil, err
 	}
-	workspaces, err := m.GetByUserId(ctx, user.UserId)
+	workspaces, err := m.GetByUserId(ctx, session.UserId)
 	if err != nil {
 		return nil, err
 	}
-
 	var (
 		updateErr         error
 		wg                sync.WaitGroup
@@ -185,25 +183,18 @@ func (m Model) ActionCompleted(ctx context.Context, updateActionCompleted Action
 			mu.Unlock()
 		}(workspace)
 	}
-
 	wg.Wait()
-
-	// If there was an error during the updates, return it
 	if updateErr != nil {
 		return nil, updateErr
 	}
-
 	return updatedWorkspaces, nil
 }
 
-// Helper function to handle updating workspace nodes and children
 func updateWorkspaceNodes(workspace WorkspaceModel, updateActionCompleted ActionCompletedModel, accessToken string) (WorkspaceModel, error) {
 	for i, node := range workspace.Nodes {
-		// Check for active status and matching ActionId
 		if node.Status == "active" && node.ActionId.Hex() == updateActionCompleted.Action {
 			workspace.Nodes[i].Status = "completed"
 
-			// Update the children statuses
 			for _, child := range node.Children {
 				for j := range workspace.Nodes {
 					if workspace.Nodes[j].NodeId == child {

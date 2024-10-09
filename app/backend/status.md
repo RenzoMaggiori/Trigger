@@ -3,12 +3,12 @@
 - [x] Auth
   - [x] Credentials
   - [x] Providers
-- [ ] Action
-  - [ ] Workspace
-  - [ ] Action
-- [ ] Gmail
-  - [ ] Trigger
-  - [ ] Reaction
+- [x] Action
+  - [x] Workspace
+  - [x] Action
+- [x] Gmail
+  - [x] Trigger
+  - [x] Reaction
 - [x] Session
 - [x] User
 
@@ -16,7 +16,7 @@
 
 - [ ] Auth
   - [ ] Credentials
-  - [ ] Providers
+  - [x] Providers
 - [ ] Action
   - [ ] Workspace
   - [ ] Action

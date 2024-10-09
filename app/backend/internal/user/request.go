@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 
-	"trigger.com/trigger/internal/session"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
@@ -48,7 +47,7 @@ func AddUserRequest(accessToken string, addUser AddUserModel) (*UserModel, int, 
 		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodPost,
-			fmt.Sprintf("%s/api/session/add"),
+			fmt.Sprintf("%s/api/user/add", os.Getenv("USER_SERVICE_BASE_URL")),
 			bytes.NewReader(body),
 			map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", accessToken),
@@ -72,12 +71,12 @@ func AddUserRequest(accessToken string, addUser AddUserModel) (*UserModel, int, 
 	return &user, res.StatusCode, nil
 }
 
-func getUserBySessionRequest(accessToken string, sessionId session.SessionModel) (*UserModel, int, error) {
+func GetUserByIdRequest(accessToken string, userId string) (*UserModel, int, error) {
 	res, err := fetch.Fetch(
 		&http.Client{},
 		fetch.NewFetchRequest(
 			http.MethodGet,
-			fmt.Sprintf("%s/api/user/%s", os.Getenv("USER_SERVICE_BASE_URL"), sessionId.UserId),
+			fmt.Sprintf("%s/api/user/id/%s", os.Getenv("USER_SERVICE_BASE_URL"), userId),
 			nil,
 			map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", accessToken),
