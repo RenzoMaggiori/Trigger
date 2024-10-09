@@ -112,9 +112,9 @@ func (m Model) Webhook(ctx context.Context) error {
 	}
 
 	update := workspace.ActionCompletedModel{
-		Action: action.Id.Hex(),
-		UserId: user.Id.Hex(),
-		Output: map[string]any{"hello": "world"},
+		ActionId: action.Id,
+		UserId:   user.Id,
+		Output:   map[string]any{"hello": "world"},
 	}
 
 	_, err = workspace.ActionCompletedRequest(googleSession.AccessToken, update)
