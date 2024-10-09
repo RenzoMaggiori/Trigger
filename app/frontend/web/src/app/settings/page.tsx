@@ -13,58 +13,65 @@ import { PiMicrosoftOutlookLogo } from "react-icons/pi";
 import { FaCircle } from "react-icons/fa6";
 import { useMutation } from '@tanstack/react-query';
 import { getConnections } from './lib/get-conections';
+import { env } from '@/lib/env';
 
-const services = [
+type SettingsProps = {
+    name: string
+    fields: Record<string, boolean>
+    icon?: React.JSX.Element
+}
+
+const services: SettingsProps[] = [
     {
         name: "Google",
-        connected: false,
-        connect: "/",
-        disconect: "/",
         icon: <FcGoogle className='w-5 h-5' />,
-        fields: [{ name: "Show on Profile", connected: true }, { name: "Connection", connected: false }]
+        fields: {
+            "Show on Profile": true,
+            "Connection": false
+        }
     },
     {
         name: "Discord",
-        connected: true,
-        connect: "/", disconect: "/",
         icon: <FaDiscord className='w-5 h-5 text-blue-500' />,
-        fields: [{ name: "Show on Profile", connected: true }, { name: "Connection", connected: false }]
+        fields: {
+            "Show on Profile": true,
+            "Connection": false
+        }
     },
     {
         name: "Slack",
-        connected: false,
-        connect: "/",
-        disconect: "/",
         icon: <FaSlack className='w-5 h-5' />,
-        fields: [{ name: "Show on Profile", connected: true }, { name: "Connection", connected: false }]
+        fields: {
+            "Show on Profile": true,
+            "Connection": false
+        }
     },
     {
         name: "Outlook",
-        connected: false,
-        connect: "/",
-        disconect: "/",
         icon: <PiMicrosoftOutlookLogo className='w-5 h-5 text-black' />,
-        fields: [{ name: "Show on Profile", connected: true }, { name: "Connection", connected: false }]
+        fields: {
+            "Show on Profile": true,
+            "Connection": true
+        }
     },
     {
         name: "Github",
-        connected: false,
-        connect: "/",
-        disconect: "/",
         icon: <IoLogoGithub className='w-5 h-5' />,
-        fields: [{ name: "Show on Profile", connected: true }, { name: "Connection", connected: false }]
+        fields: {
+            "Show on Profile": true,
+            "Connection": false
+        }
     },
 ];
 
 const page = () => {
     const [serviceList, setServiceList] = React.useState(services);
 
-    const handleSwitchChange = (serviceIndex: number, fieldIndex: number) => {
+    const handleSwitchChange = (serviceIndex: number, fieldKey: string, provider: string) => {
         const updatedServices = [...serviceList];
-        const targetField = updatedServices[serviceIndex].fields[fieldIndex];
-
-        targetField.connected = !targetField.connected;
-
+        if (fieldKey === "Connection")
+            updatedServices[serviceIndex].fields[fieldKey] ? window.location.href = `${env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/sync?=${provider}` : window.location.href = `${env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/disconect?=${provider}`
+        updatedServices[serviceIndex].fields[fieldKey] = !updatedServices[serviceIndex].fields[fieldKey];
         setServiceList(updatedServices);
     };
 
@@ -84,23 +91,23 @@ const page = () => {
                                         {item.icon}
                                         {item.name}
                                     </div>
-                                    <div className={`flex items-center ${item.connected ? 'text-green-500' : 'text-red-500'}`}>
+                                    <div className={`flex items-center ${item.fields["Connection"] ? 'text-green-500' : 'text-red-500'}`}>
                                         <div className='hidden md:block'>
-                                            {item.connected ? 'Connected' : 'Disconnected'}
+                                            {item.fields["Connection"] ? 'Connected' : 'Disconnected'}
                                         </div>
-                                        <FaCircle className={`ml-2 ${item.connected ? 'text-green-500' : 'text-red-500'}`} />
+                                        <FaCircle className={`ml-2 ${item.fields["Connection"] ? 'text-green-500' : 'text-red-500'}`} />
                                     </div>
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className={`flex w-full h-full rounded-b-md items-end justify-center`}>
                                 <div className='w-full flex flex-col text-lg items-start justify-start gap-y-3 mt-5'>
-                                    {item.fields?.map((field, index) => (
+                                    {Object.entries(item.fields).map(([fieldName, isActive], index) => (
                                         <div key={index} className='flex flex-row w-full items-center justify-between text-black font-bold'>
-                                            {field.name}
+                                            {fieldName}
                                             <Switch
                                                 className='data-[state=checked]:bg-green-400 data-[state=unchecked]:bg-red-500'
-                                                checked={field.connected}
-                                                onClick={() => handleSwitchChange(key, index)}
+                                                checked={isActive}
+                                                onClick={() => handleSwitchChange(key, fieldName, item.name.toLowerCase())}
                                             />
                                         </div>
                                     ))}
