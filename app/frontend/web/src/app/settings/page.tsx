@@ -11,6 +11,8 @@ import { FaSlack } from "react-icons/fa6";
 import { PiMicrosoftOutlookLogo } from "react-icons/pi";
 
 import { FaCircle } from "react-icons/fa6";
+import { useMutation } from '@tanstack/react-query';
+import { getConnections } from './lib/get-conections';
 
 const services = [
     {
@@ -65,6 +67,11 @@ const page = () => {
 
         setServiceList(updatedServices);
     };
+
+    const mutation = useMutation({
+        mutationFn: getConnections,
+    });
+
     return (
         <div className='flex flex-col w-full h-full items-center justify-center gap-5'>
             <ScrollArea className='w-full md:w-2/3 lg:w-1/2 max-h-[80vh] items-center justify-center border p-5 rounded-md'>
