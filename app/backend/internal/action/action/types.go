@@ -29,7 +29,7 @@ type ActionModel struct {
 	Output []string           `json:"output" bson:"output"`
 	// provider name (gmail, discord, github, ...)
 	Provider string `json:"provider" bson:"provider"`
-	// "trigger" or "action"
+	// "trigger" or "reaction"
 	Type string `json:"type" bson:"type"`
 	// what does the action do? (send-email, delete-email, watch-push, ...)
 	Action string `json:"action" bson:"action"`
