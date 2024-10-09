@@ -15,7 +15,7 @@ export interface CustomNode extends Node {
 }
 
 export type TriggerWorkspace = {
-  id: number;
+  id: string;
   nodes: Record<string, NodeItem>;
 };
 

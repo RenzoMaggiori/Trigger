@@ -121,6 +121,7 @@ func (m Model) DeleteById(id primitive.ObjectID) error {
 
 func (m Model) DeleteByUserId(userId primitive.ObjectID, providerName string) error {
 	ctx := context.TODO()
+
 	filter := bson.M{"userId": userId, "provider_name": providerName}
 	result, err := m.Collection.DeleteOne(ctx, filter)
 

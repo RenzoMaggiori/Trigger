@@ -2,7 +2,6 @@ package providers
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 
@@ -18,12 +17,11 @@ func Router(ctx context.Context) (*router.Router, error) {
 		Service: Model{},
 	}
 
-	callback := fmt.Sprintf("%s/api/oauth2/callback", os.Getenv("AUTH_SERVICE_BASE_URL"))
 	CreateProvider(
 		google.New(
 			os.Getenv("GOOGLE_CLIENT_ID"),
 			os.Getenv("GOOGLE_CLIENT_SECRET"),
-			callback,
+			"http://localhost:8000/api/oauth2/callback",
 			"https://mail.google.com/",
 			"https://www.googleapis.com/auth/gmail.send",
 			"email",
@@ -31,7 +29,7 @@ func Router(ctx context.Context) (*router.Router, error) {
 		github.New(
 			os.Getenv("GITHUB_KEY"),
 			os.Getenv("GITHUB_SECRET"),
-			callback,
+			"http://localhost:8000/api/oauth2/callback",
 		),
 	)
 

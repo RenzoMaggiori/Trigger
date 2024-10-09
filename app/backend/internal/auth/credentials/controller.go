@@ -40,7 +40,15 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie := &http.Cookie{Name: authCookieName, Value: accessToken, Expires: expires}
+	cookie := &http.Cookie{
+		Name:     authCookieName,
+		Value:    accessToken,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+		Secure:   false, // TODO: true when in production
+		Expires:  expires,
+	}
 	http.SetCookie(w, cookie)
 }
 
@@ -70,14 +78,22 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie := &http.Cookie{Name: authCookieName, Value: accessToken, Expires: expires}
+	cookie := &http.Cookie{
+		Name:     authCookieName,
+		Value:    accessToken,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+		Secure:   false, // TODO: true when in production
+		Expires:  expires,
+	}
 	http.SetCookie(w, cookie)
 }
 
 func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
-	token, err := h.Service.GetToken(r.Header.Get("Authorization"))
+	token, err := jwt.FromRequest(r.Header.Get("Authorization"))
 	if err != nil {
-		customerror.Send(w, err, errCodes)
+		customerror.Send(w, errAuthorizationHeaderNotFound, errCodes)
 		return
 	}
 

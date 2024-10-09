@@ -13,7 +13,7 @@ import (
 
 var (
 	errEnvNotFound      string     = "Enviroment argument %s not found"
-	enviromentArguments [12]string = [...]string{
+	enviromentArguments [13]string = [...]string{
 		"TOKEN_SECRET",
 		"ADMIN_TOKEN",
 		"USER_SERVICE_BASE_URL",
@@ -26,7 +26,7 @@ var (
 		"AUTH_KEY",
 		"AUTH_MAX_AGES",
 		"AUTH_IS_PROD",
-
+		"WEB_BASE_URL",
 	}
 )
 

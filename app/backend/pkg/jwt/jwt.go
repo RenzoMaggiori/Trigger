@@ -2,6 +2,7 @@ package jwt
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -55,4 +56,19 @@ func Verify(rawToken string, secret string) error {
 		return errTokenNotValid
 	}
 	return nil
+}
+
+func FromRequest(authHeader string) (string, error) {
+	if authHeader == "" {
+		return "", errors.New("empty auth header")
+	}
+
+	if strings.HasPrefix(authHeader, "Bearer ") {
+		parts := strings.Split(authHeader, " ")
+		if len(parts) < 2 || parts[0] != "Bearer" {
+			return "", errors.New("could not find token")
+		}
+		return parts[1], nil
+	}
+	return "", errors.New("invalid auth header")
 }

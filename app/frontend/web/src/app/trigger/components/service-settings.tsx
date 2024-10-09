@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import React from "react";
 import { useMenu } from "@/app/trigger/components/MenuProvider";
 import { NodeItem } from "@/app/trigger/lib/types";
+import { Combox, Status } from "@/components/ui/combox";
 
 const InputComponent = ({
   label,
@@ -28,15 +29,15 @@ const InputComponent = ({
   );
 };
 
-function GithubSettings({ node }: { node: NodeItem }) {
+function GithubSettings({ node, type }: { node: NodeItem, type: string }) {
   return <div></div>;
 }
 
-function EmailSettings({ node }: { node: NodeItem }) {
+function EmailSettings({ node, type }: { node: NodeItem, type: string }) {
   const { setFields } = useMenu();
 
-  const handleFieldChange = (index: string, value: any) => {
-    setFields(node.id, { ...node.fields, [index]: value });
+  const handleFieldChange = (type: string, index: string, value: any) => {
+    setFields(node.id, { ...node.fields, [type]: { [index]: value } });
   };
 
   const inputs = [
@@ -48,39 +49,50 @@ function EmailSettings({ node }: { node: NodeItem }) {
   if (!node) return <div>No node found</div>;
 
   return (
-    <div className="flex flex-col gap-y-4">
-      {inputs.map((item, key) => (
-        <div key={`${node.id}-${key}`}>
-          <Label>{item.label}</Label>
-          <Input
-            placeholder={item.placeholder}
-            onChange={(e) => handleFieldChange(item.label, e.target.value)}
-            value={node.fields[item.label] || ""}
-          />
+    <>
+      {type === "reaction" ? (
+
+        <div className="flex flex-col gap-y-4">
+          {inputs.map((item, key) => (
+            <div key={`${node.id}-${key}`}>
+              <Label>{item.label}</Label>
+              <Input
+                placeholder={item.placeholder}
+                onChange={(e) => handleFieldChange(type, item.label, e.target.value)}
+                value={node.fields[type]?.[item.label] || ""}
+              />
+            </div>
+          ))}
+          <div>
+            <Label>Email body</Label>
+            <Textarea
+              placeholder="Example body..."
+              className="resize-none h-[200px]"
+              onChange={(e) => handleFieldChange(type, "Body", e.target.value)}
+              value={node.fields[type]?.["Body"] || ""}
+            />
+          </div>
         </div>
-      ))}
-      <div>
-        <Label>Email body</Label>
-        <Textarea
-          placeholder="Example body..."
-          className="resize-none h-[200px]"
-          onChange={(e) => handleFieldChange("Body", e.target.value)}
-          value={node.fields["Body"] || ""}
-        />
-      </div>
-    </div>
+      ) : (
+        <div className="flex flex-col gap-y-4">
+          <Label>Source</Label>
+              <Input
+                placeholder="example@example.com"
+                onChange={(e) => handleFieldChange(type, "Source", e.target.value)}
+                value={node.fields[type]?.["Source"] || ""}
+              />
+        </div>
+      )}
+    </>
   );
 }
 
-function DiscordSettings({ node }: { node: NodeItem }) {
-  const [messageType, setMessageType] = React.useState<string>("Normal");
+function DiscordSettings({ node, type }: { node: NodeItem, type: string }) {
+  const [messageType, setMessageType] = React.useState<Status | null>({label: "Normal Message", value: "Normal"});
   const [embedFields, setEmbedFields] = React.useState<
     { name: string; value: string }[]
   >([]);
 
-  const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setMessageType(e.target.value);
-  };
   const handleAddField = () => {
     setEmbedFields([...embedFields, { name: "", value: "" }]);
   };
@@ -105,9 +117,9 @@ function DiscordSettings({ node }: { node: NodeItem }) {
     placeholder?: string;
     type?: string;
   }[] = [
-    { label: "Embed Color", placeholder: "Example title...", type: "color" },
-    { label: "Embed Title", placeholder: "Example embed title" },
-  ];
+      { label: "Embed Color", placeholder: "Example title...", type: "color" },
+      { label: "Embed Title", placeholder: "Example embed title" },
+    ];
 
   const fieldInputs = [
     { placeholder: "Field Name", fieldType: "name" },
@@ -123,18 +135,15 @@ function DiscordSettings({ node }: { node: NodeItem }) {
         >
           Select Message Type
         </Label>
-        <select
-          id="message-type-dropdown"
-          value={messageType}
-          onChange={handleTypeChange}
-          className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-        >
-          <option value="Normal">Normal Message</option>
-          <option value="Embed">Embedded Message</option>
-        </select>
+        <Combox
+          statuses={[{label: "Normal Message", value: "Normal"}, {label: "Embeded Message", value: "Embed"}]}
+          selectedStatus={messageType}
+          setSelectedStatus={setMessageType}
+          label="Select Message Type"
+        />
       </div>
 
-      {messageType === "Normal" ? (
+      {messageType?.value === "Normal" ? (
         <div className="normal-message-settings">
           <Label
             htmlFor="normal-message-content"

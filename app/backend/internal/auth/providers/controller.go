@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
+	"time"
 
 	"github.com/markbates/goth/gothic"
 	customerror "trigger.com/trigger/pkg/custom-error"
@@ -27,8 +29,16 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie := &http.Cookie{Name: authCookieName, Value: accessToken, Expires: gothUser.ExpiresAt}
-	http.SetCookie(w, cookie) // TODO: fix the thing
+	cookie := &http.Cookie{
+		Name:     authCookieName,
+		Value:    accessToken,
+		Expires:  gothUser.ExpiresAt,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+		Secure:   false, // TODO: true when in production
+	}
+	http.SetCookie(w, cookie)
 }
 
 func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +54,17 @@ func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
 		customerror.Send(w, err, errCodes)
 		return
 	}
-	w.Header().Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+	cookie := &http.Cookie{
+		Name:     authCookieName,
+		Value:    accessToken,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+		Secure:   false, // TODO: true when in production
+		Expires:  time.Now().Add(24 * time.Hour),
+	}
+	http.SetCookie(w, cookie)
+	http.Redirect(w, r, fmt.Sprintf("%s/home", os.Getenv("WEB_BASE_URL")), http.StatusPermanentRedirect)
 }
 
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {

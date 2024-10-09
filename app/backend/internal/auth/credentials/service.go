@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"trigger.com/trigger/internal/session"
@@ -25,24 +24,8 @@ func (m Model) Login(ctx context.Context) (string, error) {
 		return "", errCredentialsNotFound
 	}
 
-	res, err := fetch.Fetch(http.DefaultClient, fetch.NewFetchRequest(
-		http.MethodGet,
-		fmt.Sprintf("%s/api/user/email/%s", os.Getenv("USER_SERVICE_BASE_URL"), credentials.Email),
-		nil,
-		map[string]string{
-			"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
-		},
-	))
-	if err != nil {
-		log.Println("fetch [:8081/api/user/email] error")
-		return "", fmt.Errorf("%w: %v", errUserNotFound, err)
-	}
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		return "", errUserNotFound
-	}
+	user, _, err := user.GetUserByEmailRequest(os.Getenv("ADMIN_TOKEN"), credentials.Email)
 
-	user, err := decode.Json[user.UserModel](res.Body)
 	if err != nil {
 		return "", err
 	}
@@ -62,27 +45,7 @@ func (m Model) Login(ctx context.Context) (string, error) {
 		log.Println("Credentials Login [jwt.Create] error")
 		return "", fmt.Errorf("%w: %v", errCreateToken, err)
 	}
-	res, err = fetch.Fetch(http.DefaultClient, fetch.NewFetchRequest(
-		http.MethodGet,
-		fmt.Sprintf("%s/api/session/user_id/%s", os.Getenv("SESSION_SERVICE_BASE_URL"), user.Id.Hex()),
-		nil,
-		map[string]string{
-			"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
-		},
-	))
-	if err != nil {
-		log.Println("Credentials Login fetch [:8082/api/session/user_id/{id}] error")
-		return "", fmt.Errorf("%w: %v", errSessionNotRetrieved, err)
-	}
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		return "", errSessionNotRetrieved
-	}
-
-	userSessions, err := decode.Json[[]session.SessionModel](res.Body)
-	if err != nil {
-		return "", err
-	}
+	userSessions, _, err := session.GetSessionByUserIdRequest(token, user.Id.Hex())
 
 	var userSession *session.SessionModel = nil
 	for _, session := range userSessions {
@@ -211,22 +174,6 @@ func (m Model) Register(regsiterModel RegisterModel) (string, error) {
 	}
 
 	return accessToken, nil
-}
-
-func (m Model) GetToken(authorizationHeader string) (string, error) {
-	if authorizationHeader == "" {
-		return "", errAuthorizationHeaderNotFound
-	}
-
-	if strings.HasPrefix(authorizationHeader, "Bearer ") {
-		parts := strings.Split(authorizationHeader, " ")
-		if len(parts) < 2 || parts[0] != "Bearer" {
-			return "", errTokenNotFound
-		}
-		return parts[1], nil
-	}
-	// TODO: check for oauth token
-	return "", errAuthorizationTypeNone
 }
 
 func (m Model) VerifyToken(token string) error {
