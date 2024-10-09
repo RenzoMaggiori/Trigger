@@ -98,16 +98,16 @@ func (h *Handler) AddWorkspace(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) UpdateActionCompletedWorkspace(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ActionCompletedWorkspace(w http.ResponseWriter, r *http.Request) {
 
-	update, err := decode.Json[UpdateActionCompletedModel](r.Body)
+	update, err := decode.Json[ActionCompletedModel](r.Body)
 	if err != nil {
 		customerror.Send(w, err, errCodes)
 		return
 	}
 	accessToken := r.Header.Get("Authorization")
 
-	updatedWorkspace, err := h.Service.UpdateActionCompleted(
+	updatedWorkspace, err := h.Service.ActionCompleted(
 		context.WithValue(context.TODO(), AccessTokenCtxKey, accessToken),
 		update,
 	)

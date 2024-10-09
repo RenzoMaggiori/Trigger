@@ -133,7 +133,7 @@ func (m Model) Webhook(ctx context.Context) error {
 		return err
 	}
 
-	update := workspace.UpdateActionCompletedModel{
+	update := workspace.ActionCompletedModel{
 		Action: "6703e7859a59cf30fd0615df",
 		UserId: user.Id,
 	}
