@@ -1,21 +1,15 @@
 package workspace
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
-	"os"
-	"strings"
 	"sync"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"trigger.com/trigger/internal/action/action"
 	"trigger.com/trigger/internal/session"
-	"trigger.com/trigger/pkg/decode"
-	"trigger.com/trigger/pkg/fetch"
+	"trigger.com/trigger/pkg/errors"
 )
 
 func (m Model) Get(ctx context.Context) ([]WorkspaceModel, error) {
@@ -67,53 +61,15 @@ func initWorkspaceActions(workspace WorkspaceModel, accessToken string) (*Worksp
 
 	for i, node := range workspace.Nodes {
 		if node.Status == "pending" {
-			res, err := fetch.Fetch(http.DefaultClient, fetch.NewFetchRequest(
-				http.MethodGet,
-				fmt.Sprintf("%s/api/action/id/%s", os.Getenv("ACTION_SERVICE_BASE_URL"), node.ActionId.Hex()),
-				nil,
-				map[string]string{
-					"Authorization": fmt.Sprintf("Bearer %s", accessToken),
-				},
-			))
-
-			if err != nil {
-				return nil, errFetchingActions
-			}
-			defer res.Body.Close()
-			if res.StatusCode != http.StatusOK {
-				return nil, errFetchingActions
-			}
-			action, err := decode.Json[action.ActionModel](res.Body)
-
-			if err != nil {
-				return nil, errActionTypeNone
-			}
-			actionEnv := fmt.Sprintf("%s_SERVICE_BASE_URL", strings.ToUpper(action.Provider))
-
-			body, err := json.Marshal(node)
+			action, _, err := action.GetActionByIdRequest(accessToken, node.ActionId.Hex())
 
 			if err != nil {
 				return nil, err
 			}
-			// Call the reaction / trigger
 
-			res, err = fetch.Fetch(
-				http.DefaultClient,
-				fetch.NewFetchRequest(
-					http.MethodPost,
-					fmt.Sprintf("%s/api/%s/%s/%s", os.Getenv(actionEnv), action.Provider, action.Type, action.Action),
-					bytes.NewReader(body),
-					map[string]string{
-						"Authorization": fmt.Sprintf("Bearer %s", accessToken),
-					},
-				),
-			)
+			_, err = StartActionRequest(accessToken, node, *action)
 			if err != nil {
 				return nil, err
-			}
-			defer res.Body.Close()
-			if res.StatusCode != http.StatusOK {
-				return nil, errAction
 			}
 			workspace.Nodes[i].Status = "active"
 		}
@@ -129,8 +85,12 @@ func nodeStatus(parents []string) string {
 }
 
 func (m Model) Add(ctx context.Context, add *AddWorkspaceModel) (*WorkspaceModel, error) {
+	accessToken, ok := ctx.Value(AccessTokenCtxKey).(string)
 
-	session, code, err := session.GetSessionByTokenRequest(ctx)
+	if !ok {
+		return nil, errors.ErrAccessTokenCtxKey
+	}
+	session, _, err := session.GetSessionByTokenRequest(accessToken)
 
 	if err != nil {
 		return nil, err
@@ -146,7 +106,8 @@ func (m Model) Add(ctx context.Context, add *AddWorkspaceModel) (*WorkspaceModel
 		node := ActionNodeModel{
 			NodeId:   node.NodeId,
 			ActionId: node.ActionId,
-			Fields:   node.Fields,
+			Input:    node.Input,
+			Output:   node.Output,
 			Parents:  node.Parents,
 			Children: node.Children,
 			Status:   nodeStatus(node.Parents),
@@ -175,11 +136,13 @@ func (m Model) ActionCompleted(ctx context.Context, updateActionCompleted Action
 		return nil, fmt.Errorf("access token missing or invalid")
 	}
 
-	user, code, err
-	// Fetch the workspaces of the user
-	workspaces, err := m.GetByUserId(ctx, updateActionCompleted.UserId)
+	user, _, err := session.GetSessionByTokenRequest(accessToken)
 	if err != nil {
-		return nil, errWorkspaceNotFound
+		return nil, err
+	}
+	workspaces, err := m.GetByUserId(ctx, user.UserId)
+	if err != nil {
+		return nil, err
 	}
 
 	var (

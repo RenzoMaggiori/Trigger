@@ -37,7 +37,7 @@ func createRawEmail(from string, to string, subject string, body string) (string
 	return rawMessage, nil
 }
 
-func (m Model) Action(ctx context.Context, actionNode workspace.ActionNodeModel) error {
+func (m Model) Reaction(ctx context.Context, actionNode workspace.ActionNodeModel) error {
 	accessToken := ctx.Value(AccessTokenCtxKey).(string)
 
 	res, err := fetch.Fetch(

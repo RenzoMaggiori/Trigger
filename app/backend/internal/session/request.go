@@ -4,16 +4,37 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
-	"github.com/markbates/goth"
-	"trigger.com/trigger/internal/user"
 )
+
+func GetSessionByIdRequest(accessToken string, sessionId string) (*SessionModel, int, error) {
+	res, err := fetch.Fetch(http.DefaultClient, fetch.NewFetchRequest(
+		http.MethodGet,
+		fmt.Sprintf("%s/api/session/id/%s", os.Getenv("SESSION_SERVICE_BASE_URL"), sessionId),
+		nil,
+		map[string]string{
+			"Authorization": fmt.Sprintf("Bearer %s", accessToken),
+		},
+	))
+	if err != nil {
+		return nil, res.StatusCode, errors.ErrSessionNotFound
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return nil, res.StatusCode, errors.ErrSessionNotFound
+	}
+
+	session, err := decode.Json[SessionModel](res.Body)
+	if err != nil {
+		return nil, res.StatusCode, errors.ErrSessionTypeNone
+	}
+	return &session, res.StatusCode, nil
+}
 
 func GetSessionByTokenRequest(accessToken string) (*SessionModel, int, error) {
 	res, err := fetch.Fetch(http.DefaultClient, fetch.NewFetchRequest(
@@ -63,8 +84,7 @@ func GetSessionByUserIdRequest(accessToken string, userId string) ([]SessionMode
 	return userSessions, res.StatusCode, nil
 }
 
-//? Is correct the return value?
-func GetSessionByIdRequest(accessToken string, sessionId string, updateSession UpdateSessionModel) (*UpdateSessionModel, int, error) {
+func UpdateSessionByIdRequest(accessToken string, sessionId string, updateSession UpdateSessionModel) (*SessionModel, int, error) {
 	body, err := json.Marshal(updateSession)
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
@@ -78,13 +98,12 @@ func GetSessionByIdRequest(accessToken string, sessionId string, updateSession U
 			fmt.Sprintf("%s/api/session/id/%s", os.Getenv("SESSION_SERVICE_BASE_URL"), sessionId),
 			bytes.NewReader(body),
 			map[string]string{
-				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
+				"Authorization": fmt.Sprintf("Bearer %s", accessToken),
 			},
 		),
 	)
 	if err != nil {
-		log.Println("Credentials Login fetch [:8082/api/session/id/{id}] error")
-		return nil, http.StatusInternalServerError, errors.ErrSessionNotRetrieved
+		return nil, http.StatusInternalServerError, err
 	}
 
 	defer res.Body.Close()
@@ -92,17 +111,17 @@ func GetSessionByIdRequest(accessToken string, sessionId string, updateSession U
 		return nil, res.StatusCode, errors.ErrSessionNotRetrieved
 	}
 
-	session, err := decode.Json[UpdateSessionModel](res.Body)
+	session, err := decode.Json[SessionModel](res.Body)
 	if err != nil {
-		return nil, res.StatusCode, errors.ErrSessionTypeNone
+		return nil, res.StatusCode, err
 	}
 	return &session, res.StatusCode, nil
 
 }
 
-//? Is correct the return value?
-func addSessionRequest(accessToken string, addSession AddSessionModel, gothUser goth.User) (string, int, error) {
+func AddSessionRequest(accessToken string, addSession AddSessionModel) (*SessionModel, int, error) {
 	body, err := json.Marshal(addSession)
+
 	if err != nil {
 		return nil, http.StatusInternalServerError, errors.ErrSessionNotCreated
 	}
@@ -115,7 +134,7 @@ func addSessionRequest(accessToken string, addSession AddSessionModel, gothUser 
 			fmt.Sprintf("%s/api/session/add", os.Getenv("SESSION_SERVICE_BASE_URL")),
 			bytes.NewReader(body),
 			map[string]string{
-				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
+				"Authorization": fmt.Sprintf("Bearer %s", accessToken),
 			},
 		),
 	)
@@ -126,8 +145,14 @@ func addSessionRequest(accessToken string, addSession AddSessionModel, gothUser 
 
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		return "", errors.New("unable to create session")
+		return nil, res.StatusCode, errors.ErrSessionNotCreated
 	}
 
-	return gothUser.AccessToken, res.StatusCode, nil
+	session, err := decode.Json[SessionModel](res.Body)
+
+	if err != nil {
+		return nil, res.StatusCode, err
+	}
+
+	return &session, res.StatusCode, nil
 }

@@ -62,7 +62,8 @@ type AddWorkspaceModel struct {
 type AddActionNodeModel struct {
 	NodeId   string             `json:"node_id" bson:"node_id"`
 	ActionId primitive.ObjectID `json:"action_id" bson:"action_id"`
-	Fields   []any              `json:"fields" bson:"fields"`
+	Input    []any              `json:"input" bson:"fields"`
+	Output   []any              `json:"output" bson:"fields"`
 	Parents  []string           `json:"parents" bson:"parents"`
 	Children []string           `json:"children" bson:"children"`
 	XPos     float32            `json:"x_pos" bson:"x_pos"`
