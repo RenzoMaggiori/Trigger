@@ -35,8 +35,8 @@ function GithubSettings({ node }: { node: NodeItem }) {
 function EmailSettings({ node }: { node: NodeItem }) {
   const { setFields } = useMenu();
 
-  const handleFieldChange = (index: string, value: any) => {
-    setFields(node.id, { ...node.fields, [index]: value });
+  const handleFieldChange = (type: string, index: string, value: any) => {
+    setFields(node.id, { ...node.fields, [type]: { [index]: value } });
   };
 
   const inputs = [
@@ -54,7 +54,7 @@ function EmailSettings({ node }: { node: NodeItem }) {
           <Label>{item.label}</Label>
           <Input
             placeholder={item.placeholder}
-            onChange={(e) => handleFieldChange(item.label, e.target.value)}
+            onChange={(e) => handleFieldChange("reaction", item.label, e.target.value)}
             value={node.fields[item.label] || ""}
           />
         </div>
@@ -64,7 +64,7 @@ function EmailSettings({ node }: { node: NodeItem }) {
         <Textarea
           placeholder="Example body..."
           className="resize-none h-[200px]"
-          onChange={(e) => handleFieldChange("Body", e.target.value)}
+          onChange={(e) => handleFieldChange("reaction", "Body", e.target.value)}
           value={node.fields["Body"] || ""}
         />
       </div>
@@ -105,9 +105,9 @@ function DiscordSettings({ node }: { node: NodeItem }) {
     placeholder?: string;
     type?: string;
   }[] = [
-    { label: "Embed Color", placeholder: "Example title...", type: "color" },
-    { label: "Embed Title", placeholder: "Example embed title" },
-  ];
+      { label: "Embed Color", placeholder: "Example title...", type: "color" },
+      { label: "Embed Title", placeholder: "Example embed title" },
+    ];
 
   const fieldInputs = [
     { placeholder: "Field Name", fieldType: "name" },

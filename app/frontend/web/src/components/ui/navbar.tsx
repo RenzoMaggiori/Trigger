@@ -17,6 +17,7 @@ import { GrDocumentImage } from "react-icons/gr";
 import { SiGooglegemini } from "react-icons/si";
 import { IoSettingsOutline } from "react-icons/io5";
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
 
 const navbarItems = [
   { name: "Home", href: "/home" },
@@ -65,8 +66,16 @@ const authButtons = [
 ];
 
 export function Navbar() {
-  const [loggedIn, setLoggedIn] = React.useState<Boolean>(false);
   const [isHomePage, setIsHomePage] = React.useState<Boolean>(false);
+  const [loggedIn, setLoggedIn] = React.useState<Boolean>(false);
+
+  React.useEffect(() => {
+    const isUserLoggedIn = document.cookie
+      .split(';')
+      .some((cookie) => cookie.trim().startsWith('Authentication='));
+
+    setLoggedIn(isUserLoggedIn);
+  }, []);
 
   React.useEffect(() => {
     if (typeof window !== "undefined") {
@@ -130,7 +139,7 @@ export function Navbar() {
                 ))}
             </div>
             <div className="w-full flex flex-col mt-auto gap-5">
-              {authButtons.map((item, key) => (
+              {loggedIn ? authButtons.map((item, key) => (
                 <Button
                   key={key}
                   className={item.className}
@@ -147,7 +156,11 @@ export function Navbar() {
                 >
                   <Link href={item.href}>{item.name}</Link>
                 </Button>
-              ))}
+              )) : (
+                <Button className="bg-red-500 hover:bg-red-600 text-xl rounded-full">
+                  Log Out
+                </Button>
+              )}
             </div>
           </SheetContent>
         </Sheet>
@@ -163,7 +176,7 @@ export function Navbar() {
           </div>
         </div>
         <div className="absolute gap-x-4 right-6 hidden md:flex">
-          {authButtons.map((item, key) => (
+          {!loggedIn ? authButtons.map((item, key) => (
             <Button
               key={key}
               className={item.className}
@@ -180,7 +193,12 @@ export function Navbar() {
             >
               <Link href={item.href}>{item.name}</Link>
             </Button>
-          ))}
+          )) : (
+            <Avatar>
+              <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+              <AvatarFallback>CN</AvatarFallback>
+            </Avatar>
+          )}
         </div>
       </div>
     </nav>
