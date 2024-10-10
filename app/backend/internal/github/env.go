@@ -13,7 +13,9 @@ import (
 
 var (
 	errEnvNotFound      string    = "Enviroment argument %s not found"
-	enviromentArguments [0]string = [...]string{}
+	enviromentArguments [1]string = [...]string{
+		"WEBHOOK_URL",
+	}
 )
 
 func Env(envPath string) error {

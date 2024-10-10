@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"trigger.com/trigger/internal/action/workspace"
+	"trigger.com/trigger/internal/github"
 	"trigger.com/trigger/internal/session"
 	"trigger.com/trigger/internal/user"
 
@@ -24,7 +25,7 @@ const (
 func (m Model) Reaction(ctx context.Context, actionNode workspace.ActionNodeModel) error {
 	accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
 	if !ok {
-		return errAccessTokenNotFound
+		return github.ErrAccessTokenNotFound
 	}
 
 	res, err := fetch.Fetch(
@@ -43,7 +44,7 @@ func (m Model) Reaction(ctx context.Context, actionNode workspace.ActionNodeMode
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		return errSessionNotFound
+		return github.ErrSessionNotFound
 	}
 
 	session, err := decode.Json[session.SessionModel](res.Body)
@@ -67,7 +68,7 @@ func (m Model) Reaction(ctx context.Context, actionNode workspace.ActionNodeMode
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		return errUserNotFound
+		return github.ErrUserNotFound
 	}
 
 	user, err := decode.Json[user.UserModel](res.Body)
@@ -76,8 +77,8 @@ func (m Model) Reaction(ctx context.Context, actionNode workspace.ActionNodeMode
 	}
 	// TODO: get correct access token from sync service
 
-	if len(actionNode.Input) != 2 {
-		return errInvalidReactionInput
+	if len(actionNode.Output) != 2 {
+		return github.ErrInvalidReactionOuput
 	}
 
 	body, err := json.Marshal(map[string]any{
@@ -109,5 +110,10 @@ func (m Model) Reaction(ctx context.Context, actionNode workspace.ActionNodeMode
 	if err != nil {
 		return err
 	}
+	defer res.Body.Close()
+	if res.StatusCode >= 400 {
+		return fmt.Errorf("%w: received %s", github.ErrInvalidGithubStatus, res.Status)
+	}
+
 	return nil
 }
