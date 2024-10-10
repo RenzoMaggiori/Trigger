@@ -2,16 +2,12 @@ package user
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"trigger.com/trigger/pkg/hash"
-)
-
-var (
-	errUserAlreadyExists error = errors.New("user already exists")
 )
 
 func (m Model) Get() ([]UserModel, error) {
@@ -21,7 +17,7 @@ func (m Model) Get() ([]UserModel, error) {
 	cursor, err := m.Collection.Find(ctx, filter)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errUserNotFound, err)
 	}
 	defer cursor.Close(ctx)
 
@@ -38,7 +34,7 @@ func (m Model) GetById(id primitive.ObjectID) (*UserModel, error) {
 	err := m.Collection.FindOne(ctx, filter).Decode(&user)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errUserNotFound, err)
 	}
 	return &user, nil
 }
@@ -50,7 +46,7 @@ func (m Model) GetByEmail(email string) (*UserModel, error) {
 	err := m.Collection.FindOne(ctx, filter).Decode(&user)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errUserNotFound, err)
 	}
 	return &user, nil
 }
@@ -58,7 +54,7 @@ func (m Model) GetByEmail(email string) (*UserModel, error) {
 func (m Model) Add(add *AddUserModel) (*UserModel, error) {
 	userExists, err := m.GetByEmail(add.Email)
 	if userExists != nil {
-		return nil, errUserAlreadyExists
+		return nil, fmt.Errorf("%w: %v", errUserAlreadyExists, err)
 	}
 
 	ctx := context.TODO()
@@ -79,7 +75,7 @@ func (m Model) Add(add *AddUserModel) (*UserModel, error) {
 	_, err = m.Collection.InsertOne(ctx, newUser)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errUserNotCreated, err)
 	}
 	return &newUser, nil
 }
@@ -87,21 +83,17 @@ func (m Model) Add(add *AddUserModel) (*UserModel, error) {
 func (m Model) UpdateById(id primitive.ObjectID, update *UpdateUserModel) (*UserModel, error) {
 	ctx := context.TODO()
 	filter := bson.M{"_id": id}
-	updateData := bson.M{}
-	updateBytes, err := bson.Marshal(update)
+	updateData := bson.M{"$set": update}
 
+	_, err := m.Collection.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		return nil, err
-	}
-
-	bson.Unmarshal(updateBytes, updateData)
-	result := m.Collection.FindOneAndUpdate(ctx, filter, updateData)
-	if err := result.Err(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errUserNotUpdated, err)
 	}
 
 	var updatedUser UserModel
-	if err := result.Decode(&updatedUser); err != nil {
+	err = m.Collection.FindOne(ctx, filter).Decode(&updatedUser)
+
+	if err != nil {
 		return nil, err
 	}
 	return &updatedUser, nil
@@ -110,21 +102,17 @@ func (m Model) UpdateById(id primitive.ObjectID, update *UpdateUserModel) (*User
 func (m Model) UpdateByEmail(email string, update *UpdateUserModel) (*UserModel, error) {
 	ctx := context.TODO()
 	filter := bson.M{"email": email}
-	updateData := bson.M{}
-	updateBytes, err := bson.Marshal(update)
+	updateData := bson.M{"$set": update}
 
+	_, err := m.Collection.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		return nil, err
-	}
-
-	bson.Unmarshal(updateBytes, updateData)
-	result := m.Collection.FindOneAndUpdate(ctx, filter, updateData)
-	if err := result.Err(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", errUserNotUpdated, err)
 	}
 
 	var updatedUser UserModel
-	if err := result.Decode(&updatedUser); err != nil {
+	err = m.Collection.FindOne(ctx, filter).Decode(&updatedUser)
+
+	if err != nil {
 		return nil, err
 	}
 	return &updatedUser, nil
@@ -136,7 +124,7 @@ func (m Model) DeleteById(id primitive.ObjectID) error {
 	result, err := m.Collection.DeleteOne(ctx, filter)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("%w: %v", errUserNotDeleted, err)
 	}
 	if result.DeletedCount == 0 {
 		return mongo.ErrNoDocuments
@@ -150,7 +138,7 @@ func (m Model) DeleteByEmail(email string) error {
 	result, err := m.Collection.DeleteOne(ctx, filter)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("%w: %v", errUserNotDeleted, err)
 	}
 	if result.DeletedCount == 0 {
 		return mongo.ErrNoDocuments
