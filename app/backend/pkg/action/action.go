@@ -12,6 +12,6 @@ type Trigger interface {
 	Stop(ctx context.Context) error
 }
 
-type Action interface {
-	Action(ctx context.Context, action workspace.ActionNodeModel) error
+type Reaction interface {
+	Reaction(ctx context.Context, action workspace.ActionNodeModel) error
 }

@@ -41,7 +41,6 @@ export function MenuProvider({
       Object.entries(nodes).forEach(([id, newNode]) => {
         const existingNode = updates[id];
 
-        // If the node exists, merge fields, otherwise just add the new node
         if (existingNode) {
           updates[id] = {
             ...existingNode,

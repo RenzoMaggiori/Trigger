@@ -20,9 +20,13 @@ import "@xyflow/react/dist/style.css";
 import { ConfigMenu } from "@/app/trigger/components/config-menu";
 import { BiLogoGmail } from "react-icons/bi";
 import { PiMicrosoftOutlookLogo } from "react-icons/pi";
-import { CustomNode, Service } from "@/app/trigger/lib/types";
+import { CustomNode, NodeItem, Service } from "@/app/trigger/lib/types";
 import { useMenu } from "@/app/trigger/components/MenuProvider";
 import { transformCustomNodes } from "@/app/trigger/lib/transform-custom-nodes";
+import { Button } from "@/components/ui/button";
+import { useMutation } from "@tanstack/react-query";
+import { send_workspace } from "@/app/trigger/lib/send-workspace";
+import { useRouter } from "next/router";
 
 const services: Service[] = [
   {
@@ -47,7 +51,7 @@ const services: Service[] = [
   },
 ];
 
-export default function Page() {
+export default function Page({ params }: { params: { triggerID: string } }) {
   const [customNodes, setCustomNodes] = React.useState<CustomNode[]>([]);
   const [edges, setEdges] = React.useState<Edge[]>([]);
   const [settings, setSettings] = React.useState<Service["settings"]>();
@@ -55,10 +59,10 @@ export default function Page() {
   const [selectedNode, setSelectedNode] = React.useState<CustomNode | null>(
     null,
   );
-  const { setTriggerWorkspace, setNodes } = useMenu();
+  const { triggerWorkspace, setTriggerWorkspace, setNodes } = useMenu();
 
   React.useEffect(() => {
-    setTriggerWorkspace((prev) => prev || { id: 1, nodes: {} });
+    setTriggerWorkspace((prev) => prev || { id: params.triggerID, nodes: {} });
   }, []);
 
   React.useEffect(() => {
@@ -172,6 +176,33 @@ export default function Page() {
     ];
   };
 
+  const mutation = useMutation({
+    mutationFn: send_workspace,
+    onSuccess: (data) => {
+      const nodes: Record<string, NodeItem> = {};
+      for (const n of data.nodes) {
+        nodes[n.node_id] = {
+          id: n.node_id,
+          type: n.action_id,
+          fields: n.fields,
+          parent_ids: n.parents,
+          child_ids: n.children,
+          x_pos: n.x_pos,
+          y_pos: n.y_pos,
+        };
+      }
+      setTriggerWorkspace({
+        id: data.id,
+        nodes: nodes,
+      });
+    },
+  });
+
+  const handleOnClick = () => {
+    if (!triggerWorkspace) return;
+    mutation.mutate(triggerWorkspace);
+  };
+
   return (
     <div className="flex h-screen w-full overflow-hidden">
       <div className="w-auto p-5">
@@ -188,6 +219,12 @@ export default function Page() {
                 <TriggerDraggable service={item} className="w-[200px]" />
               </div>
             ))}
+            <Button
+              className="w-full text-md rounded-full bg-gradient-to-r from-blue-500 via-violet-500 to-fuchsia-500 hover:bg-gradient-to-r hover:from-blue-600 hover:via-violet-600 hover:to-fuchsia-600 animate-gradient text-white"
+              onClick={handleOnClick}
+            >
+              Deploy Trigger
+            </Button>
           </CardContent>
         </Card>
       </div>

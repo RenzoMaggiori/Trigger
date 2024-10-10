@@ -14,13 +14,14 @@ export async function login(email: string, password: string) {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     },
   );
 
   if (!res.ok) {
     throw new Error(`invalid status code: ${res.status}`);
   }
-  console.log(res);
+  window.location.href = "/home";
 }
 
 export async function register(email: string, password: string) {
@@ -37,11 +38,12 @@ export async function register(email: string, password: string) {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     },
   );
 
   if (!res.ok) {
     throw new Error(`invalid status code: ${res.status}`);
   }
-  console.log(res);
+  window.location.href = "/home";
 }
