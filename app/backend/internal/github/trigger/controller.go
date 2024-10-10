@@ -1,6 +1,7 @@
 package trigger
 
 import (
+	"context"
 	"net/http"
 
 	"trigger.com/trigger/internal/action/workspace"
@@ -23,7 +24,19 @@ func (h *Handler) WatchGithub(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) StopGithub(w http.ResponseWriter, r *http.Request) {
-	if err := h.Service.Stop(r.Context()); err != nil {
+	body, err := decode.Json[StopModel](r.Body)
+	if err != nil {
+		customerror.Send(w, github.ErrBadBody, github.ErrCodes)
+		return
+	}
+
+	if err := h.Service.Stop(
+		context.WithValue(
+			r.Context(),
+			github.StopCtxKey,
+			body,
+		),
+	); err != nil {
 		customerror.Send(w, err, github.ErrCodes)
 		return
 	}

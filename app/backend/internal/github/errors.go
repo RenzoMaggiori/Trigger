@@ -11,9 +11,11 @@ var (
 	ErrSessionNotFound      error = errors.New("session not found")
 	ErrUserNotFound         error = errors.New("user not found")
 	ErrAccessTokenNotFound  error = errors.New("access token not found")
+	ErrStopModelNotFound    error = errors.New("stop model not found")
 	ErrInvalidReactionInput error = errors.New("invalid reaction input")
 	ErrInvalidReactionOuput error = errors.New("invalid reaction output")
 	ErrInvalidGithubStatus  error = errors.New("invalid github status code received")
+	ErrBadBody              error = errors.New("unable to process body")
 
 	ErrCodes map[error]customerror.CustomError = map[error]customerror.CustomError{
 		ErrSessionNotFound: {
@@ -28,6 +30,10 @@ var (
 			Message: ErrAccessTokenNotFound.Error(),
 			Code:    http.StatusNotFound,
 		},
+		ErrStopModelNotFound: {
+			Message: ErrStopModelNotFound.Error(),
+			Code:    http.StatusNotFound,
+		},
 		ErrInvalidReactionInput: {
 			Message: ErrInvalidReactionOuput.Error(),
 			Code:    http.StatusBadRequest,
@@ -39,6 +45,10 @@ var (
 		ErrInvalidGithubStatus: {
 			Message: ErrInvalidGithubStatus.Error(),
 			Code:    http.StatusBadRequest,
+		},
+		ErrBadBody: {
+			Message: ErrBadBody.Error(),
+			Code:    http.StatusUnprocessableEntity,
 		},
 	}
 )

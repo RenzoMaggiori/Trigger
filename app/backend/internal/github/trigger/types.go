@@ -14,3 +14,9 @@ type Handler struct {
 
 type Model struct {
 }
+
+type StopModel struct {
+	Owner  string `json:"owner"`
+	Repo   string `json:"repo"`
+	HookId string `json:"hookId"`
+}

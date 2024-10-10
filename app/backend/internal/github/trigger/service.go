@@ -65,11 +65,40 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 	if res.StatusCode >= 400 {
 		return fmt.Errorf("%w: received %s", github.ErrInvalidGithubStatus, res.Status)
 	}
-
 	return nil
 }
 
 func (m Model) Stop(ctx context.Context) error {
+	accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
+	if !ok {
+		return github.ErrAccessTokenNotFound
+	}
+
+	body, ok := ctx.Value(github.StopCtxKey).(StopModel)
+	if !ok {
+		return github.ErrStopModelNotFound
+	}
+
+	res, err := fetch.Fetch(
+		&http.Client{},
+		fetch.NewFetchRequest(
+			http.MethodDelete,
+			fmt.Sprintf("%s/repos/%s/%s/hooks/%s", githuBaseUrl, body.Owner, body.Repo, body.HookId),
+			nil,
+			map[string]string{
+				"Authorization":        fmt.Sprintf("Bearer %s", accessToken),
+				"Accept":               "application/vnd.github+json",
+				"X-GitHub-Api-Version": "2022-11-28",
+			},
+		),
+	)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	if res.StatusCode >= 400 {
+		return fmt.Errorf("%w: received %s", github.ErrInvalidGithubStatus, res.Status)
+	}
 	return nil
 }
 
