@@ -41,6 +41,7 @@ func Router(ctx context.Context) (*router.Router, error) {
 			"https://www.googleapis.com/auth/documents",
 			"https://www.googleapis.com/auth/drive",
 			"https://www.googleapis.com/auth/userinfo.profile",
+			"email",
 		),
 	)
 
