@@ -1,6 +1,7 @@
 package sync
 
 import (
+	// "net/http"
 	"time"
 
 	"github.com/markbates/goth"
@@ -11,6 +12,7 @@ import (
 
 type Service interface {
 	SyncWith(gothUser goth.User) (error)
+	// Callback(gothUser goth.User, cookie http.Cookie) (error)
 	Callback(gothUser goth.User) (error)
 }
 

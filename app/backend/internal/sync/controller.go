@@ -2,6 +2,7 @@ package sync
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -34,14 +35,21 @@ func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//* : we might want to get the cookie here and pass it to the service so we can get de user logged in
+	// cookie, err := r.Cookie("Authorization")
+	// if err != nil {
+	// 	log.Println("failed to get cookie")
+		// http.Error(w, "failed to get cookie", http.StatusInternalServerError)
+		// return
+	// }
+
 	// Store the user and the session in the database
 	err := h.Service.Callback(user)
 	if err != nil {
 		//! ret error
 		// customerror.Send(w, err, errCodes)
-		http.Error(w, "failed to store user and session in the database", http.StatusInternalServerError)
+		http.Error(w, "failed to store sync in the database", http.StatusInternalServerError)
 		return
 	}
-
 	http.Redirect(w, r, fmt.Sprintf("%s/settings", os.Getenv("WEB_BASE_URL")), http.StatusPermanentRedirect)
 }

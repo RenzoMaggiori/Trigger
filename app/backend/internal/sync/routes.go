@@ -36,7 +36,7 @@ func Router(ctx context.Context) (*router.Router, error) {
 		google.New(
 			os.Getenv("GOOGLE_CLIENT_ID"),
 			os.Getenv("GOOGLE_CLIENT_SECRET"),
-			"http://localhost:8000/api/oauth2/callback",
+			"http://localhost:8005/api/oauth2/callback",
 			"https://mail.google.com/",
 			"https://www.googleapis.com/auth/documents",
 			"https://www.googleapis.com/auth/drive",
