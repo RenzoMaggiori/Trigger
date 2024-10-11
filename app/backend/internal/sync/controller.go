@@ -2,7 +2,6 @@ package sync
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 
