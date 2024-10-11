@@ -22,9 +22,9 @@ func Router(ctx context.Context) (*router.Router, error) {
 			os.Getenv("GOOGLE_CLIENT_ID"),
 			os.Getenv("GOOGLE_CLIENT_SECRET"),
 			"http://localhost:8000/api/oauth2/callback",
-			"https://mail.google.com/",
+			// "https://mail.google.com/",
 			"https://www.googleapis.com/auth/gmail.send",
-			"email",
+			// "email",
 		),
 		github.New(
 			os.Getenv("GITHUB_KEY"),
