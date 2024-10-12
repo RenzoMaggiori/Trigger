@@ -1,18 +1,15 @@
 package sync
 
 import (
-	// "net/http"
 	"time"
 
 	"github.com/markbates/goth"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	// "trigger.com/trigger/pkg/authenticator"
 )
 
 type Service interface {
 	SyncWith(gothUser goth.User) (error)
-	// Callback(gothUser goth.User, cookie http.Cookie) (error)
 	Callback(gothUser goth.User) (error)
 }
 

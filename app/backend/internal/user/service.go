@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -49,7 +48,6 @@ func (m Model) GetByEmail(email string) (*UserModel, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errUserNotFound, err)
 	}
-	log.Println("user found", user)
 	return &user, nil
 }
 
