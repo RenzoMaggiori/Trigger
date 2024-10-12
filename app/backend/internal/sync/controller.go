@@ -2,6 +2,7 @@ package sync
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -12,10 +13,12 @@ func (h *Handler) SyncWith(w http.ResponseWriter, r *http.Request) {
 	gothUser, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
 		// redirect the user to provider oauth2 workflow
+		log.Println("redirecting...")
 		gothic.BeginAuthHandler(w, r)
 		return
 	}
 
+	log.Println("syn with...")
 	err = h.Service.SyncWith(gothUser)
 
 	if err != nil {
