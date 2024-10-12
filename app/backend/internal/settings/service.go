@@ -41,12 +41,12 @@ func (m Model) GetById(id primitive.ObjectID) (*sync.SyncModel, error) {
 	return &sync, nil
 }
 
-func (m Model) GetByUserId(userId string) (*sync.SyncModel, error) {
+func (m Model) GetByUserId(userId primitive.ObjectID) ([]SettingsModel, error) {
 	res, err := fetch.Fetch(
 		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodPatch,
-			fmt.Sprintf("%s/api/sync/user/%s", os.Getenv("SYNC_SERVICE_BASE_URL"), userId),
+			fmt.Sprintf("%s/api/sync/user/%s", os.Getenv("SYNC_SERVICE_BASE_URL"), userId.Hex()),
 			nil,
 			map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
@@ -63,10 +63,19 @@ func (m Model) GetByUserId(userId string) (*sync.SyncModel, error) {
 		return nil, fmt.Errorf("%v", err)
 	}
 
-	syncs, err := decode.Json[sync.SyncModel](res.Body)
+	syncs, err := decode.Json[[]sync.SyncModel](res.Body)
 	if err != nil {
 		return nil, fmt.Errorf("%v", err)
 	}
 
-	return &syncs, nil
+	var newSettings []SettingsModel
+	for _, sync := range syncs {
+		newSettings = append(newSettings, SettingsModel{
+			Id:           primitive.NewObjectID(),
+			UserId:       userId,
+			ProviderName: sync.ProviderName,
+			Active:       true,
+		})
+	}
+	return newSettings, nil
 }

@@ -119,6 +119,32 @@ services:
     ports:
       - "${SYNC_PORT}:${SYNC_PORT}"
 
+  settings:
+    container_name: trigger-settings-instance
+    build:
+      context: ..
+      dockerfile: ./deploy/dockerfiles/settings.Dockerfile
+    networks:
+      - trigger
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_PORT: ${MONGO_PORT}
+      MONGO_HOST: ${MONGO_HOST}
+      MONGO_DB: ${MONGO_DB}
+
+      AUTH_SERVICE_BASE_URL: ${AUTH_SERVICE_BASE_URL}
+      USER_SERVICE_BASE_URL: ${USER_SERVICE_BASE_URL}
+      SESSION_SERVICE_BASE_URL: ${SESSION_SERVICE_BASE_URL}
+      SYNC_SERVICE_BASE_URL: ${SYNC_SERVICE_BASE_URL}
+      SETTINGS_SERVICE_BASE_URL: ${SETTINGS_SERVICE_BASE_URL}
+
+      ADMIN_TOKEN: ${ADMIN_TOKEN}
+
+      SETTINGS_PORT: ${SETTINGS_PORT}
+    ports:
+      - "${SETTINGS_PORT}:${SETTINGS_PORT}"
+
   # action:
   #   container_name: trigger-action-instance
   #   build:
