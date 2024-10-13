@@ -1,17 +1,18 @@
 package sync
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 
 	"github.com/markbates/goth"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"trigger.com/trigger/internal/settings"
 	"trigger.com/trigger/internal/user"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/fetch"
@@ -46,29 +47,23 @@ func (m Model) SyncWith(gothUser goth.User) error {
 
 	ctx := context.TODO()
 	filter := bson.M{"userId": user.Id}
-	var sync SyncModel
-	err = m.Collection.FindOne(ctx, filter).Decode(&sync)
-
-	if err != nil {
-		return errors.New("failed to find sync")
-	}
-
-	newSync := UpdateSyncModel{
+	update := UpdateSyncModel{
 		AccessToken:  &gothUser.AccessToken,
 		RefreshToken: &gothUser.RefreshToken,
 		Expiry:       &gothUser.ExpiresAt,
 		IdToken:      &gothUser.IDToken,
 	}
-
-	body, err := json.Marshal(newSync)
-
+	updateData := bson.M{"$set": update}
+	_, err = m.Collection.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		return errors.New("failed to marshal sync")
+		return errors.New("failed to find sync")
 	}
 
-	_, err = m.Collection.UpdateByID(context.TODO(), gothUser.UserID, bson.M{"$set": body})
+	var updatedSync SyncModel
+	err = m.Collection.FindOne(ctx, filter).Decode(&updatedSync)
+
 	if err != nil {
-		return errors.New("failed to update sync")
+		return errors.New("sync not found")
 	}
 
 	return nil
@@ -92,7 +87,6 @@ func (m Model) Callback(gothUser goth.User) error {
 	}
 
 	defer res.Body.Close()
-	log.Println("res.StatusCode: ", res.StatusCode)
 	if res.StatusCode != http.StatusOK {
 		return errors.New("status code not OK, couldn't fetch user")
 	}
@@ -100,6 +94,11 @@ func (m Model) Callback(gothUser goth.User) error {
 	user, err := decode.Json[user.UserModel](res.Body)
 	if err != nil {
 		return errors.New("failed to decode user")
+	}
+
+	syncExists := m.Collection.FindOne(context.TODO(), bson.M{"userId": user.Id})
+	if syncExists.Err() == nil {
+		return m.SyncWith(gothUser)
 	}
 
 	newSync := SyncModel{
@@ -116,6 +115,39 @@ func (m Model) Callback(gothUser goth.User) error {
 	_, err = m.Collection.InsertOne(ctx, newSync)
 	if err != nil {
 		return errors.New("failed to insert sync")
+	}
+
+	addSettings := settings.AddSettingsModel{
+		UserId:       user.Id,
+		ProviderName: &gothUser.Provider,
+		AccessToken:  gothUser.AccessToken,
+		Active:       true,
+	}
+
+	body, err := json.Marshal(addSettings)
+	if err != nil {
+		return errors.New("failed to marshal settings")
+	}
+
+	res, err = fetch.Fetch(
+		http.DefaultClient,
+		fetch.NewFetchRequest(
+			http.MethodPost,
+			fmt.Sprintf("%s/api/settings/add", os.Getenv("SETTINGS_SERVICE_BASE_URL")),
+			bytes.NewReader(body),
+			map[string]string{
+				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
+			},
+		),
+	)
+
+	if err != nil {
+		return errors.New("failed to add new settings")
+	}
+
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusCreated {
+		return errors.New("status code not OK, couldn't add new settings")
 	}
 
 	return nil
