@@ -28,6 +28,7 @@ func Router(ctx context.Context) (*router.Router, error) {
 		},
 	}
 	server.Handle("GET /id/{id}", http.HandlerFunc(handler.GetById))
+	server.Handle("GET /add/{id}", http.HandlerFunc(handler.Add))
 	server.Handle("GET /user_id/{id}", http.HandlerFunc(handler.GetByUserId))
 
 	return router.NewRouter("/settings", server), nil

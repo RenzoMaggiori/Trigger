@@ -1,81 +1,55 @@
 package settings
 
 import (
+	"context"
 	"fmt"
-	"net/http"
-	"os"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"trigger.com/trigger/internal/sync"
-	"trigger.com/trigger/pkg/decode"
-	"trigger.com/trigger/pkg/fetch"
 )
 
-func (m Model) GetById(id primitive.ObjectID) (*sync.SyncModel, error) {
-	res, err := fetch.Fetch(
-		http.DefaultClient,
-		fetch.NewFetchRequest(
-			http.MethodPatch,
-			fmt.Sprintf("%s/api/sync/id/%s", os.Getenv("SYNC_SERVICE_BASE_URL"), id.Hex()),
-			nil,
-			map[string]string{
-				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
-			},
-		),
-	)
+func (m Model) GetById(id primitive.ObjectID) (*SettingsModel, error) {
+	var sync SettingsModel
+	ctx := context.TODO()
+	filter := bson.M{"_id": id}
+	err := m.Collection.FindOne(ctx, filter).Decode(&sync)
 
 	if err != nil {
 		return nil, fmt.Errorf("%v", err)
 	}
-
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%v", err)
-	}
-
-	sync, err := decode.Json[sync.SyncModel](res.Body)
-	if err != nil {
-		return nil, fmt.Errorf("%v", err)
-	}
-
 	return &sync, nil
 }
 
 func (m Model) GetByUserId(userId primitive.ObjectID) ([]SettingsModel, error) {
-	res, err := fetch.Fetch(
-		http.DefaultClient,
-		fetch.NewFetchRequest(
-			http.MethodPatch,
-			fmt.Sprintf("%s/api/sync/user/%s", os.Getenv("SYNC_SERVICE_BASE_URL"), userId.Hex()),
-			nil,
-			map[string]string{
-				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
-			},
-		),
-	)
+	var settings []SettingsModel
+	ctx := context.TODO()
+	filter := bson.M{"userId": userId}
+	cursor, err := m.Collection.Find(ctx, filter)
 
 	if err != nil {
 		return nil, fmt.Errorf("%v", err)
 	}
+	defer cursor.Close(ctx)
 
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
+	if err = cursor.All(ctx, &settings); err != nil {
 		return nil, fmt.Errorf("%v", err)
 	}
+	return settings, nil
+}
 
-	syncs, err := decode.Json[[]sync.SyncModel](res.Body)
+func (m Model) Add(addSettings *AddSettingsModel) (error) {
+	newSeetings := SettingsModel{
+		Id:           primitive.NewObjectID(),
+		UserId:       addSettings.UserId,
+		ProviderName: addSettings.ProviderName,
+		AccessToken:  addSettings.AccessToken,
+		Active:       addSettings.Active,
+	}
+
+	_, err := m.Collection.InsertOne(context.TODO(), newSeetings)
 	if err != nil {
-		return nil, fmt.Errorf("%v", err)
+		return fmt.Errorf("%v", err)
 	}
 
-	var newSettings []SettingsModel
-	for _, sync := range syncs {
-		newSettings = append(newSettings, SettingsModel{
-			Id:           primitive.NewObjectID(),
-			UserId:       userId,
-			ProviderName: sync.ProviderName,
-			Active:       true,
-		})
-	}
-	return newSettings, nil
+	return nil
 }
