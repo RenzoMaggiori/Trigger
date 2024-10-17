@@ -8,6 +8,7 @@ import (
 	customerror "trigger.com/trigger/pkg/custom-error"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/encode"
+	"trigger.com/trigger/pkg/errors"
 )
 
 func (h *Handler) GetUsers(w http.ResponseWriter, r *http.Request) {
@@ -27,8 +28,7 @@ func (h *Handler) GetUserById(w http.ResponseWriter, r *http.Request) {
 	id, err := primitive.ObjectIDFromHex(r.PathValue("id"))
 
 	if err != nil {
-		error := fmt.Errorf("%w: %v", errBadUserID, err)
-		customerror.Send(w, error, errCodes)
+		customerror.Send(w, errors.ErrBadUserId, errCodes)
 		return
 	}
 

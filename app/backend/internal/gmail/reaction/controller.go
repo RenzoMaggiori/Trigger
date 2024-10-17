@@ -20,7 +20,7 @@ func (h *Handler) SendEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.Service.Action(context.WithValue(context.TODO(), AccessTokenCtxKey, accessToken), actionNode)
+	err = h.Service.Reaction(context.WithValue(context.TODO(), AccessTokenCtxKey, accessToken), actionNode)
 
 	if err != nil {
 		customerror.Send(w, err, errCodes)

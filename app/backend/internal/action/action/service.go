@@ -5,6 +5,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"trigger.com/trigger/pkg/errors"
 )
 
 func (m Model) Get() ([]ActionModel, error) {
@@ -31,7 +32,7 @@ func (m Model) GetById(id primitive.ObjectID) (*ActionModel, error) {
 	err := m.Collection.FindOne(ctx, filter).Decode(&session)
 
 	if err != nil {
-		return nil, errActionNotFound
+		return nil, errors.ErrActionNotFound
 	}
 	return &session, nil
 }
@@ -60,7 +61,7 @@ func (m Model) GetByAction(action string) (*ActionModel, error) {
 	err := m.Collection.FindOne(ctx, filter).Decode(&session)
 
 	if err != nil {
-		return nil, errActionNotFound
+		return nil, errors.ErrActionNotFound
 	}
 	return &session, nil
 }
@@ -69,7 +70,7 @@ func (m Model) Add(add *AddActionModel) (*ActionModel, error) {
 	ctx := context.TODO()
 
 	if add.Type != "trigger" && add.Type != "reaction" {
-		return nil, errBadActionType
+		return nil, errors.ErrActionTypeNone
 	}
 	newAction := ActionModel{
 		Id:       primitive.NewObjectID(),

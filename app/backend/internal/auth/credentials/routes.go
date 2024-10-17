@@ -2,14 +2,9 @@ package credentials
 
 import (
 	"context"
-	"errors"
 	"net/http"
 
 	"trigger.com/trigger/pkg/router"
-)
-
-var (
-	errDatabaseNotFound error = errors.New("could not find mongo database")
 )
 
 func Router(ctx context.Context) (*router.Router, error) {

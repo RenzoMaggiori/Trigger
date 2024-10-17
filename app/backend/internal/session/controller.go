@@ -1,8 +1,8 @@
 package session
 
 import (
-	"net/http"
 	"fmt"
+	"net/http"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	customerror "trigger.com/trigger/pkg/custom-error"
@@ -18,7 +18,7 @@ func (h *Handler) GetSessions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err = encode.Json(w, users); err != nil {
-		customerror.Send(w, err, errCodes)																						
+		customerror.Send(w, err, errCodes)
 		return
 	}
 }
