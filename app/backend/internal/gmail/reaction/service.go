@@ -17,6 +17,21 @@ import (
 	"trigger.com/trigger/pkg/fetch"
 )
 
+func (m Model) MutlipleReactions(actionName string, ctx context.Context, action workspace.ActionNodeModel) error {
+	accessToken, ok := ctx.Value(AccessTokenCtxKey).(string)
+
+	if !ok {
+		return errors.ErrAccessTokenCtx
+	}
+
+	switch actionName {
+	case "send_email":
+		return m.SendGmail(ctx, accessToken, action)
+	}
+
+	return nil
+}
+
 func createRawEmail(from string, to string, subject string, body string) (string, error) {
 	var email bytes.Buffer
 	email.WriteString(fmt.Sprintf("From: %s\r\n", from))
@@ -34,9 +49,7 @@ func createRawEmail(from string, to string, subject string, body string) (string
 	return rawMessage, nil
 }
 
-func (m Model) Reaction(ctx context.Context, actionNode workspace.ActionNodeModel) error {
-	accessToken := ctx.Value(AccessTokenCtxKey).(string)
-
+func (m Model) SendGmail(ctx context.Context, accessToken string, actionNode workspace.ActionNodeModel) error {
 	session, _, err := session.GetSessionByTokenRequest(accessToken)
 
 	if err != nil {
@@ -48,11 +61,11 @@ func (m Model) Reaction(ctx context.Context, actionNode workspace.ActionNodeMode
 		return err
 	}
 
-	// TODO: Populate the email with the Input from the actionNode
-	rawEmail, err := createRawEmail(user.Email, user.Email, "Hello world", "AAAAAAAAAA")
+	rawEmail, err := createRawEmail(user.Email,
+		actionNode.Input["to"], actionNode.Input["subject"], actionNode.Input["body"])
 
 	if err != nil {
-		return errors.ErrFailedToCreateEmail
+		return errors.ErrCreatingEmail
 	}
 
 	requestBody := fmt.Sprintf(`{"raw": "%s"}`, rawEmail)

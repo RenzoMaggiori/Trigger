@@ -5,7 +5,7 @@ import (
 	"trigger.com/trigger/pkg/action"
 )
 
-const googleTriggerActionName = "watch"
+const googleWatchActionName = "watch"
 
 type WorkspaceCtx string
 

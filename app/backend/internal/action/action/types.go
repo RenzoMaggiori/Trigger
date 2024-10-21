@@ -11,7 +11,7 @@ type Service interface {
 	Get() ([]ActionModel, error)
 	GetById(primitive.ObjectID) (*ActionModel, error)
 	GetByProvider(string) ([]ActionModel, error)
-	GetByAction(string) (*ActionModel, error)
+	GetByActionName(string) (*ActionModel, error)
 	Add(*AddActionModel) (*ActionModel, error)
 }
 
@@ -25,8 +25,8 @@ type Model struct {
 
 type ActionModel struct {
 	Id     primitive.ObjectID `json:"id" bson:"_id"`
-	Input  []string           `json:"input" bson:"input"`
-	Output []string           `json:"output" bson:"output"`
+	Input  map[string]string  `json:"input" bson:"input"`
+	Output map[string]string  `json:"output" bson:"output"`
 	// provider name (gmail, discord, github, ...)
 	Provider string `json:"provider" bson:"provider"`
 	// "trigger" or "reaction"
@@ -36,9 +36,9 @@ type ActionModel struct {
 }
 
 type AddActionModel struct {
-	Input    []string `json:"input" bson:"input"`
-	Output   []string `json:"output" bson:"output"`
-	Provider string   `json:"provider" bson:"provider"`
-	Type     string   `json:"type" bson:"type"`
-	Action   string   `json:"action" bson:"action"`
+	Input    map[string]string `json:"input" bson:"input"`
+	Output   map[string]string `json:"output" bson:"output"`
+	Provider string            `json:"provider" bson:"provider"`
+	Type     string            `json:"type" bson:"type"`
+	Action   string            `json:"action" bson:"action"`
 }

@@ -108,7 +108,7 @@ func UpdateSessionByIdRequest(accessToken string, sessionId string, updateSessio
 
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		return nil, res.StatusCode, errors.ErrSessionNotRetrieved
+		return nil, res.StatusCode, errors.ErrFetchingSession
 	}
 
 	session, err := decode.Json[SessionModel](res.Body)
@@ -123,7 +123,7 @@ func AddSessionRequest(accessToken string, addSession AddSessionModel) (*Session
 	body, err := json.Marshal(addSession)
 
 	if err != nil {
-		return nil, http.StatusInternalServerError, errors.ErrSessionNotCreated
+		return nil, http.StatusInternalServerError, errors.ErrCreatingSession
 	}
 
 	res := &http.Response{}
@@ -139,13 +139,13 @@ func AddSessionRequest(accessToken string, addSession AddSessionModel) (*Session
 		),
 	)
 	if err != nil {
-		return nil, http.StatusInternalServerError, errors.ErrSessionNotCreated
+		return nil, http.StatusInternalServerError, errors.ErrCreatingSession
 
 	}
 
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		return nil, res.StatusCode, errors.ErrSessionNotCreated
+		return nil, res.StatusCode, errors.ErrCreatingSession
 	}
 
 	session, err := decode.Json[SessionModel](res.Body)

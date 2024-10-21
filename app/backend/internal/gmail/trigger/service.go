@@ -57,19 +57,54 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 			return err
 		}
 		log.Printf("Watch body: %s", bodyBytes)
-		return errGmailWatch
+		return errors.ErrGmailWatch
 	}
 
 	log.Println(accessToken)
 	return nil
 }
 
+func fetchUserHistory(lastHistoryId int, client *http.Client) (*HistoryList, error) {
+	res, err := fetch.Fetch(
+		client,
+		fetch.NewFetchRequest(
+			http.MethodGet,
+			fmt.Sprintf("https://gmail.googleapis.com/gmail/v1/users/me/history?startHistoryId=%d", lastHistoryId),
+			nil,
+			nil,
+		))
+	if err != nil {
+		return nil, errors.ErrGmailHistory
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return nil, errors.ErrGmailHistory
+	}
+
+	history, err := decode.Json[HistoryList](res.Body)
+	if err != nil {
+		return nil, errors.ErrGmailHistoryTypeNone
+	}
+	fmt.Printf("history %+v\n", history)
+	return &history, nil
+	// * Here we check if the history list we got has at the start an Added message (new email received)
+	// if len(history.History) > 0 {
+	// 	firstHistoryItem := history.History[0]
+	//
+	// 	if len(firstHistoryItem.MessagesAdded) > 0 {
+	// 		return true, nil
+	// 	} else {
+	// 		return false, nil
+	// 	}
+	// }
+	//
+}
+
 func (m Model) Webhook(ctx context.Context) error {
 	event, ok := ctx.Value(GmailEventCtxKey).(Event)
 	if !ok {
-		return errEventCtx
+		return errors.ErrEventCtx
 	}
-	fmt.Printf("event: %v\n", event)
 
 	data := make([]byte, len(event.Message.Data))
 	_, err := base64.NewDecoder(base64.StdEncoding, strings.NewReader(event.Message.Data)).Read(data)
@@ -81,8 +116,6 @@ func (m Model) Webhook(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf("eventData: %v\n", eventData)
 
 	user, _, err := user.GetUserByEmailRequest(os.Getenv("ADMIN_TOKEN"), eventData.EmailAddress)
 	if err != nil {
@@ -101,15 +134,22 @@ func (m Model) Webhook(ctx context.Context) error {
 			break
 		}
 	}
+
 	if googleSession == nil {
 		return errors.ErrSessionNotFound
 	}
 
-	action, _, err := action.GetActionByAction(googleSession.AccessToken, googleTriggerActionName)
+	action, _, err := action.GetByActionNameRequest(googleSession.AccessToken, googleWatchActionName)
 
 	if err != nil {
 		return err
 	}
+
+	actionNodes, _, err := workspace.GetActionNodesByActionIdRequest(googleSession.AccessToken, action.Id.Hex())
+
+	history, err := fetchUserHistoryRequest(, http.DefaultClient)
+
+	log.Printf("History: %+v", history)
 
 	update := workspace.ActionCompletedModel{
 		ActionId: action.Id,
@@ -152,7 +192,7 @@ func (m Model) Stop(ctx context.Context) error {
 			return err
 		}
 		log.Printf("Stop body: %s", bodyBytes)
-		return errGmailStop
+		return errors.ErrGmailStop
 	}
 
 	log.Println(accessToken)

@@ -8,32 +8,47 @@ import (
 )
 
 var (
-	ErrWorkspaceNotFound       error                             = errors.New("action not found")
-	ErrBadWorkspaceId          error                             = errors.New("bad workspace id")
-	ErrBadUserId               error                             = errors.New("bad user id")
-	ErrSessionNotFound         error                             = errors.New("session not found")
-	ErrSessionTypeNone         error                             = errors.New("could not decypher session type")
-	ErrCreatingWorkspace       error                             = errors.New("error while creating workspace")
-	ErrFetchingActions         error                             = errors.New("could not fetch actions")
-	ErrActionTypeNone          error                             = errors.New("could not decypher action type")
-	ErrAction                  error                             = errors.New("action service failed")
-	ErrActionNotFound          error                             = errors.New("action not found")
-	ErrActionNodeTypeNone      error                             = errors.New("could not decypher action node type")
-	ErrUserNotFound            error                             = errors.New("user not found")
-	ErrUserTypeNone            error                             = errors.New("could not decypher user type")
-	ErrSettingAction           error                             = errors.New("error while setting trigger or reaction")
-	ErrCompletingAction        error                             = errors.New("error while completing action")
-	ErrSessionNotRetrieved     error                             = errors.New("error while retrieving session")
-	ErrSessionNotCreated       error                             = errors.New("error while creating session")
-	ErrAccessTokenCtxKey       error                             = errors.New("could not retrieve access token from context")
-	ErrFailedToCreateEmail     error                             = errors.New("failed to create raw email")
-	ErrFailedToSendEmail       error                             = errors.New("failed to send email")
-	ErrGithubStopModelNotFound error                             = errors.New("github stop model not found")
-	ErrInvalidReactionInput    error                             = errors.New("invalid reaction input")
-	ErrInvalidReactionOuput    error                             = errors.New("invalid reaction output")
-	ErrInvalidGithubStatus     error                             = errors.New("invalid github status code received")
-	ErrBadBody                 error                             = errors.New("unable to process body")
-	ErrCodes                   map[error]customerror.CustomError = map[error]customerror.CustomError{
+	// Not Found Errors
+	ErrWorkspaceNotFound error = errors.New("workspace not found")
+	ErrActionNotFound    error = errors.New("action not found")
+	ErrSessionNotFound   error = errors.New("session not found")
+	ErrUserNotFound      error = errors.New("user not found")
+
+	// Bad Request Errors
+	ErrBadWorkspaceId  error = errors.New("bad workspace id")
+	ErrBadUserId       error = errors.New("bad user id")
+	ErrSessionTypeNone error = errors.New("could not decypher session type")
+
+	// Decyphering Errors
+	ErrActionTypeNone       error = errors.New("could not decypher action type")
+	ErrActionNodeTypeNone   error = errors.New("could not decypher action node type")
+	ErrUserTypeNone         error = errors.New("could not decypher user type")
+	ErrGmailHistoryTypeNone error = errors.New("could not decypher gmail history type")
+	// Context Errors
+	ErrAccessTokenCtx error = errors.New("could not retrieve access token from context")
+	ErrEventCtx       error = errors.New("could not retrieve event")
+
+	// Creation Errors
+	ErrCreatingWorkspace error = errors.New("error while creating workspace")
+	ErrCreatingSession   error = errors.New("error while creating session")
+	ErrCreatingEmail     error = errors.New("failed to create raw email")
+
+	// Setting/Completing Errors
+	ErrSettingAction    error = errors.New("error while setting trigger or reaction")
+	ErrCompletingAction error = errors.New("error while completing action")
+
+	// Retrieval/Fetching Errors
+	ErrFetchingSession error = errors.New("error while retrieving session")
+	ErrFetchingActions error = errors.New("could not fetch actions")
+
+	// Email Errors
+	ErrFailedToSendEmail error = errors.New("failed to send email")
+	ErrGmailSendEmail    error = errors.New("error while sending email through gmail")
+	ErrGmailWatch        error = errors.New("error while watching gmail")
+	ErrGmailStop         error = errors.New("error while stopping gmail")
+	ErrGmailHistory      error = errors.New("error while fetching gmail history")
+
+	ErrCodes map[error]customerror.CustomError = map[error]customerror.CustomError{
 		ErrWorkspaceNotFound: {
 			Message: ErrWorkspaceNotFound.Error(),
 			Code:    http.StatusNotFound,
@@ -70,10 +85,6 @@ var (
 			Message: ErrActionNodeTypeNone.Error(),
 			Code:    http.StatusInternalServerError,
 		},
-		ErrAction: {
-			Message: ErrAction.Error(),
-			Code:    http.StatusInternalServerError,
-		},
 		ErrUserNotFound: {
 			Message: ErrUserNotFound.Error(),
 			Code:    http.StatusNotFound,
@@ -94,54 +105,45 @@ var (
 			Message: ErrActionNotFound.Error(),
 			Code:    http.StatusNotFound,
 		},
-		ErrSessionNotRetrieved: {
-			Message: ErrSessionNotRetrieved.Error(),
+		ErrFetchingSession: {
+			Message: ErrFetchingSession.Error(),
 			Code:    http.StatusInternalServerError,
 		},
-		ErrSessionNotCreated: {
-			Message: ErrSessionNotCreated.Error(),
+		ErrCreatingSession: {
+			Message: ErrCreatingSession.Error(),
 			Code:    http.StatusInternalServerError,
 		},
-		ErrAccessTokenCtxKey: {
-			Message: ErrAccessTokenCtxKey.Error(),
+		ErrAccessTokenCtx: {
+			Message: ErrAccessTokenCtx.Error(),
 			Code:    http.StatusInternalServerError,
 		},
-		ErrFailedToCreateEmail: {
-			Message: ErrFailedToCreateEmail.Error(),
+		ErrCreatingEmail: {
+			Message: ErrCreatingEmail.Error(),
 			Code:    http.StatusInternalServerError,
 		},
 		ErrFailedToSendEmail: {
 			Message: ErrFailedToSendEmail.Error(),
 			Code:    http.StatusInternalServerError,
 		},
-
-		ErrSessionNotFound: {
-			Message: ErrSessionNotFound.Error(),
-			Code:    http.StatusNotFound,
+		ErrGmailSendEmail: {
+			Message: ErrGmailSendEmail.Error(),
+			Code:    http.StatusInternalServerError,
 		},
-		ErrUserNotFound: {
-			Message: ErrUserNotFound.Error(),
-			Code:    http.StatusNotFound,
+		ErrGmailWatch: {
+			Message: ErrGmailWatch.Error(),
+			Code:    http.StatusInternalServerError,
 		},
-		ErrGithubStopModelNotFound: {
-			Message: ErrGithubStopModelNotFound.Error(),
-			Code:    http.StatusNotFound,
+		ErrGmailStop: {
+			Message: ErrGmailStop.Error(),
+			Code:    http.StatusInternalServerError,
 		},
-		ErrInvalidReactionInput: {
-			Message: ErrInvalidReactionOuput.Error(),
-			Code:    http.StatusBadRequest,
+		ErrGmailHistory: {
+			Message: ErrGmailHistory.Error(),
+			Code:    http.StatusInternalServerError,
 		},
-		ErrInvalidReactionOuput: {
-			Message: ErrInvalidReactionOuput.Error(),
-			Code:    http.StatusBadRequest,
-		},
-		ErrInvalidGithubStatus: {
-			Message: ErrInvalidGithubStatus.Error(),
-			Code:    http.StatusBadRequest,
-		},
-		ErrBadBody: {
-			Message: ErrBadBody.Error(),
-			Code:    http.StatusUnprocessableEntity,
+		ErrGmailHistoryTypeNone: {
+			Message: ErrGmailHistoryTypeNone.Error(),
+			Code:    http.StatusInternalServerError,
 		},
 	}
 )

@@ -71,7 +71,7 @@ func (m Model) GetByUserId(ctx context.Context, userId primitive.ObjectID) ([]Wo
 
 func initAction(actionNode ActionNodeModel, accessToken string) error {
 
-	action, _, err := action.GetActionByIdRequest(accessToken, actionNode.ActionId.Hex())
+	action, _, err := action.GetByIdRequest(accessToken, actionNode.ActionId.Hex())
 
 	if err != nil {
 		return err
@@ -82,15 +82,6 @@ func initAction(actionNode ActionNodeModel, accessToken string) error {
 		return err
 	}
 	return nil
-}
-
-// nodeStatus determines the status of a node based on its parent nodes.
-// If the node has no parents, it returns "pending". Otherwise, it returns "inactive".
-func isNodeActive(parents []string) bool {
-	if len(parents) == 0 {
-		return true
-	}
-	return false
 }
 
 // Add adds a new workspace to the collection based on the provided AddWorkspaceModel.
@@ -108,7 +99,7 @@ func (m Model) Add(ctx context.Context, add *AddWorkspaceModel) (*WorkspaceModel
 	accessToken, ok := ctx.Value(AccessTokenCtxKey).(string)
 
 	if !ok {
-		return nil, errors.ErrAccessTokenCtxKey
+		return nil, errors.ErrAccessTokenCtx
 	}
 	session, _, err := session.GetSessionByTokenRequest(accessToken)
 
@@ -124,7 +115,7 @@ func (m Model) Add(ctx context.Context, add *AddWorkspaceModel) (*WorkspaceModel
 
 	for _, node := range add.Nodes {
 		func() {
-			isActive := isNodeActive(node.Parents)
+			isActive := len(node.Parents) == 0
 			node := ActionNodeModel{
 				NodeId:   node.NodeId,
 				ActionId: node.ActionId,
@@ -321,16 +312,3 @@ func (m Model) UpdateById(ctx context.Context, id primitive.ObjectID, update *Up
 	return &updatedUserAction, nil
 
 }
-
-// func (m Model) DeleteById(ctx context.Context, id primitive.ObjectID) error {
-// 	filter := bson.M{"_id": id}
-// 	result, err := m.Collection.DeleteOne(ctx, filter)
-
-// 	if err != nil {
-// 		return fmt.Errorf("%w: %v", errUserActionNotFound, err)
-// 	}
-// 	if result.DeletedCount == 0 {
-// 		return mongo.ErrNoDocuments
-// 	}
-// 	return nil
-// }
