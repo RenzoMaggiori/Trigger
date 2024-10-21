@@ -10,6 +10,7 @@ import (
 
 	"trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/internal/github"
+	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
 	"trigger.com/trigger/pkg/middleware"
 )
@@ -21,7 +22,7 @@ const (
 func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) error {
 	accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
 	if !ok {
-		return github.ErrAccessTokenNotFound
+		return errors.ErrAccessTokenCtxKey
 	}
 
 	body, err := json.Marshal(map[string]any{
@@ -29,7 +30,7 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 		"active": true,
 		"events": []string{"push"},
 		"config": map[string]any{
-			"url":          os.Getenv("WEBHOOK_URL"),
+			"url":          os.Getenv("GITHUB_WEBHOOK_URL"),
 			"content_type": "json",
 			"insecure_ssl": "0",
 		},
@@ -39,7 +40,7 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 	}
 
 	if len(actionNode.Input) != 2 {
-		return github.ErrInvalidReactionInput
+		return errors.ErrInvalidReactionInput
 	}
 
 	// TODO: get correct access token from sync service
@@ -63,7 +64,7 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 	}
 	defer res.Body.Close()
 	if res.StatusCode >= 400 {
-		return fmt.Errorf("%w: received %s", github.ErrInvalidGithubStatus, res.Status)
+		return fmt.Errorf("%w: received %s", errors.ErrInvalidGithubStatus, res.Status)
 	}
 	return nil
 }
@@ -71,12 +72,12 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 func (m Model) Stop(ctx context.Context) error {
 	accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
 	if !ok {
-		return github.ErrAccessTokenNotFound
+		return errors.ErrAccessTokenCtxKey
 	}
 
 	body, ok := ctx.Value(github.StopCtxKey).(StopModel)
 	if !ok {
-		return github.ErrStopModelNotFound
+		return errors.ErrGithubStopModelNotFound
 	}
 
 	res, err := fetch.Fetch(
@@ -97,11 +98,24 @@ func (m Model) Stop(ctx context.Context) error {
 	}
 	defer res.Body.Close()
 	if res.StatusCode >= 400 {
-		return fmt.Errorf("%w: received %s", github.ErrInvalidGithubStatus, res.Status)
+		return fmt.Errorf("%w: received %s", errors.ErrInvalidGithubStatus, res.Status)
 	}
 	return nil
 }
 
 func (m Model) Webhook(ctx context.Context) error {
+	/* update := workspace.ActionCompletedModel{
+		ActionId: action.Id,
+		UserId:   user.Id,
+		Output:   map[string]any{"hello": "world"},
+	}
+
+	_, err = workspace.ActionCompletedRequest(googleSession.AccessToken, update)
+
+	if err != nil {
+		return err
+	}
+
+	return nil */
 	return nil
 }

@@ -5,7 +5,7 @@ import (
 
 	"github.com/markbates/goth"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"trigger.com/trigger/pkg/authenticator"
+	"trigger.com/trigger/pkg/auth/authenticator"
 )
 
 type Service interface {

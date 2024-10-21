@@ -19,8 +19,8 @@ func Router(ctx context.Context) (*router.Router, error) {
 	}
 
 	server.Handle("POST /watch", middlewares(http.HandlerFunc(handler.WatchGithub)))
-	server.Handle("POST /stop", http.HandlerFunc(handler.StopGithub))
+	server.Handle("POST /stop", middlewares(http.HandlerFunc(handler.StopGithub)))
 	server.Handle("POST /webhook", http.HandlerFunc(handler.WebhookGithub))
 
-	return router.NewRouter("/github/reaction", server), nil
+	return router.NewRouter("/github/trigger", server), nil
 }

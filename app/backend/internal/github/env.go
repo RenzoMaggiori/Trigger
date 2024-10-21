@@ -14,7 +14,7 @@ import (
 var (
 	errEnvNotFound      string    = "Enviroment argument %s not found"
 	enviromentArguments [1]string = [...]string{
-		"WEBHOOK_URL",
+		"GITHUB_WEBHOOK_URL",
 	}
 )
 
