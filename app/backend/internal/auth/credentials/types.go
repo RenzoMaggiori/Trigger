@@ -2,7 +2,7 @@ package credentials
 
 import (
 	"trigger.com/trigger/internal/user"
-	"trigger.com/trigger/pkg/authenticator"
+	"trigger.com/trigger/pkg/auth/authenticator"
 )
 
 type Service interface {
@@ -18,7 +18,9 @@ type Handler struct {
 type Model struct {
 }
 
-var CredentialsCtxKey = "CredentialsCtxKey"
+type CredentialsCtx string
+
+const CredentialsCtxKey CredentialsCtx = CredentialsCtx("CredentialsCtxKey")
 
 type CredentialsModel struct {
 	Email    string `json:"email"`

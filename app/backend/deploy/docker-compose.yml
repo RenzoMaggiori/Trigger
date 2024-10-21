@@ -145,6 +145,19 @@ services:
       GMAIL_PORT: ${GMAIL_PORT}
     ports:
       - "${GMAIL_PORT}:${GMAIL_PORT}"
+  github:
+    container_name: trigger-github-instance
+    build:
+      context: ..
+      dockerfile: ./deploy/dockerfiles/github.Dockerfile
+    networks:
+      - trigger
+    environment:
+      GITHUB_WEBHOOK_URL: ${GITHUB_WEBHOOK_URL}
+
+      GITHUB_PORT: ${GITHUB_PORT}
+    ports:
+      - "${GITHUB_PORT}:${GITHUB_PORT}"
 
 volumes:
   mongo_data:

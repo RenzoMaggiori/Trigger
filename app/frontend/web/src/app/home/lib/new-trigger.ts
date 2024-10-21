@@ -24,6 +24,7 @@ export async function newTrigger(): Promise<z.infer<typeof triggerSchema>> {
     },
   );
   if (!res.ok) {
+    console.error(`invalid status code: ${res.status}`);
     throw new Error(`invalid status code: ${res.status}`);
   }
 

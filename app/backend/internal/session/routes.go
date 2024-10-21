@@ -34,7 +34,7 @@ func Router(ctx context.Context) (*router.Router, error) {
 	server.Handle("GET /", middlewares(http.HandlerFunc(handler.GetSessions)))
 	server.Handle("GET /id/{id}", middlewares(http.HandlerFunc(handler.GetSessionById)))
 	server.Handle("GET /user_id/{user_id}", middlewares(http.HandlerFunc(handler.GetSessionByUserId)))
-	server.Handle("GET /access_token/{access_token}", middlewares(http.HandlerFunc(handler.GetByToken)))
+	server.Handle("GET /access_token/{access_token}", http.HandlerFunc(handler.GetByToken))
 	server.Handle("POST /add", middlewares(http.HandlerFunc(handler.AddSession)))
 	server.Handle("PATCH /id/{id}", middlewares(http.HandlerFunc(handler.UpdateSessionById)))
 	server.Handle("DELETE /id/{id}", middlewares(http.HandlerFunc(handler.DeleteSessionById)))
