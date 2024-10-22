@@ -1,21 +1,10 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
 import React from "react";
 import { IoLogoGithub } from "react-icons/io";
 import { FaDiscord } from "react-icons/fa";
-import { TriggerDraggable } from "@/app/trigger/components/trigger-draggable";
 import {
-  addEdge,
-  ReactFlow,
   type Edge,
-  type OnNodesChange,
-  type OnEdgesChange,
-  applyNodeChanges,
-  applyEdgeChanges,
-  Background,
-  Connection,
-  MiniMap,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { ConfigMenu } from "@/app/trigger/components/config-menu";
@@ -24,10 +13,10 @@ import { PiMicrosoftOutlookLogo } from "react-icons/pi";
 import { CustomNode, NodeItem, Service } from "@/app/trigger/lib/types";
 import { useMenu } from "@/app/trigger/components/MenuProvider";
 import { transformCustomNodes } from "@/app/trigger/lib/transform-custom-nodes";
-import { Button } from "@/components/ui/button";
 import { useMutation } from "@tanstack/react-query";
 import { send_workspace } from "@/app/trigger/lib/send-workspace";
-import { useRouter } from "next/router";
+import { ServicesComponent } from "../components/service-page";
+import { ReactFlowComponent } from "../components/react-flow";
 
 const services: Service[] = [
   {
@@ -57,9 +46,7 @@ export default function Page({ params }: { params: { triggerID: string } }) {
   const [edges, setEdges] = React.useState<Edge[]>([]);
   const [settings, setSettings] = React.useState<Service["settings"]>();
   const [parentNodes, setParentNodes] = React.useState<CustomNode[]>([]);
-  const [selectedNode, setSelectedNode] = React.useState<CustomNode | null>(
-    null,
-  );
+  const [selectedNode, setSelectedNode] = React.useState<CustomNode | null>(null);
   const { triggerWorkspace, setTriggerWorkspace, setNodes } = useMenu();
 
   React.useEffect(() => {
@@ -73,33 +60,20 @@ export default function Page({ params }: { params: { triggerID: string } }) {
     }
   }, [customNodes, edges]);
 
-  const onNodesChange: OnNodesChange = React.useCallback(
-    (changes) => {
-      setCustomNodes((nds) => applyNodeChanges(changes, nds) as CustomNode[]);
-    },
-    [setCustomNodes],
-  );
-  const onEdgesChange: OnEdgesChange = React.useCallback(
-    (changes) => {
-      setEdges((eds) => applyEdgeChanges(changes, eds));
-    },
-    [setEdges],
-  );
+  const updateParentNodes = (nodeId: string) => {
+    const parentNodes = findParentNodes(nodeId, edges, customNodes);
+    setParentNodes(parentNodes);
+  };
 
-  const onConnect = React.useCallback(
-    (params: Connection | Edge) => {
-      setEdges((eds) => addEdge(params, eds));
-      if (params.target) {
-        updateParentNodes(params.target);
-      }
-    },
-    [setEdges],
-  );
+  const handleNodeClick = (event: React.MouseEvent, node: CustomNode) => {
+    if (node.data?.settings) {
+      setSettings(node.data.settings);
+      updateParentNodes(node.id);
+      setSelectedNode(node);
+    }
+  };
 
-  const handleDragStart = (
-    e: React.DragEvent<HTMLDivElement>,
-    service: Service,
-  ): void => {
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, service: Service): void => {
     const serviceData = { name: service.name };
     e.dataTransfer.setData("service", JSON.stringify(serviceData));
   };
@@ -111,17 +85,13 @@ export default function Page({ params }: { params: { triggerID: string } }) {
   const handleDrop = (e: React.DragEvent<HTMLDivElement>): void => {
     e.preventDefault();
     const reactFlowBounds = e.currentTarget.getBoundingClientRect();
-    const droppedService = JSON.parse(e.dataTransfer.getData("service")) as {
-      name: string;
-    };
+    const droppedService = JSON.parse(e.dataTransfer.getData("service")) as { name: string };
     const position = {
       x: e.clientX - reactFlowBounds.left,
       y: e.clientY - reactFlowBounds.top,
     };
 
-    const newService = services.find(
-      (service) => service.name === droppedService.name,
-    );
+    const newService = services.find((service) => service.name === droppedService.name);
     if (newService) {
       const newNode: CustomNode = {
         id: `${droppedService.name}-${customNodes.length}`,
@@ -137,44 +107,8 @@ export default function Page({ params }: { params: { triggerID: string } }) {
         },
         style: { border: "1px solid #ccc", padding: 10 },
       };
-
       setCustomNodes((nds) => [...nds, newNode]);
     }
-  };
-
-  const handleNodeClick = (event: React.MouseEvent, node: CustomNode) => {
-    if (node.data?.settings) {
-      setSettings(node.data.settings);
-      updateParentNodes(node.id);
-      setSelectedNode(node);
-    }
-  };
-
-  const updateParentNodes = (nodeId: string) => {
-    const parentNodes = findParentNodes(nodeId, edges, customNodes);
-    setParentNodes(parentNodes);
-  };
-
-  const findParentNodes = (
-    nodeId: string,
-    edges: Edge[],
-    nodes: CustomNode[],
-    visited: Set<string> = new Set(),
-  ): CustomNode[] => {
-    if (visited.has(nodeId)) return [];
-    visited.add(nodeId);
-
-    const parentEdges = edges.filter((edge) => edge.target === nodeId);
-    const parentNodes = parentEdges
-      .map((edge) => nodes.find((node) => node.id === edge.source))
-      .filter(Boolean) as CustomNode[];
-
-    return [
-      ...parentNodes,
-      ...parentNodes.flatMap((parentNode) =>
-        findParentNodes(parentNode.id, edges, nodes, visited),
-      ),
-    ];
   };
 
   const mutation = useMutation({
@@ -192,10 +126,7 @@ export default function Page({ params }: { params: { triggerID: string } }) {
           y_pos: n.y_pos,
         };
       }
-      setTriggerWorkspace({
-        id: data.id,
-        nodes: nodes,
-      });
+      setTriggerWorkspace({ id: data.id, nodes });
     },
   });
 
@@ -206,49 +137,21 @@ export default function Page({ params }: { params: { triggerID: string } }) {
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
-      <div className="w-auto p-5">
-        <Card className="h-full">
-          <p className="font-bold text-2xl p-3">Services</p>
-          <CardContent className="flex flex-col items-center justify-start h-full py-5 gap-4">
-            {services.map((item, key) => (
-              <div
-                key={key}
-                draggable
-                onDragStart={(e) => handleDragStart(e, item)}
-                className="cursor-move"
-              >
-                <TriggerDraggable service={item} className="w-[200px]" />
-              </div>
-            ))}
-            <Button
-              className="w-full text-md rounded-full bg-gradient-to-r from-blue-500 via-violet-500 to-fuchsia-500 hover:bg-gradient-to-r hover:from-blue-600 hover:via-violet-600 hover:to-fuchsia-600 animate-gradient text-white"
-              onClick={handleOnClick}
-            >
-              Deploy Trigger
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-      <div className="w-full p-5">
-        <Card className="w-full h-full">
-          <CardContent
-            className="flex flex-row flex-wrap py-5 gap-x-4 h-full"
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-          >
-            <ReactFlow
-              nodes={customNodes}
-              edges={edges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-              onNodeClick={handleNodeClick}
-            >
-              <Background />
-            </ReactFlow>
-          </CardContent>
-        </Card>
-      </div>
+      <ServicesComponent
+        services={services}
+        handleDragStart={handleDragStart}
+        handleOnClick={handleOnClick}
+      />
+      <ReactFlowComponent
+        customNodes={customNodes}
+        setCustomNodes={setCustomNodes}
+        edges={edges}
+        setEdges={setEdges}
+        handleNodeClick={handleNodeClick}
+        handleDrop={handleDrop}
+        handleDragOver={handleDragOver}
+        updateParentNodes={updateParentNodes}
+      />
       <div className="p-5">
         {settings && (
           <ConfigMenu
@@ -261,3 +164,25 @@ export default function Page({ params }: { params: { triggerID: string } }) {
     </div>
   );
 }
+
+const findParentNodes = (
+  nodeId: string,
+  edges: Edge[],
+  nodes: CustomNode[],
+  visited: Set<string> = new Set(),
+): CustomNode[] => {
+  if (visited.has(nodeId)) return [];
+  visited.add(nodeId);
+
+  const parentEdges = edges.filter((edge) => edge.target === nodeId);
+  const parentNodes = parentEdges
+    .map((edge) => nodes.find((node) => node.id === edge.source))
+    .filter(Boolean) as CustomNode[];
+
+  return [
+    ...parentNodes,
+    ...parentNodes.flatMap((parentNode) =>
+      findParentNodes(parentNode.id, edges, nodes, visited),
+    ),
+  ];
+};
