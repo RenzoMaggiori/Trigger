@@ -152,57 +152,57 @@ services:
     ports:
       - "${SETTINGS_PORT}:${SETTINGS_PORT}"
 
-  # action:
-  #   container_name: trigger-action-instance
-  #   build:
-  #     context: ..
-  #     dockerfile: ./deploy/dockerfiles/action.Dockerfile
-  #   networks:
-  #     - trigger
-  #   environment:
-  #     MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-  #     MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
-  #     MONGO_PORT: ${MONGO_PORT}
-  #     MONGO_HOST: ${MONGO_HOST}
-  #     MONGO_DB: ${MONGO_DB}
+  action:
+    container_name: trigger-action-instance
+    build:
+      context: ..
+      dockerfile: ./deploy/dockerfiles/action.Dockerfile
+    networks:
+      - trigger
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_PORT: ${MONGO_PORT}
+      MONGO_HOST: ${MONGO_HOST}
+      MONGO_DB: ${MONGO_DB}
 
-  #     AUTH_SERVICE_BASE_URL: ${AUTH_SERVICE_BASE_URL}
-  #     USER_SERVICE_BASE_URL: ${USER_SERVICE_BASE_URL}
-  #     SESSION_SERVICE_BASE_URL: ${SESSION_SERVICE_BASE_URL}
-  #     ACTION_SERVICE_BASE_URL: ${ACTION_SERVICE_BASE_URL}
-  #     GMAIL_SERVICE_BASE_URL: ${GMAIL_SERVICE_BASE_URL}
+      AUTH_SERVICE_BASE_URL: ${AUTH_SERVICE_BASE_URL}
+      USER_SERVICE_BASE_URL: ${USER_SERVICE_BASE_URL}
+      SESSION_SERVICE_BASE_URL: ${SESSION_SERVICE_BASE_URL}
+      ACTION_SERVICE_BASE_URL: ${ACTION_SERVICE_BASE_URL}
+      GMAIL_SERVICE_BASE_URL: ${GMAIL_SERVICE_BASE_URL}
 
-  #     ADMIN_TOKEN: ${ADMIN_TOKEN}
+      ADMIN_TOKEN: ${ADMIN_TOKEN}
 
-  #     ACTION_PORT: ${ACTION_PORT}
-  #   ports:
-  #     - "${ACTION_PORT}:${ACTION_PORT}"
+      ACTION_PORT: ${ACTION_PORT}
+    ports:
+      - "${ACTION_PORT}:${ACTION_PORT}"
 
-  # gmail:
-  #   container_name: trigger-gmail-instance
-  #   build:
-  #     context: ..
-  #     dockerfile: ./deploy/dockerfiles/gmail.Dockerfile
-  #   networks:
-  #     - trigger
-  #   environment:
-  #     MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-  #     MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
-  #     MONGO_PORT: ${MONGO_PORT}
-  #     MONGO_HOST: ${MONGO_HOST}
-  #     MONGO_DB: ${MONGO_DB}
+  gmail:
+    container_name: trigger-gmail-instance
+    build:
+      context: ..
+      dockerfile: ./deploy/dockerfiles/gmail.Dockerfile
+    networks:
+      - trigger
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_PORT: ${MONGO_PORT}
+      MONGO_HOST: ${MONGO_HOST}
+      MONGO_DB: ${MONGO_DB}
 
-  #     AUTH_SERVICE_BASE_URL: ${AUTH_SERVICE_BASE_URL}
-  #     USER_SERVICE_BASE_URL: ${USER_SERVICE_BASE_URL}
-  #     SESSION_SERVICE_BASE_URL: ${SESSION_SERVICE_BASE_URL}
-  #     ACTION_SERVICE_BASE_URL: ${ACTION_SERVICE_BASE_URL}
-  #     GMAIL_SERVICE_BASE_URL: ${GMAIL_SERVICE_BASE_URL}
+      AUTH_SERVICE_BASE_URL: ${AUTH_SERVICE_BASE_URL}
+      USER_SERVICE_BASE_URL: ${USER_SERVICE_BASE_URL}
+      SESSION_SERVICE_BASE_URL: ${SESSION_SERVICE_BASE_URL}
+      ACTION_SERVICE_BASE_URL: ${ACTION_SERVICE_BASE_URL}
+      GMAIL_SERVICE_BASE_URL: ${GMAIL_SERVICE_BASE_URL}
 
-  #     ADMIN_TOKEN: ${ADMIN_TOKEN}
+      ADMIN_TOKEN: ${ADMIN_TOKEN}
 
-  #     GMAIL_PORT: ${GMAIL_PORT}
-  #   ports:
-  #     - "${GMAIL_PORT}:${GMAIL_PORT}"
+      GMAIL_PORT: ${GMAIL_PORT}
+    ports:
+      - "${GMAIL_PORT}:${GMAIL_PORT}"
 
 volumes:
   mongo_data:
