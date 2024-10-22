@@ -41,7 +41,7 @@ function EmailSettings({ node, type }: { node: NodeItem, type: string }) {
   };
 
   const inputs = [
-    { label: "Destination", placeholder: "example@example.com" },
+    { label: "Destination", placeholder: "example@example.com", type: "email" },
     { label: "Title", placeholder: "Example title..." },
     { label: "Subject", placeholder: "Example subject..." },
   ];
@@ -60,6 +60,7 @@ function EmailSettings({ node, type }: { node: NodeItem, type: string }) {
                 placeholder={item.placeholder}
                 onChange={(e) => handleFieldChange(type, item.label, e.target.value)}
                 value={node.fields[type]?.[item.label] || ""}
+                type={item.type}
               />
             </div>
           ))}
@@ -76,11 +77,11 @@ function EmailSettings({ node, type }: { node: NodeItem, type: string }) {
       ) : (
         <div className="flex flex-col gap-y-4">
           <Label>Source</Label>
-              <Input
-                placeholder="example@example.com"
-                onChange={(e) => handleFieldChange(type, "Source", e.target.value)}
-                value={node.fields[type]?.["Source"] || ""}
-              />
+          <Input
+            placeholder="example@example.com"
+            onChange={(e) => handleFieldChange(type, "Source", e.target.value)}
+            value={node.fields[type]?.["Source"] || ""}
+          />
         </div>
       )}
     </>
@@ -88,7 +89,7 @@ function EmailSettings({ node, type }: { node: NodeItem, type: string }) {
 }
 
 function DiscordSettings({ node, type }: { node: NodeItem, type: string }) {
-  const [messageType, setMessageType] = React.useState<Status | null>({label: "Normal Message", value: "Normal"});
+  const [messageType, setMessageType] = React.useState<Status | null>({ label: "Normal Message", value: "Normal" });
   const [embedFields, setEmbedFields] = React.useState<
     { name: string; value: string }[]
   >([]);
@@ -136,7 +137,7 @@ function DiscordSettings({ node, type }: { node: NodeItem, type: string }) {
           Select Message Type
         </Label>
         <Combox
-          statuses={[{label: "Normal Message", value: "Normal"}, {label: "Embeded Message", value: "Embed"}]}
+          statuses={[{ label: "Normal Message", value: "Normal" }, { label: "Embeded Message", value: "Embed" }]}
           selectedStatus={messageType}
           setSelectedStatus={setMessageType}
           label="Select Message Type"

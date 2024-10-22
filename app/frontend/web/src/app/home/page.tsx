@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { LogoIcon } from '@/components/ui/logoIcon'
 import { SideMenu } from './components/sidemenu';
+import { getWorkspaces } from './lib/get-workspace'
+import { useMutation } from '@tanstack/react-query'
 
 const page = () => {
     const triggers = [
@@ -27,6 +29,9 @@ const page = () => {
         { title: "Card one", href: "/", img: "https://fakeimg.pl/300x200" },
     ]
 
+    const mutation = useMutation({
+        mutationFn: getWorkspaces,
+    });
 
     return (
         <div className='flex h-screen w-full overflow-hidden'>

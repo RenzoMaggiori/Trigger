@@ -14,6 +14,10 @@ import { FaCircle } from "react-icons/fa6";
 import { useMutation } from '@tanstack/react-query';
 import { getConnections } from './lib/get-conections';
 import { env } from '@/lib/env';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 type SettingsProps = {
     name: string
@@ -27,7 +31,7 @@ const services: SettingsProps[] = [
         icon: <FcGoogle className='w-5 h-5' />,
         fields: {
             "Show on Profile": true,
-            "Connection": false
+            "Connected": true,
         }
     },
     {
@@ -35,7 +39,7 @@ const services: SettingsProps[] = [
         icon: <FaDiscord className='w-5 h-5 text-blue-500' />,
         fields: {
             "Show on Profile": true,
-            "Connection": false
+            "Connected": false,
         }
     },
     {
@@ -43,7 +47,7 @@ const services: SettingsProps[] = [
         icon: <FaSlack className='w-5 h-5' />,
         fields: {
             "Show on Profile": true,
-            "Connection": false
+            "Connected": true,
         }
     },
     {
@@ -51,7 +55,7 @@ const services: SettingsProps[] = [
         icon: <PiMicrosoftOutlookLogo className='w-5 h-5 text-black' />,
         fields: {
             "Show on Profile": true,
-            "Connection": true
+            "Connected": false,
         }
     },
     {
@@ -59,13 +63,13 @@ const services: SettingsProps[] = [
         icon: <IoLogoGithub className='w-5 h-5' />,
         fields: {
             "Show on Profile": true,
-            "Connection": false
+            "Connected": true,
         }
     },
 ];
 
 const page = () => {
-    const [serviceList, setServiceList] = React.useState(services);
+    const [serviceList, setServiceList] = React.useState<SettingsProps[]>(services);
 
     const handleSwitchChange = (serviceIndex: number, fieldKey: string, provider: string) => {
         const updatedServices = [...serviceList];
@@ -78,6 +82,16 @@ const page = () => {
     const mutation = useMutation({
         mutationFn: getConnections,
     });
+
+    const handleConnectionClick = (active: boolean, serviceIndex: number, fieldKey: string, provider: string) => {
+        const updatedServices = [...serviceList];
+        if (!active) {
+            updatedServices[serviceIndex].fields[fieldKey] ? window.location.href = `${env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/auth/sync?=${provider}` : window.location.href = `${env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/auth/disconect?=${provider}`
+            updatedServices[serviceIndex].fields[fieldKey] = true;
+        } else
+            updatedServices[serviceIndex].fields[fieldKey] = false;
+        setServiceList(updatedServices);
+    }
 
     return (
         <div className='flex flex-col w-full h-full items-center justify-center gap-5'>
@@ -104,11 +118,37 @@ const page = () => {
                                     {Object.entries(item.fields).map(([fieldName, isActive], index) => (
                                         <div key={index} className='flex flex-row w-full items-center justify-between text-black font-bold'>
                                             {fieldName}
-                                            <Switch
-                                                className='data-[state=checked]:bg-green-400 data-[state=unchecked]:bg-red-500'
-                                                checked={isActive}
-                                                onClick={() => handleSwitchChange(key, fieldName, item.name.toLowerCase())}
-                                            />
+                                            {fieldName !== "Connected" ? (
+
+                                                <Switch
+                                                    className='data-[state=checked]:bg-green-400 data-[state=unchecked]:bg-red-500'
+                                                    checked={isActive}
+                                                    onClick={() => handleSwitchChange(key, fieldName, item.name.toLowerCase())}
+                                                />
+
+                                            ) : (
+                                                <Dialog>
+                                                    <DialogTrigger asChild>
+                                                        <Button variant="outline">{isActive ? "Disconect" : "Connect"}</Button>
+                                                    </DialogTrigger>
+                                                    <DialogContent className="">
+                                                        <DialogHeader>
+                                                            <DialogTitle className='text-2xl'>{isActive ? "Disconect" : "Connect"} {item.name}</DialogTitle>
+                                                            <DialogDescription className='text-xl'>
+                                                                Are you sure you want to {isActive ? "disconect" : "connect"} {item.name}?
+                                                            </DialogDescription>
+                                                        </DialogHeader>
+                                                        <DialogFooter className='mt-5'>
+                                                            <DialogClose asChild>
+                                                                <Button variant='outline'>Cancel</Button>
+                                                            </DialogClose>
+                                                            <DialogClose>
+                                                                <Button onClick={() => handleConnectionClick(isActive, key, fieldName, item.name.toLowerCase())}>{isActive ? "Disconect" : "Connect"}</Button>
+                                                            </DialogClose>
+                                                        </DialogFooter>
+                                                    </DialogContent>
+                                                </Dialog>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
