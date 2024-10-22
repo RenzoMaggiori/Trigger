@@ -60,7 +60,7 @@ RUN cp /app/android/app/build/outputs/apk/release/app-release.apk /app/dist/
 RUN npm install -g http-server
 
 # Expose port
-ENV MOBILE_PORT=${MOBILE_PORT:-8080}
+ENV MOBILE_PORT=${MOBILE_PORT}
 EXPOSE ${MOBILE_PORT}
 
 # Start the HTTP server

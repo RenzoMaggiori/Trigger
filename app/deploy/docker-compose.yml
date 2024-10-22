@@ -233,6 +233,18 @@ services:
     ports:
       - "${MOBILE_PORT}:${MOBILE_PORT}"
 
+  web:
+    container_name: trigger-web-instance
+    build:
+      context: ..
+      dockerfile: ./deploy/dockerfiles/frontend/web.Dockerfile
+    networks:
+      - trigger
+    environment:
+      WEB_PORT: ${WEB_PORT}
+    ports:
+      - "${WEB_PORT}:${WEB_PORT}"
+
 volumes:
   mongo_data:
     driver: local
