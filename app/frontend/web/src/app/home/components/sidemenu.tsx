@@ -4,11 +4,12 @@ import { GrDocumentImage } from "react-icons/gr";
 import { MdAddBox, MdLogout } from "react-icons/md";
 import { SiGooglegemini } from "react-icons/si";
 import { useMutation } from "@tanstack/react-query";
-
+import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { newTrigger } from "@/app/home/lib/new-trigger";
 
 export const SideMenu = () => {
+  const [loading, setLoading] = React.useState<boolean>(false);
   const links = [
     {
       name: "Templates",
@@ -34,6 +35,7 @@ export const SideMenu = () => {
   });
 
   const handleClick = () => {
+    setLoading(true)
     mutation.mutate();
   };
 
@@ -48,8 +50,13 @@ export const SideMenu = () => {
         <Button
           onClick={handleClick}
           className="bg-gradient-to-r from-blue-500 via-violet-500 to-fuchsia-500 hover:bg-gradient-to-r hover:from-blue-600 hover:via-violet-600 hover:to-fuchsia-600 animate-gradient text-white mb-5"
+          disabled={loading}
         >
-          <MdAddBox className="text-white mr-2 w-5 h-5" />
+          {loading ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <MdAddBox className="text-white mr-2 w-5 h-5" />
+          )}
           <p className="text-xl">Create Trigger</p>
         </Button>
         {links.map((item, key) => (
