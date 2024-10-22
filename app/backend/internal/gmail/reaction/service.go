@@ -7,14 +7,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 
 	"trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/internal/session"
 	"trigger.com/trigger/internal/user"
 
-	"trigger.com/trigger/pkg/decode"
+	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
 )
 
@@ -28,8 +27,6 @@ func createRawEmail(from string, to string, subject string, body string) (string
 
 	rawMessage := base64.StdEncoding.EncodeToString(email.Bytes())
 
-	// * Gmail's API requires the base64-encoded message to be in a URL-safe format without padding
-	// * So we replace this characters with safe ones for URL-safe base64 encoding
 	rawMessage = strings.ReplaceAll(rawMessage, "+", "-")
 	rawMessage = strings.ReplaceAll(rawMessage, "/", "_")
 	rawMessage = strings.TrimRight(rawMessage, "=")
@@ -37,64 +34,27 @@ func createRawEmail(from string, to string, subject string, body string) (string
 	return rawMessage, nil
 }
 
-func (m Model) Action(ctx context.Context, actionNode workspace.ActionNodeModel) error {
+func (m Model) Reaction(ctx context.Context, actionNode workspace.ActionNodeModel) error {
 	accessToken := ctx.Value(AccessTokenCtxKey).(string)
 
-	res, err := fetch.Fetch(
-		&http.Client{},
-		fetch.NewFetchRequest(
-			http.MethodGet,
-			fmt.Sprintf("%s/api/session/access_token/%s", os.Getenv("SESSION_SERVICE_BASE_URL"), accessToken),
-			nil,
-			map[string]string{
-				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
-			},
-		),
-	)
+	session, _, err := session.GetSessionByTokenRequest(accessToken)
+
 	if err != nil {
 		return err
 	}
-
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		return errSessionNotFound
-	}
-	session, err := decode.Json[session.SessionModel](res.Body)
+	user, _, err := user.GetUserByIdRequest(accessToken, session.UserId.Hex())
 
 	if err != nil {
 		return err
 	}
 
-	res, err = fetch.Fetch(
-		&http.Client{},
-		fetch.NewFetchRequest(
-			http.MethodGet,
-			fmt.Sprintf("%s/api/user/%s", os.Getenv("USER_SERVICE_BASE_URL"), session.UserId),
-			nil,
-			map[string]string{
-				"Authorization": accessToken,
-			},
-		),
-	)
-	if err != nil {
-		return err
-	}
-
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		return errUserNotFound
-	}
-	user, err := decode.Json[user.UserModel](res.Body)
-
-	if err != nil {
-		return err
-	}
-
+	// TODO: Populate the email with the Input from the actionNode
 	rawEmail, err := createRawEmail(user.Email, user.Email, "Hello world", "AAAAAAAAAA")
 
 	if err != nil {
-		return fmt.Errorf("failed to create raw email: %v", err)
+		return errors.ErrFailedToCreateEmail
 	}
+
 	requestBody := fmt.Sprintf(`{"raw": "%s"}`, rawEmail)
 
 	body, err := json.Marshal(requestBody)
@@ -103,7 +63,7 @@ func (m Model) Action(ctx context.Context, actionNode workspace.ActionNodeModel)
 		return err
 	}
 
-	res, err = fetch.Fetch(
+	res, err := fetch.Fetch(
 		&http.Client{},
 		fetch.NewFetchRequest(
 			http.MethodPost,
@@ -117,6 +77,10 @@ func (m Model) Action(ctx context.Context, actionNode workspace.ActionNodeModel)
 	)
 	if err != nil {
 		return err
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return errors.ErrFailedToSendEmail
 	}
 
 	return nil

@@ -49,7 +49,7 @@ func Auth(next http.Handler) http.Handler {
 			http.Error(w, "internal server error", http.StatusInternalServerError)
 			return
 		}
-		log.Println("middleware: ", token)
+
 		next.ServeHTTP(
 			w,
 			r.WithContext(

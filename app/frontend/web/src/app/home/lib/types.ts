@@ -2,7 +2,6 @@ import { z } from "zod";
 
 export const triggerSchema = z.object({
   id: z.string(),
-  userId: z.string(),
   nodes: z.array(
     z.object({
       node_id: z.string(),

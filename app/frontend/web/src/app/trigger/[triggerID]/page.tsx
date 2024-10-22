@@ -15,6 +15,7 @@ import {
   applyEdgeChanges,
   Background,
   Connection,
+  MiniMap,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { ConfigMenu } from "@/app/trigger/components/config-menu";

@@ -9,7 +9,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-const CtxKey string = "MongoCtxKey"
+type MongoDBCtx string
+
+const CtxKey MongoDBCtx = MongoDBCtx("MongoCtxKey")
 
 func Open(connectionString string) (*mongo.Client, context.Context, error) {
 	ctx := context.TODO()

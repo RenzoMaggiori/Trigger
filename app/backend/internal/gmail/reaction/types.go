@@ -10,7 +10,7 @@ type GmailReactionCtx string
 const AccessTokenCtxKey GmailReactionCtx = GmailReactionCtx("AuthorizationCtxKey")
 
 type Service interface {
-	action.Action
+	action.Reaction
 }
 
 type Handler struct {

@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import React from "react";
 import { useMenu } from "@/app/trigger/components/MenuProvider";
 import { NodeItem } from "@/app/trigger/lib/types";
+import { Combox, Status } from "@/components/ui/combox";
 
 const InputComponent = ({
   label,
@@ -87,14 +88,11 @@ function EmailSettings({ node, type }: { node: NodeItem, type: string }) {
 }
 
 function DiscordSettings({ node, type }: { node: NodeItem, type: string }) {
-  const [messageType, setMessageType] = React.useState<string>("Normal");
+  const [messageType, setMessageType] = React.useState<Status | null>({label: "Normal Message", value: "Normal"});
   const [embedFields, setEmbedFields] = React.useState<
     { name: string; value: string }[]
   >([]);
 
-  const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setMessageType(e.target.value);
-  };
   const handleAddField = () => {
     setEmbedFields([...embedFields, { name: "", value: "" }]);
   };
@@ -137,18 +135,15 @@ function DiscordSettings({ node, type }: { node: NodeItem, type: string }) {
         >
           Select Message Type
         </Label>
-        <select
-          id="message-type-dropdown"
-          value={messageType}
-          onChange={handleTypeChange}
-          className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-        >
-          <option value="Normal">Normal Message</option>
-          <option value="Embed">Embedded Message</option>
-        </select>
+        <Combox
+          statuses={[{label: "Normal Message", value: "Normal"}, {label: "Embeded Message", value: "Embed"}]}
+          selectedStatus={messageType}
+          setSelectedStatus={setMessageType}
+          label="Select Message Type"
+        />
       </div>
 
-      {messageType === "Normal" ? (
+      {messageType?.value === "Normal" ? (
         <div className="normal-message-settings">
           <Label
             htmlFor="normal-message-content"

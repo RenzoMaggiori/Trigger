@@ -5,6 +5,8 @@ import (
 	"trigger.com/trigger/pkg/action"
 )
 
+const googleTriggerActionName = "watch"
+
 type WorkspaceCtx string
 
 const WorkspaceCtxKey WorkspaceCtx = WorkspaceCtx("WorkspaceCtxKey")
