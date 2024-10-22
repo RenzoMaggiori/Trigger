@@ -1,5 +1,5 @@
-# Use Node.js 18 with Debian Bullseye as the base image
-FROM node:18-bullseye
+# Use Node.js 18 with Debian Bullseye as the base image for amd64
+FROM --platform=linux/arm64 node:18-bullseye
 
 # Set environment variables for Android SDK
 ENV ANDROID_SDK_ROOT=/opt/android-sdk
@@ -35,16 +35,22 @@ COPY ./frontend/mobile/ /app
 RUN npm install
 
 # Set environment variables
-ENV GRADLE_OPTS="-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8"
+# ENV GRADLE_OPTS="-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8"
 
 # Ensure gradlew has execute permissions
-RUN chmod +x /app/android/gradlew
+# RUN chmod +x /app/android/gradlew
 
 # Clean the project before building
-RUN cd android && ./gradlew clean
+# RUN cd android && ./gradlew clean
 
 # Build the APK with detailed logs and disable parallel execution
-RUN cd android && ./gradlew assembleRelease --no-daemon --no-parallel --stacktrace --info
+# RUN cd android && ./gradlew assembleRelease --no-daemon --no-parallel --stacktrace --info
+
+# To generate all the Android and IOS files
+RUN npx expo prebuild
+
+# If you want to sign the APK and publish to Google Play Store.
+RUN npx react-native build-android --mode=release
 
 # Create a directory to store the built APK and copy it there
 RUN mkdir -p /app/dist
