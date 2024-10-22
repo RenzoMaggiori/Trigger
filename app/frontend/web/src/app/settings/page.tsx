@@ -142,7 +142,9 @@ const page = () => {
                                                             <DialogClose asChild>
                                                                 <Button variant='outline'>Cancel</Button>
                                                             </DialogClose>
-                                                            <Button onClick={() => handleConnectionClick(isActive, key, fieldName, item.name.toLowerCase())}>{isActive ? "Disconect" : "Connect"}</Button>
+                                                            <DialogClose>
+                                                                <Button onClick={() => handleConnectionClick(isActive, key, fieldName, item.name.toLowerCase())}>{isActive ? "Disconect" : "Connect"}</Button>
+                                                            </DialogClose>
                                                         </DialogFooter>
                                                     </DialogContent>
                                                 </Dialog>
