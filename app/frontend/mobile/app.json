@@ -13,17 +13,14 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.trigger.apptrigger"
+      "supportsTablet": true
     },
     "android": {
-      "package": "com.trigger.apptrigger",
-      "enableHermes": false,
-      "jsEngine": "jsc",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": ["INTERNET"]
     },
     "web": {
       "bundler": "metro",
