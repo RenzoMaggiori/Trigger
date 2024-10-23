@@ -45,6 +45,7 @@ services:
       GITHUB_SECRET: ${GITHUB_SECRET}
 
       AUTH_PORT: ${AUTH_PORT}
+      WEB_PORT: ${WEB_PORT}
     ports:
       - "${AUTH_PORT}:${AUTH_PORT}"
 
