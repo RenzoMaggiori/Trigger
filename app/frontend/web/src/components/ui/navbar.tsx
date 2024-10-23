@@ -66,13 +66,13 @@ const authButtons = [
 ];
 
 export function Navbar() {
-  const [isHomePage, setIsHomePage] = React.useState<Boolean>(false);
-  const [loggedIn, setLoggedIn] = React.useState<Boolean>(false);
+  const [isHomePage, setIsHomePage] = React.useState<boolean>(false);
+  const [loggedIn, setLoggedIn] = React.useState<boolean>(false);
 
   React.useEffect(() => {
     const isUserLoggedIn = document.cookie
-      .split(';')
-      .some((cookie) => cookie.trim().startsWith('Authentication='));
+      .split(";")
+      .some((cookie) => cookie.trim().startsWith("Authentication="));
 
     setLoggedIn(isUserLoggedIn);
   }, []);
@@ -139,24 +139,26 @@ export function Navbar() {
                 ))}
             </div>
             <div className="w-full flex flex-col mt-auto gap-5">
-              {loggedIn ? authButtons.map((item, key) => (
-                <Button
-                  key={key}
-                  className={item.className}
-                  variant={
-                    item.variant as
-                      | "outline"
-                      | "default"
-                      | "link"
-                      | "destructive"
-                      | "secondary"
-                      | "ghost"
-                  }
-                  asChild
-                >
-                  <Link href={item.href}>{item.name}</Link>
-                </Button>
-              )) : (
+              {loggedIn ? (
+                authButtons.map((item, key) => (
+                  <Button
+                    key={key}
+                    className={item.className}
+                    variant={
+                      item.variant as
+                        | "outline"
+                        | "default"
+                        | "link"
+                        | "destructive"
+                        | "secondary"
+                        | "ghost"
+                    }
+                    asChild
+                  >
+                    <Link href={item.href}>{item.name}</Link>
+                  </Button>
+                ))
+              ) : (
                 <Button className="bg-red-500 hover:bg-red-600 text-xl rounded-full">
                   Log Out
                 </Button>
@@ -176,24 +178,26 @@ export function Navbar() {
           </div>
         </div>
         <div className="absolute gap-x-4 right-6 hidden md:flex">
-          {!loggedIn ? authButtons.map((item, key) => (
-            <Button
-              key={key}
-              className={item.className}
-              variant={
-                item.variant as
-                  | "outline"
-                  | "default"
-                  | "link"
-                  | "destructive"
-                  | "secondary"
-                  | "ghost"
-              }
-              asChild
-            >
-              <Link href={item.href}>{item.name}</Link>
-            </Button>
-          )) : (
+          {!loggedIn ? (
+            authButtons.map((item, key) => (
+              <Button
+                key={key}
+                className={item.className}
+                variant={
+                  item.variant as
+                    | "outline"
+                    | "default"
+                    | "link"
+                    | "destructive"
+                    | "secondary"
+                    | "ghost"
+                }
+                asChild
+              >
+                <Link href={item.href}>{item.name}</Link>
+              </Button>
+            ))
+          ) : (
             <Avatar>
               <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
               <AvatarFallback>CN</AvatarFallback>

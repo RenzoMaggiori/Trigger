@@ -1,5 +1,5 @@
 # Use Node.js 18 with Debian Bullseye as the base image for amd64
-FROM --platform=linux/arm64 node:18-bullseye
+FROM node:18-bullseye
 
 # Set environment variables for Android SDK
 ENV ANDROID_SDK_ROOT=/opt/android-sdk

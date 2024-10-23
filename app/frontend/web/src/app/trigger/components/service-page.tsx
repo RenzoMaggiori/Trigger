@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { TriggerDraggable } from "@/app/trigger/components/trigger-draggable";
@@ -8,11 +8,18 @@ import { Loader2 } from "lucide-react";
 
 interface ServicesProps {
   services: Service[];
-  handleDragStart: (e: React.DragEvent<HTMLDivElement>, service: Service) => void;
+  handleDragStart: (
+    e: React.DragEvent<HTMLDivElement>,
+    service: Service,
+  ) => void;
   handleOnClick: () => void;
 }
 
-export const ServicesComponent: React.FC<ServicesProps> = ({ services, handleDragStart, handleOnClick }) => {
+export const ServicesComponent: React.FC<ServicesProps> = ({
+  services,
+  handleDragStart,
+  handleOnClick,
+}) => {
   const [loading, setLoading] = React.useState<boolean>(false);
 
   return (
@@ -38,9 +45,7 @@ export const ServicesComponent: React.FC<ServicesProps> = ({ services, handleDra
             }}
             disabled={loading}
           >
-            {loading && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            )}
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Deploy Trigger
           </Button>
         </CardContent>

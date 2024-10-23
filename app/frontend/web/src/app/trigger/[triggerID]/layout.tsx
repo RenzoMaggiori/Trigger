@@ -1,8 +1,10 @@
-"use client"
-import React from 'react'
-import { MenuProvider } from '../components/MenuProvider'
+"use client";
 
-export default function layout({ children }: { children: React.ReactNode }) {
+import React from "react";
+
+import { MenuProvider } from "@/app/trigger/components/MenuProvider";
+
+export default function Layout({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -10,9 +12,5 @@ export default function layout({ children }: { children: React.ReactNode }) {
   }, []);
 
   if (!mounted) return null;
-  return (
-    <MenuProvider>
-      {children}
-    </MenuProvider>
-  )
+  return <MenuProvider>{children}</MenuProvider>;
 }

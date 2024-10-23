@@ -1,15 +1,27 @@
 #! /usr/bin/env bash
 
 docker compose down
-docker compose build
-docker compose up --no-start
-docker compose start db
-docker compose start auth
-docker compose start user
-docker compose start session
-docker compose start action
-docker compose start gmail
-docker compose start sync
-docker compose start settings
-docker compose start github
+if [ $? -ne 0 ]; then
+    echo "Error: 'docker compose down' failed."
+    exit 1
+fi
 
+services="db auth user session action gmail sync settings github"
+
+docker compose build $services
+if [ $? -ne 0 ]; then
+    echo "Error: 'docker compose build $services' failed."
+    exit 1
+fi
+
+docker compose up --no-start $services
+if [ $? -ne 0 ]; then
+    echo "Error: 'docker compose up --no-start $services' failed."
+    exit 1
+fi
+
+docker compose start $services
+if [ $? -ne 0 ]; then
+    echo "Error: 'docker compose start $services' failed."
+    exit 1
+fi

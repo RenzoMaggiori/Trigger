@@ -3,9 +3,7 @@
 import React from "react";
 import { IoLogoGithub } from "react-icons/io";
 import { FaDiscord } from "react-icons/fa";
-import {
-  type Edge,
-} from "@xyflow/react";
+import { type Edge } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { ConfigMenu } from "@/app/trigger/components/config-menu";
 import { BiLogoGmail } from "react-icons/bi";
@@ -46,26 +44,28 @@ export default function Page({ params }: { params: { triggerID: string } }) {
   const [edges, setEdges] = React.useState<Edge[]>([]);
   const [settings, setSettings] = React.useState<Service["settings"]>();
   const [parentNodes, setParentNodes] = React.useState<CustomNode[]>([]);
-  const [selectedNode, setSelectedNode] = React.useState<CustomNode | null>(null);
+  const [selectedNode, setSelectedNode] = React.useState<CustomNode | null>(
+    null,
+  );
   const { triggerWorkspace, setTriggerWorkspace, setNodes } = useMenu();
 
   React.useEffect(() => {
     setTriggerWorkspace((prev) => prev || { id: params.triggerID, nodes: {} });
-  }, []);
+  }, [params.triggerID, setTriggerWorkspace]);
 
   React.useEffect(() => {
     if (customNodes.length > 0 || edges.length > 0) {
       const transformedNodes = transformCustomNodes(customNodes, edges);
       setNodes(transformedNodes);
     }
-  }, [customNodes, edges]);
+  }, [customNodes, edges, setNodes]);
 
   const updateParentNodes = (nodeId: string) => {
     const parentNodes = findParentNodes(nodeId, edges, customNodes);
     setParentNodes(parentNodes);
   };
 
-  const handleNodeClick = (event: React.MouseEvent, node: CustomNode) => {
+  const handleNodeClick = (_event: React.MouseEvent, node: CustomNode) => {
     if (node.data?.settings) {
       setSettings(node.data.settings);
       updateParentNodes(node.id);
@@ -73,7 +73,10 @@ export default function Page({ params }: { params: { triggerID: string } }) {
     }
   };
 
-  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, service: Service): void => {
+  const handleDragStart = (
+    e: React.DragEvent<HTMLDivElement>,
+    service: Service,
+  ): void => {
     const serviceData = { name: service.name };
     e.dataTransfer.setData("service", JSON.stringify(serviceData));
   };
@@ -85,13 +88,17 @@ export default function Page({ params }: { params: { triggerID: string } }) {
   const handleDrop = (e: React.DragEvent<HTMLDivElement>): void => {
     e.preventDefault();
     const reactFlowBounds = e.currentTarget.getBoundingClientRect();
-    const droppedService = JSON.parse(e.dataTransfer.getData("service")) as { name: string };
+    const droppedService = JSON.parse(e.dataTransfer.getData("service")) as {
+      name: string;
+    };
     const position = {
       x: e.clientX - reactFlowBounds.left,
       y: e.clientY - reactFlowBounds.top,
     };
 
-    const newService = services.find((service) => service.name === droppedService.name);
+    const newService = services.find(
+      (service) => service.name === droppedService.name,
+    );
     if (newService) {
       const newNode: CustomNode = {
         id: `${droppedService.name}-${customNodes.length}`,

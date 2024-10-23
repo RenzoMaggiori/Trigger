@@ -31,24 +31,27 @@ const settingsComponentMap = {
 };
 
 const configMap = [
-  { name: "Trigger", type: "trigger"},
-  { name: "Reaction", type: "reaction"},
-]
+  { name: "Trigger", type: "trigger" },
+  { name: "Reaction", type: "reaction" },
+];
 
 export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
   const { triggerWorkspace, setFields } = useMenu();
+  const nodeItem = triggerWorkspace?.nodes[node?.id || ""];
+  const [configState, setConfigState] = React.useState<Record<string, unknown>>(
+    {
+      trigger: nodeItem?.fields.triggerStatus || "None",
+      reaction: nodeItem?.fields.reactionStatus || "None",
+    },
+  );
 
-  if (!node) return <div>custom node doesn't exist</div>;
-
-  const nodeItem = triggerWorkspace?.nodes[node.id];
+  if (!node) return <div>{"custom node doesn't exist"}</div>;
   if (!nodeItem) return <div>could not find node</div>;
 
-  const [configState, setConfigState] = React.useState<Record<string, any>>(() => ({
-    trigger: nodeItem.fields.triggerStatus || "None",
-    reaction: nodeItem.fields.reactionStatus || "None",
-  }));
-
-  const handleStatusChange = (status: Status | null, configType: "trigger" | "reaction") => {
+  const handleStatusChange = (
+    status: Status | null,
+    configType: "trigger" | "reaction",
+  ) => {
     const newStatus = status?.value || "None";
     setConfigState((prev) => ({
       ...prev,
@@ -91,7 +94,9 @@ export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
         <CardTitle className="flex items-center text-xl font-bold">
           {node?.data?.label} Settings
         </CardTitle>
-        <CardDescription className="ml-2 text-md">ID: {node?.id}</CardDescription>
+        <CardDescription className="ml-2 text-md">
+          ID: {node?.id}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="trigger">
@@ -110,10 +115,16 @@ export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
                 </Label>
                 <Combox
                   statuses={combinedStatuses}
-                  setSelectedStatus={(status) => handleStatusChange(status, item.type === "trigger" ? "trigger" : "reaction")}
+                  setSelectedStatus={(status) =>
+                    handleStatusChange(
+                      status,
+                      item.type === "trigger" ? "trigger" : "reaction",
+                    )
+                  }
                   selectedStatus={
-                    combinedStatuses.find((status) => status.value === configState[item.type]) ||
-                    null
+                    combinedStatuses.find(
+                      (status) => status.value === configState[item.type],
+                    ) || null
                   }
                   label="info"
                   icon={<SiGooglegemini className="mr-2" />}
@@ -122,19 +133,28 @@ export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
 
               {configState[item.type] === "Personalized" && (
                 <div className="p-4 border border-gray-300 rounded-md">
-                  <h4 className="text-lg font-bold mb-2">Personalized {item.name} Settings</h4>
+                  <h4 className="text-lg font-bold mb-2">
+                    Personalized {item.name} Settings
+                  </h4>
                   <SettingsComponent node={nodeItem} type={item.type} />
                 </div>
               )}
 
-              {configState[item.type] !== "Personalized" && configState[item.type] !== "None" && (
-                <div className="mt-4">
-                  <h4 className="font-bold">Selected Parent Node ID:</h4>
-                  <p>{configState[item.type]}</p>
-                  <h4 className="font-bold">Parent Node Label:</h4>
-                  <p>{parentNodes.find((node) => node.id === configState[item.type])?.data.label}</p>
-                </div>
-              )}
+              {configState[item.type] !== "Personalized" &&
+                configState[item.type] !== "None" && (
+                  <div className="mt-4">
+                    <h4 className="font-bold">Selected Parent Node ID:</h4>
+                    <p>{configState[item.type] as string}</p>
+                    <h4 className="font-bold">Parent Node Label:</h4>
+                    <p>
+                      {
+                        parentNodes.find(
+                          (node) => node.id === configState[item.type],
+                        )?.data.label
+                      }
+                    </p>
+                  </div>
+                )}
             </TabsContent>
           ))}
         </Tabs>
