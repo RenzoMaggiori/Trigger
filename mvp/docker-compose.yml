@@ -12,3 +12,4 @@ services:
 volumes:
   mongo_data:
     driver: local
+

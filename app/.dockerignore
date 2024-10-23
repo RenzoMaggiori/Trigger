@@ -1,0 +1,9 @@
+.dockerignore
+.git
+frontend/web/node_modules
+frontend/mobile/node_modules
+frontend/web/npm-debug.log
+frontend/mobile/npm-debug.log
+frontend/web/README.md
+frontend/mobile/README.md
+frontend/web/.next

@@ -17,19 +17,20 @@ interface WordFadeInProps {
   className?: string;
   delay?: number;
   variants?: Variants;
-  as?: 'h1' | 'p';
+  as?: "h1" | "p";
 }
 
 export default function WordFadeIn({
   words,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   delay = 0.15,
   className,
   variants = defaultVariants,
-  as: Element = 'p',
+  as: Element = "p",
 }: WordFadeInProps) {
   const _words = words.split(" ");
 
-  const MotionElement = Element === 'h1' ? motion.h1 : motion.p;
+  const MotionElement = Element === "h1" ? motion.h1 : motion.p;
 
   return (
     <MotionElement
