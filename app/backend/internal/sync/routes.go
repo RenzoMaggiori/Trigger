@@ -34,11 +34,12 @@ func Router(ctx context.Context) (*router.Router, error) {
 		},
 	}
 
+	callback := fmt.Sprintf("http://localhost:%s/api/sync/callback", os.Getenv("SYNC_PORT"))
 	CreateProvider(
 		google.New(
 			os.Getenv("GOOGLE_CLIENT_ID"),
 			os.Getenv("GOOGLE_CLIENT_SECRET"),
-			fmt.Sprintf("%s/api/sync/callback", os.Getenv("SYNC_SERVICE_BASE_URL")),
+			callback,
 			"https://mail.google.com/",
 			"https://www.googleapis.com/auth/documents",
 			"https://www.googleapis.com/auth/drive",
@@ -48,7 +49,7 @@ func Router(ctx context.Context) (*router.Router, error) {
 		github.New(
 			os.Getenv("GITHUB_KEY"),
 			os.Getenv("GITHUB_SECRET"),
-			fmt.Sprintf("%s/api/sync/callback", os.Getenv("SYNC_SERVICE_BASE_URL")),
+			callback,
 		),
 	)
 
