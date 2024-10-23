@@ -15,12 +15,11 @@ import (
 
 func StartActionRequest(accessToken string, actionCompletedNode ActionNodeModel, action action.ActionModel) (int, error) {
 	body, err := json.Marshal(actionCompletedNode)
-
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	actionEnv := fmt.Sprintf("%s_SERVICE_BASE_URL", strings.ToUpper(action.Provider))
 
+	actionEnv := fmt.Sprintf("%s_SERVICE_BASE_URL", strings.ToUpper(action.Provider))
 	res, err := fetch.Fetch(
 		http.DefaultClient,
 		fetch.NewFetchRequest(
@@ -32,24 +31,23 @@ func StartActionRequest(accessToken string, actionCompletedNode ActionNodeModel,
 			},
 		),
 	)
-	if err != nil {
-		return res.StatusCode, err
-	}
 
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
 		return res.StatusCode, errors.ErrSettingAction
 	}
-
 	return res.StatusCode, nil
 }
 
 func StopActionRequest(accessToken string, workspace *WorkspaceModel, actionNode ActionNodeModel, action action.ActionModel) (int, error) {
 	body, err := json.Marshal(actionNode)
-
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
+
 	res, err := fetch.Fetch(
 		http.DefaultClient,
 		fetch.NewFetchRequest(
@@ -62,20 +60,17 @@ func StopActionRequest(accessToken string, workspace *WorkspaceModel, actionNode
 		),
 	)
 	if err != nil {
-		return res.StatusCode, err
+		return http.StatusInternalServerError, err
 	}
-
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
 		return res.StatusCode, errors.ErrSettingAction
 	}
-
 	return res.StatusCode, nil
 }
 
 func ActionCompletedRequest(accessToken string, update ActionCompletedModel) (int, error) {
 	body, err := json.Marshal(update)
-
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -93,13 +88,11 @@ func ActionCompletedRequest(accessToken string, update ActionCompletedModel) (in
 		),
 	)
 	if err != nil {
-		return res.StatusCode, err
+		return http.StatusInternalServerError, err
 	}
-
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
 		return res.StatusCode, errors.ErrCompletingAction
 	}
-
 	return res.StatusCode, nil
 }
