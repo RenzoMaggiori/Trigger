@@ -19,20 +19,18 @@ func GetActionByIdRequest(accessToken string, actionId string) (*ActionModel, in
 			"Authorization": fmt.Sprintf("Bearer %s", accessToken),
 		},
 	))
-
 	if err != nil {
-		return nil, res.StatusCode, errors.ErrFetchingActions
+		return nil, http.StatusInternalServerError, errors.ErrFetchingActions
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
 		return nil, res.StatusCode, errors.ErrFetchingActions
 	}
-	action, err := decode.Json[ActionModel](res.Body)
 
+	action, err := decode.Json[ActionModel](res.Body)
 	if err != nil {
 		return nil, res.StatusCode, err
 	}
-
 	return &action, res.StatusCode, nil
 }
 
@@ -45,20 +43,18 @@ func GetActionsByProviderRequest(accessToken string, provider string) ([]ActionM
 			"Authorization": fmt.Sprintf("Bearer %s", accessToken),
 		},
 	))
-
 	if err != nil {
-		return nil, res.StatusCode, errors.ErrFetchingActions
+		return nil, http.StatusInternalServerError, errors.ErrFetchingActions
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
 		return nil, res.StatusCode, errors.ErrFetchingActions
 	}
-	action, err := decode.Json[[]ActionModel](res.Body)
 
+	action, err := decode.Json[[]ActionModel](res.Body)
 	if err != nil {
 		return nil, res.StatusCode, err
 	}
-
 	return action, res.StatusCode, nil
 }
 
@@ -71,19 +67,17 @@ func GetActionByAction(accessToken string, actionName string) (*ActionModel, int
 			"Authorization": fmt.Sprintf("Bearer %s", accessToken),
 		},
 	))
-
 	if err != nil {
-		return nil, res.StatusCode, errors.ErrFetchingActions
+		return nil, http.StatusInternalServerError, errors.ErrFetchingActions
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
 		return nil, res.StatusCode, errors.ErrFetchingActions
 	}
-	action, err := decode.Json[ActionModel](res.Body)
 
+	action, err := decode.Json[ActionModel](res.Body)
 	if err != nil {
 		return nil, res.StatusCode, err
 	}
-
 	return &action, res.StatusCode, nil
 }
