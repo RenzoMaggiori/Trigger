@@ -121,10 +121,24 @@ func (h *Handler) DeleteSessionById(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) GetByToken(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetByAccessToken(w http.ResponseWriter, r *http.Request) {
 	token := r.PathValue("access_token")
 
-	session, err := h.Service.GetByToken(token)
+	session, err := h.Service.GetByAccessToken(token)
+	if err != nil {
+		customerror.Send(w, err, errCodes)
+		return
+	}
+	if err = encode.Json(w, session); err != nil {
+		customerror.Send(w, err, errCodes)
+		return
+	}
+}
+
+func (h *Handler) GetByTokenId(w http.ResponseWriter, r *http.Request) {
+	token := r.PathValue("token_id")
+
+	session, err := h.Service.GetByTokenId(token)
 	if err != nil {
 		customerror.Send(w, err, errCodes)
 		return

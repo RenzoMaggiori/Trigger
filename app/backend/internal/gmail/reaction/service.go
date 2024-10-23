@@ -6,8 +6,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
-	"strings"
 
 	"trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/internal/session"
@@ -40,35 +41,36 @@ func createRawEmail(from string, to string, subject string, body string) (string
 	email.WriteString("\r\n")
 	email.WriteString(body)
 
-	rawMessage := base64.StdEncoding.EncodeToString(email.Bytes())
-
-	rawMessage = strings.ReplaceAll(rawMessage, "+", "-")
-	rawMessage = strings.ReplaceAll(rawMessage, "/", "_")
-	rawMessage = strings.TrimRight(rawMessage, "=")
+	// Use URL encoding to avoid manual replacements of + and /
+	rawMessage := base64.URLEncoding.EncodeToString(email.Bytes())
 
 	return rawMessage, nil
 }
 
 func (m Model) SendGmail(ctx context.Context, accessToken string, actionNode workspace.ActionNodeModel) error {
-	session, _, err := session.GetSessionByTokenRequest(accessToken)
+	session, _, err := session.GetSessionByAccessTokenRequest(accessToken)
 
 	if err != nil {
 		return err
 	}
+
 	user, _, err := user.GetUserByIdRequest(accessToken, session.UserId.Hex())
 
 	if err != nil {
 		return err
 	}
 
+	// TODO: Replace hardcoded values with: actionNode.Inputs["from"], actionNode.Inputs["to"], ...
 	rawEmail, err := createRawEmail(user.Email,
-		actionNode.Input["to"], actionNode.Input["subject"], actionNode.Input["body"])
+		"johndoe@gmail.com", "asd", "asd")
 
 	if err != nil {
 		return errors.ErrCreatingEmail
 	}
 
-	requestBody := fmt.Sprintf(`{"raw": "%s"}`, rawEmail)
+	requestBody := map[string]string{
+		"raw": rawEmail,
+	}
 
 	body, err := json.Marshal(requestBody)
 
@@ -83,7 +85,7 @@ func (m Model) SendGmail(ctx context.Context, accessToken string, actionNode wor
 			"https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
 			bytes.NewReader(body),
 			map[string]string{
-				"Authorization": accessToken,
+				"Authorization": fmt.Sprintf("Bearer %s", accessToken),
 				"Content-Type":  "application/json",
 			},
 		),
@@ -93,6 +95,11 @@ func (m Model) SendGmail(ctx context.Context, accessToken string, actionNode wor
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
+		bodyBytes, err := io.ReadAll(res.Body)
+		if err != nil {
+			return err
+		}
+		log.Printf("Send gmail body: %s", bodyBytes)
 		return errors.ErrFailedToSendEmail
 	}
 

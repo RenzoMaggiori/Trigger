@@ -8,7 +8,7 @@ import (
 )
 
 /*
-** This defines the expected enviroment variables for the Auth Service
+** This defines the expected enviroment variables for the Github Service
  */
 
 var (

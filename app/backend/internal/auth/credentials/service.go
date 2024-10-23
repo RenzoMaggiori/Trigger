@@ -128,7 +128,7 @@ func (m Model) VerifyToken(token string) error {
 		return nil
 	}
 
-	_, _, err := session.GetSessionByTokenRequest(token)
+	_, _, err := session.GetSessionByAccessTokenRequest(token)
 
 	if err != nil {
 		return err

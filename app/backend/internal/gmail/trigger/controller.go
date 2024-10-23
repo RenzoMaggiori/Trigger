@@ -2,18 +2,23 @@ package trigger
 
 import (
 	"context"
-	"log"
 	"net/http"
 
 	"trigger.com/trigger/internal/action/workspace"
 	customerror "trigger.com/trigger/pkg/custom-error"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/errors"
+	"trigger.com/trigger/pkg/jwt"
 )
 
 func (h *Handler) WatchGmail(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Watching gmail")
-	accessToken := r.Header.Get("Authorization")
+
+	token, err := jwt.FromRequest(r.Header.Get("Authorization"))
+	if err != nil {
+		customerror.Send(w, errors.ErrAuthorizationHeaderNotFound, errors.ErrCodes)
+		return
+	}
+
 	actionNode, err := decode.Json[workspace.ActionNodeModel](r.Body)
 
 	if err != nil {
@@ -21,7 +26,7 @@ func (h *Handler) WatchGmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.Service.Watch(context.WithValue(context.TODO(), AccessTokenCtxKey, accessToken), actionNode)
+	err = h.Service.Watch(context.WithValue(context.TODO(), AccessTokenCtxKey, token), actionNode)
 
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
@@ -47,9 +52,14 @@ func (h *Handler) WebhookGmail(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) StopGmail(w http.ResponseWriter, r *http.Request) {
-	accessToken := r.Header.Get("Authorization")
 
-	err := h.Service.Stop(context.WithValue(context.TODO(), AccessTokenCtxKey, accessToken))
+	token, err := jwt.FromRequest(r.Header.Get("Authorization"))
+	if err != nil {
+		customerror.Send(w, errors.ErrAuthorizationHeaderNotFound, errors.ErrCodes)
+		return
+	}
+
+	err = h.Service.Stop(context.WithValue(context.TODO(), AccessTokenCtxKey, token))
 
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)

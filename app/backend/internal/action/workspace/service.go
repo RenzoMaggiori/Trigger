@@ -35,7 +35,7 @@ func (m Model) GetById(ctx context.Context, id primitive.ObjectID) (*WorkspaceMo
 	err := m.Collection.FindOne(ctx, filter).Decode(&workspace)
 
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errWorkspaceNotFound, err)
+		return nil, fmt.Errorf("%w: %v", errors.ErrWorkspaceNotFound, err)
 	}
 	return &workspace, nil
 }
@@ -47,7 +47,7 @@ func (m Model) GetByUserId(ctx context.Context, userId primitive.ObjectID) ([]Wo
 	cursor, err := m.Collection.Find(ctx, filter)
 
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errWorkspaceNotFound, err)
+		return nil, fmt.Errorf("%w: %v", errors.ErrWorkspaceNotFound, err)
 	}
 	defer cursor.Close(ctx)
 
@@ -57,17 +57,6 @@ func (m Model) GetByUserId(ctx context.Context, userId primitive.ObjectID) ([]Wo
 
 	return workspaces, nil
 }
-
-// initWorkspaceActions initializes the actions for the nodes in the given workspace.
-// It iterates through the nodes in the workspace and starts actions for nodes with a "pending" status.
-// If an action is successfully started, the node's status is updated to "active".
-//
-// Parameters:
-//   - workspace: The WorkspaceModel containing the nodes to be initialized.
-//   - accessToken: The access token used for authentication in action requests.
-// Returns:
-//   - A pointer to the updated WorkspaceModel
-//   - An error if there is any error.
 
 func initAction(actionNode ActionNodeModel, accessToken string) error {
 
@@ -84,24 +73,13 @@ func initAction(actionNode ActionNodeModel, accessToken string) error {
 	return nil
 }
 
-// Add adds a new workspace to the collection based on the provided AddWorkspaceModel.
-// initializes the workspace with the provided nodes, and inserts the new workspace into the collection.
-//
-// Parameters:
-//   - ctx: The context for the request, which should contain the access token
-//   - add: A pointer to the AddWorkspaceModel containing the details of the workspace to be added
-//
-// Returns:
-//   - A pointer to the newly created WorkspaceModel
-//   - An error if the access token is not found in the context, if there is an error fetching the session,
-//     or if there is an error creating the workspace
 func (m Model) Add(ctx context.Context, add *AddWorkspaceModel) (*WorkspaceModel, error) {
 	accessToken, ok := ctx.Value(AccessTokenCtxKey).(string)
 
 	if !ok {
 		return nil, errors.ErrAccessTokenCtx
 	}
-	session, _, err := session.GetSessionByTokenRequest(accessToken)
+	session, _, err := session.GetSessionByAccessTokenRequest(accessToken)
 
 	if err != nil {
 		return nil, err
@@ -120,7 +98,7 @@ func (m Model) Add(ctx context.Context, add *AddWorkspaceModel) (*WorkspaceModel
 				NodeId:   node.NodeId,
 				ActionId: node.ActionId,
 				Input:    node.Input,
-				Output:   node.Output,
+				Output:   nil,
 				Parents:  node.Parents,
 				Status:   "inactive",
 				Children: node.Children,
@@ -135,11 +113,11 @@ func (m Model) Add(ctx context.Context, add *AddWorkspaceModel) (*WorkspaceModel
 				return
 			}
 			err = initAction(node, accessToken)
-			if err == nil {
+			if err != nil {
 				log.Printf("Error while starting Action with id: %s", node.ActionId.Hex())
-				node.Status = "active"
 				return
 			}
+			node.Status = "active"
 			log.Printf("Started Action with id: %s", node.ActionId.Hex())
 		}()
 	}
@@ -150,33 +128,19 @@ func (m Model) Add(ctx context.Context, add *AddWorkspaceModel) (*WorkspaceModel
 
 	_, err = m.Collection.InsertOne(ctx, newWorkspace)
 	if err != nil {
-		return nil, errCreatingWorkspace
+		return nil, errors.ErrCreatingWorkspace
 	}
 
 	return &newWorkspace, nil
 }
 
-// ActionCompleted updates the workspaces based on the provided action completion details.
-//
-// This method performs the following steps:
-// 1. Retrieves the access token from the context.
-// 2. Fetches the workspaces associated with the user ID from the updateActionCompleted model.
-// 3. Concurrently processes each workspace to run actions and update the workspace nodes.
-// 4. Updates the workspace in the database and collects the updated workspaces.
-//
-// Parameters:
-// - ctx: The context for the request, which should contain the access token.
-// - updateActionCompleted: The model containing the details of the action completion.
-//
-// Returns:
-// - A slice of updated WorkspaceModel objects.
-// - An error if any step in the process fails.
-func (m Model) ActionCompleted(ctx context.Context, updateActionCompleted ActionCompletedModel) ([]WorkspaceModel, error) {
+func (m Model) ActionCompleted(ctx context.Context, actionCompleted ActionCompletedModel) ([]WorkspaceModel, error) {
 	accessToken, ok := ctx.Value(AccessTokenCtxKey).(string)
 	if !ok {
 		return nil, fmt.Errorf("access token missing or invalid")
 	}
-	workspaces, err := m.GetByUserId(ctx, updateActionCompleted.UserId)
+	log.Printf("userId: %s", actionCompleted.UserId.Hex())
+	userWorkspaces, err := m.GetByUserId(ctx, actionCompleted.UserId)
 	if err != nil {
 		return nil, err
 	}
@@ -184,12 +148,12 @@ func (m Model) ActionCompleted(ctx context.Context, updateActionCompleted Action
 		wg                sync.WaitGroup
 		mu                sync.Mutex
 		updatedWorkspaces []WorkspaceModel
-		errChan           = make(chan error, len(workspaces))
+		errChan           = make(chan error, len(userWorkspaces))
 	)
 
 	processWorkspace := func(workspace WorkspaceModel) {
 		defer wg.Done()
-		updatedWorkspace, err := processWorkspaceActions(workspace, updateActionCompleted, accessToken)
+		updatedWorkspace, err := processWorkspaceActions(workspace, actionCompleted, accessToken)
 		if err != nil {
 			errChan <- err
 			return
@@ -204,15 +168,15 @@ func (m Model) ActionCompleted(ctx context.Context, updateActionCompleted Action
 			return
 		}
 		if updateResult.MatchedCount == 0 {
-			errChan <- errWorkspaceNotFound
+			errChan <- errors.ErrWorkspaceNotFound
 			return
 		}
 		mu.Lock()
-		updatedWorkspaces = append(updatedWorkspaces, updatedWorkspace)
+		updatedWorkspaces = append(updatedWorkspaces, *updatedWorkspace)
 		mu.Unlock()
 	}
 
-	for _, workspace := range workspaces {
+	for _, workspace := range userWorkspaces {
 		wg.Add(1)
 		go processWorkspace(workspace)
 	}
@@ -229,27 +193,10 @@ func (m Model) ActionCompleted(ctx context.Context, updateActionCompleted Action
 	return updatedWorkspaces, nil
 }
 
-// isNodeCompleted checks if a given node is completed based on its status and action ID.
-// It returns true if the node's status is "active" and its action ID matches the actionCompleted's action ID.
-//
-// Parameters:
-//   - node: An ActionNodeModel representing the node to be checked.
-//   - actionCompleted: An ActionCompletedModel containing the completed action's details. parent nodes are
-//   - bool: true if the node is completed, false otherwise.
 func isNodeCompleted(node ActionNodeModel, actionCompleted ActionCompletedModel) bool {
 	return node.Status == "active" && node.ActionId == actionCompleted.ActionId
 }
 
-// isChildNodeReady checks if all parent nodes of a given node are in a "completed" status within a workspace.
-// It iterates through the parents of the node and verifies their status in the workspace nodes.
-// If any parent node is not in the "completed" status, it returns false. Otherwise, it returns true.
-//
-// Parameters:
-// - node: The ActionNodeModel representing the node whose parents' statuses are being checked.
-// - workspace: The WorkspaceModel containing the nodes and their statuses.
-//
-// Returns:
-// - bool: True if all parent nodes are in the "completed" status, false otherwise.
 func isChildNodeReady(child ActionNodeModel, workspace WorkspaceModel) bool {
 	for _, parent := range child.Parents {
 		for _, workspaceNode := range workspace.Nodes {
@@ -261,37 +208,38 @@ func isChildNodeReady(child ActionNodeModel, workspace WorkspaceModel) bool {
 	return true
 }
 
-// processWorkspaceActions processes the actions for a given workspace based on the completed action and updates the workspace status accordingly.
-// It iterates through the nodes of the workspace, marking nodes as completed if they match the completed actions and setting their children to pending if they are ready.
-// Finally, it initializes the workspace actions and returns the updated workspace.
-//
-// Parameters:
-//   - workspace: The WorkspaceModel containing the nodes to be processed.
-//   - actionCompleted: The ActionCompletedModel containing the action that has been completed.
-//   - accessToken: A string representing the access token for initializing workspace actions.
-//
-// Returns:
-//   - WorkspaceModel: The updated workspace model after processing the actions.
-//   - error: An error if any occurred during the processing of the workspace actions.
-func processWorkspaceActions(workspace WorkspaceModel, actionCompleted ActionCompletedModel, accessToken string) (WorkspaceModel, error) {
+func findNodeById(workspace WorkspaceModel, nodeId string) *ActionNodeModel {
+	for _, node := range workspace.Nodes {
+		if nodeId == node.NodeId {
+			return &node
+		}
+	}
+	return nil
+}
+
+func processWorkspaceActions(workspace WorkspaceModel, actionCompleted ActionCompletedModel, accessToken string) (*WorkspaceModel, error) {
 	for i, node := range workspace.Nodes {
 		if isNodeCompleted(node, actionCompleted) {
 			workspace.Nodes[i].Status = "completed"
-			for j := range node.Children {
-				if isChildNodeReady(workspace.Nodes[j], workspace) {
-					err := initAction(workspace.Nodes[j], accessToken)
+			for _, nodeId := range node.Children {
+				child := findNodeById(workspace, nodeId)
+				if child == nil {
+					return nil, errors.ErrNodeNotFound
+				}
+				if isChildNodeReady(*child, workspace) {
+					err := initAction(*child, accessToken)
 					if err == nil {
-						log.Printf("Starting Action with id: %s", workspace.Nodes[j].ActionId.Hex())
-						workspace.Nodes[j].Status = "active"
+						log.Printf("Starting Action with id: %s", child.ActionId.Hex())
+						child.Status = "active"
 					} else {
-						log.Printf("Error while starting Action with id: %s", workspace.Nodes[j].ActionId.Hex())
+						log.Printf("Error while starting Action with id: %s", child.ActionId.Hex())
 					}
 				}
 			}
 		}
 	}
 
-	return workspace, nil
+	return &workspace, nil
 }
 
 func (m Model) UpdateById(ctx context.Context, id primitive.ObjectID, update *UpdateWorkspaceModel) (*WorkspaceModel, error) {
@@ -300,7 +248,7 @@ func (m Model) UpdateById(ctx context.Context, id primitive.ObjectID, update *Up
 
 	_, err := m.Collection.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errWorkspaceNotFound, err)
+		return nil, fmt.Errorf("%w: %v", errors.ErrWorkspaceNotFound, err)
 	}
 
 	var updatedUserAction WorkspaceModel

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"trigger.com/trigger/internal/action/action"
+	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
 )
@@ -25,13 +26,16 @@ func StartActionRequest(accessToken string, actionCompletedNode ActionNodeModel,
 		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodPost,
-			fmt.Sprintf("%s/api/%s/%s/%s", actionEnv, action.Provider, action.Type, action.Action),
+			fmt.Sprintf("%s/api/%s/%s/%s", os.Getenv(actionEnv), action.Provider, action.Type, action.Action),
 			bytes.NewReader(body),
 			map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", accessToken),
 			},
 		),
 	)
+	if res == nil {
+		return http.StatusInternalServerError, errors.ErrSettingAction
+	}
 	if err != nil {
 		return res.StatusCode, err
 	}
@@ -87,7 +91,7 @@ func ActionCompletedRequest(accessToken string, update ActionCompletedModel) (in
 			fmt.Sprintf("%s/api/workspace/completed_action", os.Getenv("ACTION_SERVICE_BASE_URL")),
 			bytes.NewReader(body),
 			map[string]string{
-				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
+				"Authorization": fmt.Sprintf("Bearer %s", accessToken),
 				"Content-Type":  "application/json",
 			},
 		),
@@ -102,4 +106,35 @@ func ActionCompletedRequest(accessToken string, update ActionCompletedModel) (in
 	}
 
 	return res.StatusCode, nil
+}
+
+func GetByUserId(accessToken string, userId string) ([]WorkspaceModel, int, error) {
+	res, err := fetch.Fetch(
+		http.DefaultClient,
+		fetch.NewFetchRequest(
+			http.MethodGet,
+			fmt.Sprintf("%s/api/workspace/user_id/%s", os.Getenv("ACTION_SERVICE_BASE_URL"), userId),
+			nil,
+			map[string]string{
+				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
+				"Content-Type":  "application/json",
+			},
+		),
+	)
+
+	if err != nil {
+		return nil, res.StatusCode, err
+	}
+
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return nil, res.StatusCode, errors.ErrCompletingAction
+	}
+
+	workspaces, err := decode.Json[[]WorkspaceModel](res.Body)
+	if err != nil {
+		return nil, res.StatusCode, err
+	}
+
+	return workspaces, res.StatusCode, nil
 }

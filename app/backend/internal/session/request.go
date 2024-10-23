@@ -36,10 +36,34 @@ func GetSessionByIdRequest(accessToken string, sessionId string) (*SessionModel,
 	return &session, res.StatusCode, nil
 }
 
-func GetSessionByTokenRequest(accessToken string) (*SessionModel, int, error) {
+func GetSessionByAccessTokenRequest(accessToken string) (*SessionModel, int, error) {
 	res, err := fetch.Fetch(http.DefaultClient, fetch.NewFetchRequest(
 		http.MethodGet,
 		fmt.Sprintf("%s/api/session/access_token/%s", os.Getenv("SESSION_SERVICE_BASE_URL"), accessToken),
+		nil,
+		map[string]string{
+			"Authorization": fmt.Sprintf("Bearer %s", accessToken),
+		},
+	))
+
+	if err != nil {
+		return nil, res.StatusCode, errors.ErrSessionNotFound
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return nil, res.StatusCode, errors.ErrSessionNotFound
+	}
+	session, err := decode.Json[SessionModel](res.Body)
+	if err != nil {
+		return nil, res.StatusCode, errors.ErrSessionTypeNone
+	}
+	return &session, res.StatusCode, nil
+}
+
+func GetSessionByTokenIdRequest(accessToken string, tokenId string) (*SessionModel, int, error) {
+	res, err := fetch.Fetch(http.DefaultClient, fetch.NewFetchRequest(
+		http.MethodGet,
+		fmt.Sprintf("%s/api/session/token_id/%s", os.Getenv("SESSION_SERVICE_BASE_URL"), tokenId),
 		nil,
 		map[string]string{
 			"Authorization": fmt.Sprintf("Bearer %s", accessToken),

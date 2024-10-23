@@ -31,7 +31,7 @@ func GetUserByEmailRequest(accessToken string, email string) (*UserModel, int, e
 
 	user, err := decode.Json[UserModel](res.Body)
 	if err != nil {
-		return &user, res.StatusCode, err
+		return nil, res.StatusCode, err
 	}
 	return &user, res.StatusCode, nil
 }

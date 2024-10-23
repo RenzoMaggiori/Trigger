@@ -56,6 +56,30 @@ func (m Model) GetByUserId(userId primitive.ObjectID) ([]SessionModel, error) {
 	return sessions, nil
 }
 
+func (m Model) GetByAccessToken(accessToken string) (*SessionModel, error) {
+	var session SessionModel
+	ctx := context.TODO()
+	filter := bson.M{"access_token": accessToken}
+	err := m.Collection.FindOne(ctx, filter).Decode(&session)
+
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", errSessionNotFound, err)
+	}
+	return &session, nil
+}
+
+func (m Model) GetByTokenId(tokenId string) (*SessionModel, error) {
+	var session SessionModel
+	ctx := context.TODO()
+	filter := bson.M{"id_token": tokenId}
+	err := m.Collection.FindOne(ctx, filter).Decode(&session)
+
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", errSessionNotFound, err)
+	}
+	return &session, nil
+}
+
 func (m Model) Add(add *AddSessionModel) (*SessionModel, error) {
 	userExists, err := m.GetByUserId(add.UserId)
 
@@ -132,16 +156,4 @@ func (m Model) DeleteByUserId(userId primitive.ObjectID, providerName string) er
 		return mongo.ErrNoDocuments
 	}
 	return nil
-}
-
-func (m Model) GetByToken(token string) (*SessionModel, error) {
-	var session SessionModel
-	ctx := context.TODO()
-	filter := bson.M{"access_token": token}
-	err := m.Collection.FindOne(ctx, filter).Decode(&session)
-
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errSessionNotFound, err)
-	}
-	return &session, nil
 }

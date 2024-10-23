@@ -10,8 +10,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"trigger.com/trigger/internal/action/action"
 	"trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/internal/session"
@@ -42,7 +44,7 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 			"https://gmail.googleapis.com/gmail/v1/users/me/watch",
 			bytes.NewReader(body),
 			map[string]string{
-				"Authorization": fmt.Sprintf("%s", accessToken),
+				"Authorization": fmt.Sprintf("Bearer %s", accessToken),
 				"Content-Type":  "application/json",
 			},
 		),
@@ -64,20 +66,28 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 	return nil
 }
 
-func fetchUserHistory(lastHistoryId int, client *http.Client) (*HistoryList, error) {
+func fetchUserHistory(accessToken string, lastHistoryId int) (*HistoryList, error) {
 	res, err := fetch.Fetch(
-		client,
+		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodGet,
 			fmt.Sprintf("https://gmail.googleapis.com/gmail/v1/users/me/history?startHistoryId=%d", lastHistoryId),
 			nil,
-			nil,
+			map[string]string{
+				"Authorization": fmt.Sprintf("Bearer %s", accessToken),
+				"Content-Type":  "application/json",
+			},
 		))
 	if err != nil {
-		return nil, errors.ErrGmailHistory
+		return nil, err
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
+		bodyBytes, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, err
+		}
+		log.Printf("Watch body: %s", bodyBytes)
 		return nil, errors.ErrGmailHistory
 	}
 
@@ -85,19 +95,20 @@ func fetchUserHistory(lastHistoryId int, client *http.Client) (*HistoryList, err
 	if err != nil {
 		return nil, errors.ErrGmailHistoryTypeNone
 	}
-	fmt.Printf("history %+v\n", history)
 	return &history, nil
-	// * Here we check if the history list we got has at the start an Added message (new email received)
-	// if len(history.History) > 0 {
-	// 	firstHistoryItem := history.History[0]
-	//
-	// 	if len(firstHistoryItem.MessagesAdded) > 0 {
-	// 		return true, nil
-	// 	} else {
-	// 		return false, nil
-	// 	}
-	// }
-	//
+}
+
+func getActiveNodes(workspaces []workspace.WorkspaceModel, actionId primitive.ObjectID) []workspace.ActionNodeModel {
+	var activeNodes []workspace.ActionNodeModel
+
+	for _, workspace := range workspaces {
+		for _, node := range workspace.Nodes {
+			if node.ActionId == actionId && node.Status == "active" {
+				activeNodes = append(activeNodes, node)
+			}
+		}
+	}
+	return activeNodes
 }
 
 func (m Model) Webhook(ctx context.Context) error {
@@ -145,22 +156,35 @@ func (m Model) Webhook(ctx context.Context) error {
 		return err
 	}
 
-	actionNodes, _, err := workspace.GetActionNodesByActionIdRequest(googleSession.AccessToken, action.Id.Hex())
-
-	history, err := fetchUserHistoryRequest(, http.DefaultClient)
-
-	log.Printf("History: %+v", history)
-
-	update := workspace.ActionCompletedModel{
-		ActionId: action.Id,
-		UserId:   user.Id,
-		Output:   map[string]any{"hello": "world"},
-	}
-
-	_, err = workspace.ActionCompletedRequest(googleSession.AccessToken, update)
+	workspaces, _, err := workspace.GetByUserId(googleSession.AccessToken, user.Id.Hex())
 
 	if err != nil {
 		return err
+	}
+
+	activeNodes := getActiveNodes(workspaces, action.Id)
+
+	for _, activeNode := range activeNodes {
+		log.Printf("Active Node : %s", activeNode.NodeId)
+
+		history, err := fetchUserHistory(googleSession.AccessToken, int(eventData.HistoryId))
+
+		if err != nil {
+			return err
+		}
+		log.Printf("History: %+v", history)
+
+		update := workspace.ActionCompletedModel{
+			ActionId: action.Id,
+			UserId:   user.Id,
+			Output:   map[string]string{"historyId": strconv.Itoa(int(eventData.HistoryId))},
+		}
+
+		_, err = workspace.ActionCompletedRequest(googleSession.AccessToken, update)
+
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -186,6 +210,9 @@ func (m Model) Stop(ctx context.Context) error {
 		return err
 	}
 	defer res.Body.Close()
+	if res.StatusCode == http.StatusUnauthorized {
+		return errors.ErrInvalidGoogleToken
+	}
 	if res.StatusCode != http.StatusOK {
 		bodyBytes, err := io.ReadAll(res.Body)
 		if err != nil {
