@@ -22,7 +22,7 @@ func GetUserByEmailRequest(accessToken string, email string) (*UserModel, int, e
 		},
 	))
 	if err != nil {
-		return nil, res.StatusCode, errors.ErrUserNotFound
+		return nil, http.StatusInternalServerError, errors.ErrUserNotFound
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
@@ -37,7 +37,6 @@ func GetUserByEmailRequest(accessToken string, email string) (*UserModel, int, e
 }
 
 func AddUserRequest(accessToken string, addUser AddUserModel) (*UserModel, int, error) {
-
 	body, err := json.Marshal(addUser)
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
@@ -63,11 +62,9 @@ func AddUserRequest(accessToken string, addUser AddUserModel) (*UserModel, int, 
 	}
 
 	user, err := decode.Json[UserModel](res.Body)
-
 	if err != nil {
 		return nil, res.StatusCode, err
 	}
-
 	return &user, res.StatusCode, nil
 }
 
@@ -84,9 +81,8 @@ func GetUserByIdRequest(accessToken string, userId string) (*UserModel, int, err
 		),
 	)
 	if err != nil {
-		return nil, res.StatusCode, errors.ErrUserNotFound
+		return nil, http.StatusInternalServerError, errors.ErrUserNotFound
 	}
-
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
 		return nil, res.StatusCode, errors.ErrUserNotFound
@@ -96,6 +92,5 @@ func GetUserByIdRequest(accessToken string, userId string) (*UserModel, int, err
 	if err != nil {
 		return nil, res.StatusCode, err
 	}
-
 	return &user, res.StatusCode, nil
 }
