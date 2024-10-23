@@ -20,7 +20,7 @@ RUN \
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY ./frontend/web/* .
+COPY ./frontend/web/ ./
 
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry
@@ -60,7 +60,7 @@ USER nextjs
 
 ENV WEB_PORT=${WEB_PORT}
 
-EXPOSE ${MOBILE_PORT}
+EXPOSE ${WEB_PORT}
 
 # server.js is created by next build from the standalone output
 # https://nextjs.org/docs/pages/api-reference/next-config-js/output
