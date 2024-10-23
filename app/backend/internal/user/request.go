@@ -55,7 +55,7 @@ func AddUserRequest(accessToken string, addUser AddUserModel) (*UserModel, int, 
 		),
 	)
 	if err != nil {
-		return nil, res.StatusCode, errors.ErrUserNotFound
+		return nil, http.StatusInternalServerError, errors.ErrUserNotFound
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
