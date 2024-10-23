@@ -14,35 +14,13 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"trigger.com/trigger/internal/settings"
 	"trigger.com/trigger/internal/user"
-	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/fetch"
 )
 
-func (m Model) SyncWith(gothUser goth.User) error {
-	res, err := fetch.Fetch(
-		http.DefaultClient,
-		fetch.NewFetchRequest(
-			http.MethodGet,
-			fmt.Sprintf("%s/api/user/email/%s", os.Getenv("USER_SERVICE_BASE_URL"), gothUser.Email),
-			nil,
-			map[string]string{
-				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
-			},
-		),
-	)
-
+func (m Model) SyncWith(gothUser goth.User, access_token string) error {
+	user, _, err := user.GetUserByAccesstokenRequest(access_token)
 	if err != nil {
-		return errors.New("failed to fetch user")
-	}
-
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		return errors.New("status code not OK, couldn't fetch user")
-	}
-
-	user, err := decode.Json[user.UserModel](res.Body)
-	if err != nil {
-		return errors.New("failed to decode user")
+		return err
 	}
 
 	ctx := context.TODO()
@@ -69,36 +47,15 @@ func (m Model) SyncWith(gothUser goth.User) error {
 	return nil
 }
 
-func (m Model) Callback(gothUser goth.User) error {
-	res, err := fetch.Fetch(
-		http.DefaultClient,
-		fetch.NewFetchRequest(
-			http.MethodGet,
-			fmt.Sprintf("%s/api/user/email/%s", os.Getenv("USER_SERVICE_BASE_URL"), gothUser.Email),
-			nil,
-			map[string]string{
-				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
-			},
-		),
-	)
-
+func (m Model) Callback(gothUser goth.User, access_token string) error {
+	user, _, err := user.GetUserByAccesstokenRequest(access_token)
 	if err != nil {
-		return errors.New("failed to fetch user")
-	}
-
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		return errors.New("status code not OK, couldn't fetch user")
-	}
-
-	user, err := decode.Json[user.UserModel](res.Body)
-	if err != nil {
-		return errors.New("failed to decode user")
+		return err
 	}
 
 	syncExists := m.Collection.FindOne(context.TODO(), bson.M{"userId": user.Id})
 	if syncExists.Err() == nil {
-		return m.SyncWith(gothUser)
+		return m.SyncWith(gothUser, access_token)
 	}
 
 	newSync := SyncModel{
@@ -129,7 +86,7 @@ func (m Model) Callback(gothUser goth.User) error {
 		return errors.New("failed to marshal settings")
 	}
 
-	res, err = fetch.Fetch(
+	res, err := fetch.Fetch(
 		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodPost,

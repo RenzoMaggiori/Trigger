@@ -9,8 +9,8 @@ import (
 )
 
 type Service interface {
-	SyncWith(gothUser goth.User) (error)
-	Callback(gothUser goth.User) (error)
+	SyncWith(gothUser goth.User, access_token string) (error)
+	Callback(gothUser goth.User, access_token string) (error)
 }
 
 type Handler struct {
