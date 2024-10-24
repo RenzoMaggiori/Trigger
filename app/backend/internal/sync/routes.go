@@ -52,7 +52,9 @@ func Router(ctx context.Context) (*router.Router, error) {
 		discord.New(
 			os.Getenv("DISCORD_KEY"),
 			os.Getenv("DISCORD_SECRET"),
-			fmt.Sprintf("%s/api/sync/callback", os.Getenv("SYNC_SERVICE_BASE_URL")),
+			fmt.Sprintf("http://localhost:%s/api/oauth2/callback", os.Getenv("AUTH_PORT")),
+			discord.ScopeIdentify,
+			discord.ScopeEmail,
 		),
 	)
 
