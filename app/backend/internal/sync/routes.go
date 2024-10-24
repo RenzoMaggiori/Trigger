@@ -11,7 +11,6 @@ import (
 	"github.com/markbates/goth/providers/github"
 	"github.com/markbates/goth/providers/google"
 	"go.mongodb.org/mongo-driver/mongo"
-	// "trigger.com/trigger/pkg/middleware"
 	"trigger.com/trigger/pkg/mongodb"
 	"trigger.com/trigger/pkg/router"
 )
@@ -23,9 +22,6 @@ func Router(ctx context.Context) (*router.Router, error) {
 	}
 
 	server := http.NewServeMux()
-	// middlewares := middleware.Create(
-	// 	middleware.Auth,
-	// )
 
 	handler := Handler{
 		Service: Model{
@@ -53,7 +49,7 @@ func Router(ctx context.Context) (*router.Router, error) {
 		discord.New(
 			os.Getenv("DISCORD_KEY"),
 			os.Getenv("DISCORD_SECRET"),
-			fmt.Sprintf("http://localhost:%s/api/oauth2/callback", os.Getenv("AUTH_PORT")),
+			callback,
 			discord.ScopeIdentify,
 			discord.ScopeEmail,
 		),

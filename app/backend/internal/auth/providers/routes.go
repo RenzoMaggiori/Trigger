@@ -37,7 +37,7 @@ func Router(ctx context.Context) (*router.Router, error) {
 		discord.New(
 			os.Getenv("DISCORD_KEY"),
 			os.Getenv("DISCORD_SECRET"),
-			fmt.Sprintf("http://localhost:%s/api/oauth2/callback", os.Getenv("AUTH_PORT")),
+			callback,
 			discord.ScopeIdentify,
 			discord.ScopeEmail,
 		),

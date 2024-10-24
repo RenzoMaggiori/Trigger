@@ -3,6 +3,7 @@ package sync
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,12 +11,23 @@ import (
 	"os"
 
 	"github.com/markbates/goth"
+	"github.com/markbates/goth/gothic"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"trigger.com/trigger/internal/settings"
 	"trigger.com/trigger/internal/user"
 	"trigger.com/trigger/pkg/fetch"
 )
+
+func (m Model) GrantAccess(w http.ResponseWriter, r *http.Request) error {
+	redirectUrl := r.URL.Query().Get("redirect")
+	state := base64.URLEncoding.EncodeToString([]byte(redirectUrl))
+	values := r.URL.Query()
+	values.Set("state", state)
+	r.URL.RawQuery = values.Encode()
+	gothic.BeginAuthHandler(w, r)
+	return nil
+}
 
 func (m Model) SyncWith(gothUser goth.User, access_token string) error {
 	user, _, err := user.GetUserByAccesstokenRequest(access_token)

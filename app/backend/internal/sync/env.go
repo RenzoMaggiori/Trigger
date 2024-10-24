@@ -13,10 +13,13 @@ import (
 
 var (
 	errEnvNotFound      string     = "Enviroment argument %s not found"
-	enviromentArguments [11]string = [...]string{
+	enviromentArguments [17]string = [...]string{
 		"TOKEN_SECRET",
 		"ADMIN_TOKEN",
 		"USER_SERVICE_BASE_URL",
+		"AUTH_SERVICE_BASE_URL",
+		"AUTH_PORT",
+		"SESSION_SERVICE_BASE_URL",
 		"GOOGLE_CLIENT_ID",
 		"GOOGLE_CLIENT_SECRET",
 		"GITHUB_KEY",
@@ -25,6 +28,9 @@ var (
 		"AUTH_MAX_AGES",
 		"AUTH_IS_PROD",
 		"WEB_BASE_URL",
+		"WEB_PORT",
+		"DISCORD_KEY",
+		"DISCORD_SECRET",
 	}
 )
 
