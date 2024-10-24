@@ -29,15 +29,21 @@ const InputComponent = ({
   );
 };
 
-function GithubSettings({}: { node: NodeItem; type: string }) {
+function GithubSettings({}: { node: NodeItem, type: string }) {
   return <div></div>;
 }
 
-function EmailSettings({ node, type }: { node: NodeItem; type: string }) {
+function EmailSettings({ node, type }: { node: NodeItem, type: string }) {
   const { setFields } = useMenu();
 
-  const handleFieldChange = (type: string, index: string, value: unknown) => {
-    setFields(node.id, { ...node.fields, [type]: { [index]: value } });
+  const handleFieldChange = (type: string, index: string, value: string) => {
+    const currentField = node.fields[type];
+
+    if (typeof currentField === "object" && currentField !== null) {
+      setFields(node.id, { ...node.fields, [type]: { ...currentField, [index]: value } });
+    } else {
+      setFields(node.id, { ...node.fields, [type]: { [index]: value } });
+    }
   };
 
   const inputs = [
@@ -57,13 +63,10 @@ function EmailSettings({ node, type }: { node: NodeItem; type: string }) {
               <Label>{item.label}</Label>
               <Input
                 placeholder={item.placeholder}
-                onChange={(e) =>
-                  handleFieldChange(type, item.label, e.target.value)
-                }
-                value={
-                  (node.fields[type] as Record<string, string>)[item.label] ||
-                  ""
-                }
+                onChange={(e) => handleFieldChange(type, item.label, e.target.value)}
+                value={typeof node.fields[type] === 'object' && node.fields[type] !== null
+                  ? (node.fields[type] as Record<string, string>)[item.label] || ""
+                  : ""}
                 type={item.type}
               />
             </div>
@@ -74,9 +77,9 @@ function EmailSettings({ node, type }: { node: NodeItem; type: string }) {
               placeholder="Example body..."
               className="resize-none h-[200px]"
               onChange={(e) => handleFieldChange(type, "Body", e.target.value)}
-              value={
-                (node.fields[type] as Record<string, string>)["Body"] || ""
-              }
+              value={typeof node.fields[type] === 'object' && node.fields[type] !== null
+                ? (node.fields[type] as Record<string, string>)["Body"] || ""
+                : ""}
             />
           </div>
         </div>
@@ -86,9 +89,9 @@ function EmailSettings({ node, type }: { node: NodeItem; type: string }) {
           <Input
             placeholder="example@example.com"
             onChange={(e) => handleFieldChange(type, "Source", e.target.value)}
-            value={
-              (node.fields[type] as Record<string, string>)["Source"] || ""
-            }
+            value={typeof node.fields[type] === 'object' && node.fields[type] !== null
+              ? (node.fields[type] as Record<string, string>)["Source"] || ""
+              : ""}
           />
         </div>
       )}
@@ -96,11 +99,9 @@ function EmailSettings({ node, type }: { node: NodeItem; type: string }) {
   );
 }
 
-function DiscordSettings({}: { node: NodeItem; type: string }) {
-  const [messageType, setMessageType] = React.useState<Status | null>({
-    label: "Normal Message",
-    value: "Normal",
-  });
+
+function DiscordSettings({}: { node: NodeItem, type: string }) {
+  const [messageType, setMessageType] = React.useState<Status | null>({ label: "Normal Message", value: "Normal" });
   const [embedFields, setEmbedFields] = React.useState<
     { name: string; value: string }[]
   >([]);
@@ -129,9 +130,9 @@ function DiscordSettings({}: { node: NodeItem; type: string }) {
     placeholder?: string;
     type?: string;
   }[] = [
-    { label: "Embed Color", placeholder: "Example title...", type: "color" },
-    { label: "Embed Title", placeholder: "Example embed title" },
-  ];
+      { label: "Embed Color", placeholder: "Example title...", type: "color" },
+      { label: "Embed Title", placeholder: "Example embed title" },
+    ];
 
   const fieldInputs = [
     { placeholder: "Field Name", fieldType: "name" },
@@ -148,10 +149,7 @@ function DiscordSettings({}: { node: NodeItem; type: string }) {
           Select Message Type
         </Label>
         <Combox
-          statuses={[
-            { label: "Normal Message", value: "Normal" },
-            { label: "Embeded Message", value: "Embed" },
-          ]}
+          statuses={[{ label: "Normal Message", value: "Normal" }, { label: "Embeded Message", value: "Embed" }]}
           selectedStatus={messageType}
           setSelectedStatus={setMessageType}
           label="Select Message Type"
@@ -197,7 +195,7 @@ function DiscordSettings({}: { node: NodeItem; type: string }) {
           />
           <div className="mt-4">
             <h4 className="font-bold text-lg">Custom Fields</h4>
-            {embedFields.map((_field, index) => (
+            {embedFields.map((field, index) => (
               <div key={index} className="flex gap-4 items-center mb-2">
                 {fieldInputs.map((item, key) => (
                   <Input
@@ -233,3 +231,4 @@ function DiscordSettings({}: { node: NodeItem; type: string }) {
 }
 
 export { EmailSettings, DiscordSettings, GithubSettings };
+

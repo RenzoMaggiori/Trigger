@@ -66,7 +66,14 @@ export default function Page() {
                       >
                         <CardHeader className="p-4 border-b">
                           <CardTitle className="text-xl font-bold">
-                            <Image src={trigger.img} alt={trigger.title} />
+                            <Image
+                              src={trigger.img}
+                              alt={trigger.title}
+                              width={500}
+                              height={500}
+                              layout="responsive" // For responsiveness
+                            />
+
                           </CardTitle>
                         </CardHeader>
                       </Card>

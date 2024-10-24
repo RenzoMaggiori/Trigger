@@ -5,6 +5,10 @@ const nextConfig = {
     NEXT_PUBLIC_ACTION_SERVICE_URL: process.env.NEXT_PUBLIC_ACTION_SERVICE_URL,
   },
   output: "standalone",
+  images: {
+    domains: ['fakeimg.pl'],
+  },
+
 };
 
 export default nextConfig;
