@@ -1,13 +1,27 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Image, Modal, Pressable, TouchableNativeFeedback } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Image, Modal, Pressable, TouchableNativeFeedback, Linking, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import Button from '@/components/Button';
 import { MaterialIcons, Ionicons, FontAwesome, FontAwesome5 } from '@expo/vector-icons';
 import ButtonIcon from '@/components/ButtonIcon';
 import { CredentialsService } from '@/api/auth/credentials/service';
+import * as WebBrowser from 'expo-web-browser';
+import { WebView } from 'react-native-webview';
+
+interface ProvidersProps {
+    providers: {
+        icon: React.JSX.Element;
+        name: string;
+        text: string;
+        className?: string;
+    }[];
+}
 
 export default function SignUp() {
+    const IP = process.env['IPv4'];
+    const BASE_URL = `http://${IP}:8000/`;
+
     const [name, setName] = useState('');
     const [surname, setSurname] = useState('');
     const [email, setEmail] = useState('');
@@ -33,15 +47,34 @@ export default function SignUp() {
         setErrorMessage("");
     };
 
-    const handleSocialSignUp = (service: string) => {
-        router.push('/(tabs)/HomeScreen');
-        console.log(`Signing up with ${service}`);
+    const handleOpenAuth = async (providerName: string) => {
+        const url = `http://172.16.6.32:8000/api/oauth2/login?provider=${providerName}`;
+
+        try {
+            const result = await WebBrowser.openAuthSessionAsync(url,
+                `http://172.16.6.32:8000/api/oauth2/login?provider=${providerName}`,
+            );
+            if (result.type === 'cancel') {
+                Alert.alert('Browser Canceled', 'The browser was closed by the user.');
+            } else if (result.type === 'dismiss') {
+                Alert.alert('Browser Dismissed', 'The browser was dismissed.');
+            } else {
+                console.log('Browser opened successfully:', result);
+            }
+            if (result.type === 'success') {
+                console.log('result: ', result?.url);
+            }
+
+        } catch (error) {
+            Alert.alert('Error', 'Unable to open the URL');
+            console.error('Failed to open URL:', error);
+        }
     };
 
     const technologies = [
-        { name: 'Google', icon: <Ionicons name="logo-google" size={30} color={Colors.light.google} /> },
-        { name: 'Github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
-        { name: 'Outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.outlook} /> },
+        { name: 'google', icon: <Ionicons name="logo-google" size={30} color={Colors.light.google} /> },
+        { name: 'github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
+        { name: 'outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.outlook} /> },
     ];
 
     const data = {
@@ -98,7 +131,7 @@ export default function SignUp() {
                 {technologies.map((tech, index) => (
                     <ButtonIcon
                         key={index}
-                        onPress={() => handleSocialSignUp(tech.name)}
+                        onPress={() => handleOpenAuth(tech.name)}
                         title={"Continue with " + tech.name}
                         icon={tech.icon}
                         backgroundColor="#FFFFFF"
