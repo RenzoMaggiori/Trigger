@@ -62,7 +62,6 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 		return errors.ErrGmailWatch
 	}
 
-	log.Println(accessToken)
 	return nil
 }
 

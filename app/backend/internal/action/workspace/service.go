@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -137,53 +138,46 @@ func (m Model) Add(ctx context.Context, add *AddWorkspaceModel) (*WorkspaceModel
 func (m Model) ActionCompleted(ctx context.Context, actionCompleted ActionCompletedModel) ([]WorkspaceModel, error) {
 	accessToken, ok := ctx.Value(AccessTokenCtxKey).(string)
 	if !ok {
-		return nil, fmt.Errorf("access token missing or invalid")
+		return nil, errors.ErrAccessTokenCtx
 	}
-	log.Printf("userId: %s", actionCompleted.UserId.Hex())
+
+	// Get all user workspaces
 	userWorkspaces, err := m.GetByUserId(ctx, actionCompleted.UserId)
 	if err != nil {
 		return nil, err
 	}
+
+	// Iterate over all user workspaces and update them in case they have any actions that are completed
+	updatedWorkspaces, err := m.processUserWorkspaces(userWorkspaces, actionCompleted, accessToken)
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedWorkspaces, nil
+}
+
+func (m Model) processUserWorkspaces(workspaces []WorkspaceModel, actionCompleted ActionCompletedModel, accessToken string) ([]WorkspaceModel, error) {
 	var (
 		wg                sync.WaitGroup
 		mu                sync.Mutex
 		updatedWorkspaces []WorkspaceModel
-		errChan           = make(chan error, len(userWorkspaces))
+		errChan           = make(chan error, len(workspaces))
 	)
 
-	processWorkspace := func(workspace WorkspaceModel) {
-		defer wg.Done()
-		updatedWorkspace, err := processWorkspaceActions(workspace, actionCompleted, accessToken)
-		if err != nil {
-			errChan <- err
-			return
-		}
-		filter := bson.M{"_id": workspace.Id}
-		update := bson.M{
-			"$set": bson.M{"nodes": updatedWorkspace.Nodes},
-		}
-		updateResult, err := m.Collection.UpdateOne(ctx, filter, update)
-		if err != nil {
-			errChan <- err
-			return
-		}
-		if updateResult.MatchedCount == 0 {
-			errChan <- errors.ErrWorkspaceNotFound
-			return
-		}
-		mu.Lock()
-		updatedWorkspaces = append(updatedWorkspaces, *updatedWorkspace)
-		mu.Unlock()
-	}
-
-	for _, workspace := range userWorkspaces {
+	for _, workspace := range workspaces {
 		wg.Add(1)
-		go processWorkspace(workspace)
+		go func(ws WorkspaceModel) {
+			defer wg.Done()
+			if err := m.processWorkspaces(ws, actionCompleted, accessToken, &updatedWorkspaces, &mu); err != nil {
+				errChan <- err
+			}
+		}(workspace)
 	}
 
 	wg.Wait()
 	close(errChan)
 
+	// Check if any errors occurred
 	for err := range errChan {
 		if err != nil {
 			return nil, err
@@ -193,8 +187,34 @@ func (m Model) ActionCompleted(ctx context.Context, actionCompleted ActionComple
 	return updatedWorkspaces, nil
 }
 
-func isNodeCompleted(node ActionNodeModel, actionCompleted ActionCompletedModel) bool {
-	return node.Status == "active" && node.ActionId == actionCompleted.ActionId
+func (m Model) processWorkspaces(
+	workspace WorkspaceModel,
+	actionCompleted ActionCompletedModel,
+	accessToken string,
+	updatedWorkspaces *[]WorkspaceModel,
+	mu *sync.Mutex,
+) error {
+	updatedWorkspace, err := processWorkspaceActions(workspace, actionCompleted, accessToken)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{"_id": workspace.Id}
+	update := bson.M{"$set": bson.M{"nodes": updatedWorkspace.Nodes}}
+	updateResult, err := m.Collection.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		return err
+	}
+
+	if updateResult.MatchedCount == 0 {
+		return errors.ErrWorkspaceNotFound
+	}
+
+	mu.Lock()
+	*updatedWorkspaces = append(*updatedWorkspaces, *updatedWorkspace)
+	mu.Unlock()
+
+	return nil
 }
 
 func isChildNodeReady(child ActionNodeModel, workspace WorkspaceModel) bool {
@@ -219,27 +239,51 @@ func findNodeById(workspace WorkspaceModel, nodeId string) *ActionNodeModel {
 
 func processWorkspaceActions(workspace WorkspaceModel, actionCompleted ActionCompletedModel, accessToken string) (*WorkspaceModel, error) {
 	for i, node := range workspace.Nodes {
-		if isNodeCompleted(node, actionCompleted) {
-			workspace.Nodes[i].Status = "completed"
-			for _, nodeId := range node.Children {
-				child := findNodeById(workspace, nodeId)
-				if child == nil {
-					return nil, errors.ErrNodeNotFound
-				}
-				if isChildNodeReady(*child, workspace) {
-					err := initAction(*child, accessToken)
-					if err == nil {
-						log.Printf("Starting Action with id: %s", child.ActionId.Hex())
-						child.Status = "active"
-					} else {
-						log.Printf("Error while starting Action with id: %s", child.ActionId.Hex())
-					}
-				}
-			}
+		// Check if the has been completed
+		if !(node.Status == "active" && node.ActionId == actionCompleted.ActionId) {
+			continue
+		}
+
+		workspace.Nodes[i].Output = actionCompleted.Output
+		workspace.Nodes[i].Status = "completed"
+
+		if err := processChildNodes(&workspace, node.Children, accessToken); err != nil {
+			return nil, err
 		}
 	}
 
 	return &workspace, nil
+}
+
+func assignInputToAction(action *ActionNodeModel, workspaceNodes []ActionNodeModel) {
+	for key, value := range action.Input {
+		for _, node := range workspaceNodes {
+			prefix := fmt.Sprintf("$%s$.", node.NodeId)
+			if strings.Contains(value, prefix) {
+				action.Input[key] = node.Output[strings.ReplaceAll(value, prefix, "")]
+			}
+		}
+	}
+}
+
+func processChildNodes(workspace *WorkspaceModel, children []string, accessToken string) error {
+	// Iterate over all children and start the action if all parents are completed
+	for _, childId := range children {
+		child := findNodeById(*workspace, childId)
+		if child == nil {
+			return errors.ErrNodeNotFound
+		}
+
+		if isChildNodeReady(*child, *workspace) {
+			assignInputToAction(child, workspace.Nodes)
+			err := initAction(*child, accessToken)
+			if err != nil {
+				return err
+			}
+			child.Status = "active"
+		}
+	}
+	return nil
 }
 
 func (m Model) UpdateById(ctx context.Context, id primitive.ObjectID, update *UpdateWorkspaceModel) (*WorkspaceModel, error) {
@@ -258,5 +302,4 @@ func (m Model) UpdateById(ctx context.Context, id primitive.ObjectID, update *Up
 		return nil, err
 	}
 	return &updatedUserAction, nil
-
 }

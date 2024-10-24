@@ -62,7 +62,7 @@ func (m Model) SendGmail(ctx context.Context, accessToken string, actionNode wor
 
 	// TODO: Replace hardcoded values with: actionNode.Inputs["from"], actionNode.Inputs["to"], ...
 	rawEmail, err := createRawEmail(user.Email,
-		"johndoe@gmail.com", "asd", "asd")
+		actionNode.Input["to"], actionNode.Input["subject"], actionNode.Input["body"])
 
 	if err != nil {
 		return errors.ErrCreatingEmail
