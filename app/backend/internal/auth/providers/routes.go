@@ -40,6 +40,10 @@ func Router(ctx context.Context) (*router.Router, error) {
 			callback,
 			discord.ScopeIdentify,
 			discord.ScopeEmail,
+			discord.ScopeGuilds,
+			discord.ScopeJoinGuild,
+			discord.ScopeBot,
+			discord.ScopeWebhook,
 		),
 	)
 
