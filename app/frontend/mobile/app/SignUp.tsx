@@ -48,11 +48,11 @@ export default function SignUp() {
     };
 
     const handleOpenAuth = async (providerName: string) => {
-        const url = `http://172.16.6.32:8000/api/oauth2/login?provider=${providerName}`;
+        const url = `${BASE_URL}/api/oauth2/login?provider=${providerName}`;
 
         try {
             const result = await WebBrowser.openAuthSessionAsync(url,
-                `http://172.16.6.32:8000/api/oauth2/login?provider=${providerName}`,
+                `${BASE_URL}/api/oauth2/login?provider=${providerName}`,
             );
             if (result.type === 'cancel') {
                 Alert.alert('Browser Canceled', 'The browser was closed by the user.');

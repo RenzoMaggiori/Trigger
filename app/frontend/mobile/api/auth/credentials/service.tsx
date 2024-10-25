@@ -1,8 +1,8 @@
 const IP = process.env['IPv4'];
-const BASE_URL = `http://172.16.6.32:8000/api/auth`;
+const BASE_URL = `http://${IP}:8000/api/auth`;
 
 export class CredentialsService {
-    //? REGISTERconst BASE_URL = `http://172.16.6.32:8000/api/auth`;
+    //? REGISTERconst
 
     static async register(email: string, password: string) {
         try {
