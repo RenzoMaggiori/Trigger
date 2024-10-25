@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 
+	"trigger.com/trigger/internal/session"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
@@ -93,4 +94,20 @@ func GetUserByIdRequest(accessToken string, userId string) (*UserModel, int, err
 		return nil, res.StatusCode, err
 	}
 	return &user, res.StatusCode, nil
+}
+
+func GetUserByAccesstokenRequest(accessToken string) (*UserModel, int, error) {
+	session, status, err := session.GetSessionByTokenRequest(accessToken)
+
+	if err != nil {
+		return nil, status, errors.ErrSessionNotFound
+	}
+
+	user, status, err := GetUserByIdRequest(accessToken, session.UserId.Hex())
+
+	if err != nil {
+        return nil, status, errors.ErrUserNotFound
+    }
+
+	return user, status, nil
 }

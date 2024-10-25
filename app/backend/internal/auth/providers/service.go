@@ -1,29 +1,33 @@
 package providers
 
 import (
-	"context"
+	"encoding/base64"
 	"net/http"
 	"os"
 
 	"github.com/markbates/goth"
+	"github.com/markbates/goth/gothic"
 	"trigger.com/trigger/internal/session"
 	"trigger.com/trigger/internal/user"
 )
 
-func (m Model) Login(ctx context.Context) (string, error) {
-	gothUser, ok := ctx.Value(LoginCtxKey).(goth.User)
+func (m Model) Login(w http.ResponseWriter, r *http.Request) error {
+	redirectUrl := r.URL.Query().Get("redirect")
+	state := base64.URLEncoding.EncodeToString([]byte(redirectUrl))
+	values := r.URL.Query()
+	values.Set("state", state)
+	r.URL.RawQuery = values.Encode()
+	gothic.BeginAuthHandler(w, r)
+	return nil
+}
 
-	if !ok {
-		return "", errCredentialsNotFound
-	}
+func (m Model) AccessToken(gothUser goth.User) (string, error) {
 	user, _, err := user.GetUserByEmailRequest(os.Getenv("ADMIN_TOKEN"), gothUser.Email)
-
 	if err != nil {
 		return "", err
 	}
 
 	userSessions, _, err := session.GetSessionByUserIdRequest(os.Getenv("ADMIN_TOKEN"), user.Id.Hex())
-
 	if err != nil {
 		return "", err
 	}
@@ -44,14 +48,12 @@ func (m Model) Login(ctx context.Context) (string, error) {
 		Expiry:       &gothUser.ExpiresAt,
 		IdToken:      &gothUser.IDToken,
 	}
-
 	updatedSession, _, err := session.UpdateSessionByIdRequest(os.Getenv("ADMIN_TOKEN"), providerSession.Id.Hex(), patchSession)
-
 	if err != nil {
 		return "", err
 	}
-
 	return updatedSession.AccessToken, nil
+
 }
 
 func (m Model) Callback(gothUser goth.User) (string, error) {
@@ -81,8 +83,7 @@ func (m Model) Callback(gothUser goth.User) (string, error) {
 	}
 
 	if code == http.StatusConflict {
-		accesToken, err := m.Login(context.WithValue(context.TODO(), LoginCtxKey, gothUser))
-
+		accesToken, err := m.AccessToken(gothUser)
 		if err != nil {
 			return "", err
 		}
@@ -91,13 +92,8 @@ func (m Model) Callback(gothUser goth.User) (string, error) {
 	return "", errUserNotFound
 }
 
-func (m Model) Logout(ctx context.Context) (string, error) {
-	accessToken, ok := ctx.Value(AuthorizationHeaderCtxKey).(string)
-
-	_ = accessToken
-	if !ok {
-		return "", errCredentialsNotFound
-	}
+func (m Model) Logout(w http.ResponseWriter, r *http.Request) error {
 	// TODO: implement logout
-	return "", nil
+	gothic.Logout(w, r)
+	return nil
 }
