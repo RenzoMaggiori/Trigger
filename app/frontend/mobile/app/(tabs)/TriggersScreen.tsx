@@ -51,7 +51,7 @@ export default function TriggerScreen() {
         <View style={styles.container}>
             <View style={styles.addActionContainer}>
                 <ButtonIcon
-                    title="Add Action"
+                    title="Add Trigger"
                     onPress={openActionSelector}
                     icon={<MaterialIcons name="add" size={24} color="#FFFFFF" />}
                     backgroundColor={Colors.light.tint}

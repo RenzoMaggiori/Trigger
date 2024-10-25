@@ -10,7 +10,6 @@ import Draggable from './Draggable';
 interface TechProps {
     name: string;
     icon: React.ReactElement;
-    
 }
 
 interface TechBox extends TechProps {
