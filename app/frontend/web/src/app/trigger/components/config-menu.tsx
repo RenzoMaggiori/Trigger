@@ -16,7 +16,6 @@ import {
   EmailSettings,
   GithubSettings,
 } from "@/app/trigger/components/service-settings";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export type ConfigMenuType = {
   menu: keyof typeof settingsComponentMap;
@@ -30,20 +29,32 @@ const settingsComponentMap = {
   github: GithubSettings,
 };
 
-const configMap = [
-  { name: "Trigger", type: "trigger" },
-  { name: "Reaction", type: "reaction" },
+const configOptions = [
+  {
+    label: (
+      <div className="flex flex-row items-center text-md font-bold">
+        <SiGooglegemini className="mr-2 fill-blue-500" /> Trigger
+      </div>
+    ),
+    value: "trigger",
+  },
+  {
+    label: (
+      <div className="flex flex-row items-center text-md font-bold">
+        <SiGooglegemini className="mr-2 fill-green-500" /> Reaction
+      </div>
+    ),
+    value: "reaction",
+  },
 ];
 
 export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
   const { triggerWorkspace, setFields } = useMenu();
   const nodeItem = triggerWorkspace?.nodes[node?.id || ""];
+  const [configType, setConfigType] = React.useState("trigger");
   const [configState, setConfigState] = React.useState<Record<string, unknown>>(
     () => ({
-      [node?.id || ""]: {
-        trigger: nodeItem?.fields.trigger || "None",
-        reaction: nodeItem?.fields.reactionStatus || "None",
-      },
+      [configType]: "Personalized",
     })
   );
 
@@ -54,26 +65,21 @@ export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
     status: Status | null,
     configType: "trigger" | "reaction",
   ) => {
-    const newStatus = status?.value || "None";
+    const newStatus = status?.value || "Personalized";
     setConfigState((prev) => ({
       ...prev,
       [configType]: newStatus,
     }));
-    setFields(node.id, {
-      ...nodeItem.fields,
-      [`${configType}`]: newStatus,
+  };
+
+  const handleConfigTypeChange = (selectedConfigType: "trigger" | "reaction") => {
+    setConfigType(selectedConfigType);
+    setConfigState({
+      [selectedConfigType]: configState[selectedConfigType] || "Personalized",
     });
   };
 
   const combinedStatuses: Status[] = [
-    {
-      label: (
-        <div className="flex flex-row items-center text-md font-bold">
-          <SiGooglegemini className="mr-2" /> None
-        </div>
-      ),
-      value: "None",
-    },
     {
       label: (
         <div className="flex flex-row items-center text-md font-bold">
@@ -89,7 +95,7 @@ export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
   ];
 
   const SettingsComponent = settingsComponentMap[menu];
-  console.log(configState)
+  console.log(nodeItem);
   return (
     <Card className="h-full w-[500px]">
       <CardHeader>
@@ -101,65 +107,69 @@ export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="trigger">
-          <TabsList className="mb-4 grid grid-cols-2">
-            <TabsTrigger value="trigger">Trigger Settings</TabsTrigger>
-            <TabsTrigger value="reaction">Reaction Settings</TabsTrigger>
-          </TabsList>
-          {configMap.map((item, key) => (
-            <TabsContent key={key} value={item.type}>
-              <div className="mb-4">
-                <Label
-                  htmlFor={`${item.type}-dropdown`}
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  {item.name} Configuration
-                </Label>
-                <Combox
-                  statuses={combinedStatuses}
-                  setSelectedStatus={(status) =>
-                    handleStatusChange(
-                      status,
-                      item.type === "trigger" ? "trigger" : "reaction",
-                    )
-                  }
-                  selectedStatus={
-                    combinedStatuses.find(
-                      (status) => status.value === configState[item.type],
-                    ) || null
-                  }
-                  label="info"
-                  icon={<SiGooglegemini className="mr-2" />}
-                />
-              </div>
+        <div className="flex justify-between items-center">
+          <div className="mb-4">
+            <Label
+              htmlFor="configType-dropdown"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Choose Configuration Type
+            </Label>
+            <Combox
+              statuses={configOptions}
+              setSelectedStatus={(selected) => handleConfigTypeChange(selected?.value === "trigger" ? "trigger" : "reaction")}
+              selectedStatus={configOptions.find((option) => option.value === configType) || null}
+              label="info"
+              icon={<SiGooglegemini className="mr-2" />}
+            />
+          </div>
 
-              {configState[item.type] === "Personalized" && (
-                <div className="p-4 border border-gray-300 rounded-md">
-                  <h4 className="text-lg font-bold mb-2">
-                    Personalized {item.name} Settings
-                  </h4>
-                  <SettingsComponent node={nodeItem} type={item.type} />
-                </div>
-              )}
+          <div className="mb-4">
+            <Label
+              htmlFor={`${configType}-dropdown`}
+              className="block text-sm font-medium text-gray-700"
+            >
+              {configType === "trigger" ? "Trigger" : "Reaction"} Configuration
+            </Label>
+            <Combox
+              statuses={combinedStatuses}
+              setSelectedStatus={(status) =>
+                handleStatusChange(status, configType as "trigger" | "reaction")
+              }
+              selectedStatus={
+                combinedStatuses.find(
+                  (status) => status.value === configState[configType],
+                ) || combinedStatuses[0]
+              }
+              label="info"
+              icon={<SiGooglegemini className="mr-2" />}
+            />
+          </div>
+        </div>
 
-              {configState[item.type] !== "Personalized" &&
-                configState[item.type] !== "None" && (
-                  <div className="mt-4">
-                    <h4 className="font-bold">Selected Parent Node ID:</h4>
-                    <p>{configState[item.type] as string}</p>
-                    <h4 className="font-bold">Parent Node Label:</h4>
-                    <p>
-                      {
-                        parentNodes.find(
-                          (node) => node.id === configState[item.type],
-                        )?.data.label
-                      }
-                    </p>
-                  </div>
-                )}
-            </TabsContent>
-          ))}
-        </Tabs>
+        {configState[configType] === "Personalized" && (
+          <div className="p-4 border border-gray-300 rounded-md">
+            <h4 className="text-lg font-bold mb-2">
+              Personalized {configType === "trigger" ? "Trigger" : "Reaction"} Settings
+            </h4>
+            <SettingsComponent key={configType} node={nodeItem} type={configType} />
+          </div>
+        )}
+
+        {configState[configType] !== "Personalized" && (
+          <div className="mt-4">
+            <h4 className="font-bold">Selected Parent Node ID:</h4>
+            <p>{configState[configType] as string}</p>
+            <h4 className="font-bold">Parent Node Label:</h4>
+            <p>
+              {
+                parentNodes.find(
+                  (node) => node.id === configState[configType],
+                )?.data.label
+              }
+            </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

@@ -37,12 +37,12 @@ function EmailSettings({ node, type }: { node: NodeItem, type: string }) {
   const { setFields } = useMenu();
 
   const handleFieldChange = (type: string, index: string, value: string) => {
-    const currentField = node.fields[type];
+    const currentField = node.fields["type"];
 
-    if (typeof currentField === "object" && currentField !== null) {
-      setFields(node.id, { ...node.fields, [type]: { ...currentField, [index]: value } });
+    if (currentField !== null && type === currentField) {
+      setFields(node.id, { ...node.fields, [index]: value });
     } else {
-      setFields(node.id, { ...node.fields, [type]: { [index]: value } });
+      setFields(node.id, { ["type"]: type, [index]: value });
     }
   };
 
@@ -64,8 +64,8 @@ function EmailSettings({ node, type }: { node: NodeItem, type: string }) {
               <Input
                 placeholder={item.placeholder}
                 onChange={(e) => handleFieldChange(type, item.label, e.target.value)}
-                value={typeof node.fields[type] === 'object' && node.fields[type] !== null
-                  ? (node.fields[type] as Record<string, string>)[item.label] || ""
+                value={ node.fields["type"] !== null
+                  ? (node.fields[item.label] as string | number | undefined) || ""
                   : ""}
                 type={item.type}
               />
@@ -77,8 +77,8 @@ function EmailSettings({ node, type }: { node: NodeItem, type: string }) {
               placeholder="Example body..."
               className="resize-none h-[200px]"
               onChange={(e) => handleFieldChange(type, "Body", e.target.value)}
-              value={typeof node.fields[type] === 'object' && node.fields[type] !== null
-                ? (node.fields[type] as Record<string, string>)["Body"] || ""
+              value={node.fields["type"] !== null
+                ? (node.fields["Body"] as string | number | undefined) || ""
                 : ""}
             />
           </div>
@@ -89,8 +89,8 @@ function EmailSettings({ node, type }: { node: NodeItem, type: string }) {
           <Input
             placeholder="example@example.com"
             onChange={(e) => handleFieldChange(type, "Source", e.target.value)}
-            value={typeof node.fields[type] === 'object' && node.fields[type] !== null
-              ? (node.fields[type] as Record<string, string>)["Source"] || ""
+            value={node.fields["type"] !== null
+              ? (node.fields["Source"] as string | number | undefined) || ""
               : ""}
           />
         </div>
