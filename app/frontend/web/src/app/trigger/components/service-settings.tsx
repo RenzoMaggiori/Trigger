@@ -47,9 +47,9 @@ function EmailSettings({ node, type }: { node: NodeItem, type: string }) {
   };
 
   const inputs = [
-    { label: "Destination", placeholder: "example@example.com", type: "email" },
-    { label: "Title", placeholder: "Example title..." },
-    { label: "Subject", placeholder: "Example subject..." },
+    { label: "Destination", json: "destination", placeholder: "example@example.com", type: "email" },
+    { label: "Title", json: "title", placeholder: "Example title..." },
+    { label: "Subject", json: "subject", placeholder: "Example subject..." },
   ];
 
   if (!node) return <div>No node found</div>;
@@ -63,9 +63,9 @@ function EmailSettings({ node, type }: { node: NodeItem, type: string }) {
               <Label>{item.label}</Label>
               <Input
                 placeholder={item.placeholder}
-                onChange={(e) => handleFieldChange(type, item.label, e.target.value)}
+                onChange={(e) => handleFieldChange(type, item.json, e.target.value)}
                 value={ node.fields["type"] !== null
-                  ? (node.fields[item.label] as string | number | undefined) || ""
+                  ? (node.fields[item.json] as string | number | undefined) || ""
                   : ""}
                 type={item.type}
               />
@@ -76,9 +76,9 @@ function EmailSettings({ node, type }: { node: NodeItem, type: string }) {
             <Textarea
               placeholder="Example body..."
               className="resize-none h-[200px]"
-              onChange={(e) => handleFieldChange(type, "Body", e.target.value)}
+              onChange={(e) => handleFieldChange(type, "body", e.target.value)}
               value={node.fields["type"] !== null
-                ? (node.fields["Body"] as string | number | undefined) || ""
+                ? (node.fields["body"] as string | number | undefined) || ""
                 : ""}
             />
           </div>
@@ -88,9 +88,9 @@ function EmailSettings({ node, type }: { node: NodeItem, type: string }) {
           <Label>Source</Label>
           <Input
             placeholder="example@example.com"
-            onChange={(e) => handleFieldChange(type, "Source", e.target.value)}
+            onChange={(e) => handleFieldChange(type, "source", e.target.value)}
             value={node.fields["type"] !== null
-              ? (node.fields["Source"] as string | number | undefined) || ""
+              ? (node.fields["source"] as string | number | undefined) || ""
               : ""}
           />
         </div>

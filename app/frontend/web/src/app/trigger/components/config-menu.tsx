@@ -49,7 +49,7 @@ const configOptions = [
 ];
 
 export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
-  const { triggerWorkspace, setFields } = useMenu();
+  const { triggerWorkspace } = useMenu();
   const nodeItem = triggerWorkspace?.nodes[node?.id || ""];
   const [configType, setConfigType] = React.useState("trigger");
   const [configState, setConfigState] = React.useState<Record<string, unknown>>(
