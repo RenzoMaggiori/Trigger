@@ -1,12 +1,18 @@
-const IP = process.env['IPv4'];
-const BASE_URL = `http://${IP}:8000/api/auth`;
+import { NetworkInfo } from 'react-native-network-info';
+
+// const IP = process.env['IPv4'];
+// const BASE_URL = `http://${IP}:8000/api/auth`;
 
 export class CredentialsService {
-    //? REGISTERconst
-
+    static async getBaseUrl() {
+        const ip = await NetworkInfo.getIPV4Address();
+        return `http://${ip}:8000/api/auth`;
+    }
+    //? REGISTER
     static async register(email: string, password: string) {
         try {
-            const response = await fetch(`${BASE_URL}/register`, {
+            const baseUrl = await this.getBaseUrl();
+            const response = await fetch(`${baseUrl}/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -33,7 +39,8 @@ export class CredentialsService {
     //? LOGIN
     static async login(email: string, password: string) {
         try {
-            const response = await fetch(`${BASE_URL}/login`, {
+            const baseUrl = await this.getBaseUrl();
+            const response = await fetch(`${baseUrl}/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
