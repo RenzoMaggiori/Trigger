@@ -11,7 +11,6 @@ import (
 	"github.com/markbates/goth/providers/github"
 	"github.com/markbates/goth/providers/google"
 	"go.mongodb.org/mongo-driver/mongo"
-	// "trigger.com/trigger/pkg/middleware"
 	"trigger.com/trigger/pkg/mongodb"
 	"trigger.com/trigger/pkg/router"
 )
@@ -23,9 +22,6 @@ func Router(ctx context.Context) (*router.Router, error) {
 	}
 
 	server := http.NewServeMux()
-	// middlewares := middleware.Create(
-	// 	middleware.Auth,
-	// )
 
 	handler := Handler{
 		Service: Model{
@@ -33,11 +29,12 @@ func Router(ctx context.Context) (*router.Router, error) {
 		},
 	}
 
+	callback := fmt.Sprintf("http://localhost:%s/api/sync/callback", os.Getenv("SYNC_PORT"))
 	CreateProvider(
 		google.New(
 			os.Getenv("GOOGLE_CLIENT_ID"),
 			os.Getenv("GOOGLE_CLIENT_SECRET"),
-			fmt.Sprintf("%s/api/sync/callback", os.Getenv("SYNC_SERVICE_BASE_URL")),
+			callback,
 			"https://mail.google.com/",
 			"https://www.googleapis.com/auth/documents",
 			"https://www.googleapis.com/auth/drive",
@@ -47,14 +44,17 @@ func Router(ctx context.Context) (*router.Router, error) {
 		github.New(
 			os.Getenv("GITHUB_KEY"),
 			os.Getenv("GITHUB_SECRET"),
-			fmt.Sprintf("%s/api/sync/callback", os.Getenv("SYNC_SERVICE_BASE_URL")),
+			callback,
 		),
 		discord.New(
 			os.Getenv("DISCORD_KEY"),
 			os.Getenv("DISCORD_SECRET"),
-			fmt.Sprintf("http://localhost:%s/api/oauth2/callback", os.Getenv("AUTH_PORT")),
+			callback,
 			discord.ScopeIdentify,
 			discord.ScopeEmail,
+			discord.ScopeWebhook,
+			discord.ScopeBot,
+			discord.ScopeGuilds,
 		),
 	)
 

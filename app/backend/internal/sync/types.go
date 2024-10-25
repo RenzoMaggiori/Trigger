@@ -1,6 +1,7 @@
 package sync
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/markbates/goth"
@@ -9,6 +10,7 @@ import (
 )
 
 type Service interface {
+	GrantAccess(w http.ResponseWriter, r *http.Request) error
 	SyncWith(gothUser goth.User, access_token string) (error)
 	Callback(gothUser goth.User, access_token string) (error)
 }

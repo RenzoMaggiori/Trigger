@@ -1,10 +1,9 @@
 package providers
 
 import (
-	"context"
-	"fmt"
+	"encoding/base64"
+	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/markbates/goth/gothic"
@@ -18,12 +17,11 @@ const (
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	gothUser, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
-		// redirect the user to provider oauth2 workflow
-		gothic.BeginAuthHandler(w, r)
+		h.Service.Login(w, r)
 		return
 	}
-	accessToken, err := h.Service.Login(context.WithValue(r.Context(), LoginCtxKey, gothUser))
 
+	accessToken, err := h.Service.AccessToken(gothUser)
 	if err != nil {
 		customerror.Send(w, err, errCodes)
 		return
@@ -42,6 +40,15 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
+	state := r.URL.Query().Get("state")
+	stateDecodedBytes, err := base64.URLEncoding.DecodeString(state)
+	if err != nil {
+		customerror.Send(w, err, errCodes)
+		return
+	}
+
+	redirectUrl := string(stateDecodedBytes)
+	log.Println(redirectUrl)
 	user, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
 		customerror.Send(w, err, errCodes)
@@ -64,13 +71,12 @@ func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(24 * time.Hour),
 	}
 	http.SetCookie(w, cookie)
-	http.Redirect(w, r, fmt.Sprintf("%s/home", os.Getenv("WEB_BASE_URL")), http.StatusPermanentRedirect)
+	http.Redirect(w, r, redirectUrl, http.StatusPermanentRedirect)
 }
 
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
-	gothic.Logout(w, r)
 	// Remove the session from the database
-	_, err := h.Service.Logout(context.WithValue(r.Context(), AuthorizationHeaderCtxKey, r.Header.Get("Authorization")))
+	err := h.Service.Logout(w, r)
 	if err != nil {
 		customerror.Send(w, err, errCodes)
 		return
