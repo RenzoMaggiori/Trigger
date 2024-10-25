@@ -39,10 +39,12 @@ export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
   const { triggerWorkspace, setFields } = useMenu();
   const nodeItem = triggerWorkspace?.nodes[node?.id || ""];
   const [configState, setConfigState] = React.useState<Record<string, unknown>>(
-    {
-      trigger: nodeItem?.fields.triggerStatus || "None",
-      reaction: nodeItem?.fields.reactionStatus || "None",
-    },
+    () => ({
+      [node?.id || ""]: {
+        trigger: nodeItem?.fields.trigger || "None",
+        reaction: nodeItem?.fields.reactionStatus || "None",
+      },
+    })
   );
 
   if (!node) return <div>{"custom node doesn't exist"}</div>;
@@ -59,7 +61,7 @@ export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
     }));
     setFields(node.id, {
       ...nodeItem.fields,
-      [`${configType}Status`]: newStatus,
+      [`${configType}`]: newStatus,
     });
   };
 
@@ -87,7 +89,7 @@ export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
   ];
 
   const SettingsComponent = settingsComponentMap[menu];
-
+  console.log(configState)
   return (
     <Card className="h-full w-[500px]">
       <CardHeader>
