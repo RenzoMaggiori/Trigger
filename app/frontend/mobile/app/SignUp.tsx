@@ -19,8 +19,9 @@ interface ProvidersProps {
 }
 
 export default function SignUp() {
-    // const IP = process.env['IPv4'];
-    // const BASE_URL = `http://${IP}:8000/`;
+    const IP = process.env['IPv4'];
+    const BASE_URL = `http://${IP}:8000`;
+    const NGROK = process.env['ngrok'];
 
     const [name, setName] = useState('');
     const [surname, setSurname] = useState('');
@@ -49,11 +50,12 @@ export default function SignUp() {
 
     const handleOpenAuth = async (providerName: string) => {
         const baseUrl = await CredentialsService.getBaseUrl();
-        const url = `${baseUrl}/api/oauth2/login?provider=${providerName}`;
+        const url = `${NGROK}/api/oauth2/login?provider=${providerName}&redirect=${BASE_URL}/api/oauth2/callback`;
 
         try {
-            const result = await WebBrowser.openAuthSessionAsync(url,
-                `${baseUrl}/api/oauth2/login?provider=${providerName}`,
+            const result = await WebBrowser.openAuthSessionAsync(
+                url,
+                `${BASE_URL}/api/oauth2/callback`
             );
             if (result.type === 'cancel') {
                 Alert.alert('Browser Canceled', 'The browser was closed by the user.');

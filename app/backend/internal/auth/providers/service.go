@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"net/http"
 	"os"
+	"log"
 
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
@@ -13,6 +14,7 @@ import (
 
 func (m Model) Login(w http.ResponseWriter, r *http.Request) error {
 	redirectUrl := r.URL.Query().Get("redirect")
+	log.Println(redirectUrl)
 	state := base64.URLEncoding.EncodeToString([]byte(redirectUrl))
 	values := r.URL.Query()
 	values.Set("state", state)

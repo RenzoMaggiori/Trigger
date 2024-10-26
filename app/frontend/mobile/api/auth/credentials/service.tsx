@@ -8,6 +8,7 @@ export class CredentialsService {
         // const ip = await NetworkInfo.getIPV4Address();
         // return `http://${ip}:8000/api/auth`;
         return `http://${IP}:8000/api/auth`;
+        // return `https://458b-88-30-70-166.ngrok-free.app`
     }
     //? REGISTER
     static async register(email: string, password: string) {
