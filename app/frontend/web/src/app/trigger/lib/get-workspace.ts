@@ -4,14 +4,14 @@ import { cookies } from "next/headers";
 import { env } from "@/lib/env";
 import { triggerSchema } from "@/app/home/lib/types";
 
-export async function getWorkspace() {
+export async function getWorkspace({id}: {id: string}) {
   const accessToken = cookies().get("Authorization")?.value;
   if (!accessToken) {
     throw new Error("could not get access token");
   }
 
   const res = await fetch(
-    `${env.NEXT_PUBLIC_ACTION_SERVICE_URL}/api/`, // TODO: Add correct endpoint
+    `${env.NEXT_PUBLIC_ACTION_SERVICE_URL}/api/workspace/id/${id}`,
     {
       method: "GET",
       headers: {

@@ -11,7 +11,7 @@ export async function getWorkspaces() {
   }
 
   const res = await fetch(
-    `${env.NEXT_PUBLIC_ACTION_SERVICE_URL}/api/`, // TODO: Add correct endpoint
+    `${env.NEXT_PUBLIC_ACTION_SERVICE_URL}/api/workspace`,
     {
       method: "GET",
       headers: {
