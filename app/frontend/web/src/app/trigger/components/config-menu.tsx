@@ -95,7 +95,6 @@ export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
   ];
 
   const SettingsComponent = settingsComponentMap[menu];
-  console.log(nodeItem);
   return (
     <Card className="h-full w-[500px]">
       <CardHeader>

@@ -48,6 +48,10 @@ export default function Page({ params }: { params: { triggerID: string } }) {
 
   const { triggerWorkspace, setTriggerWorkspace, setNodes } = useMenu();
 
+  /* const mutation = useMutation({
+    mutationFn: getWorkspace,
+  }); */
+
   React.useEffect(() => {
     if (!triggerWorkspace || triggerWorkspace.id !== params.triggerID) {
       setTriggerWorkspace((prev) => prev || { id: params.triggerID, nodes: {} });
