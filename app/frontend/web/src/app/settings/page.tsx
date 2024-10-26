@@ -89,8 +89,8 @@ export default function Page() {
     const updatedServices = [...serviceList];
     if (fieldKey === "Connection") {
       const href = updatedServices[serviceIndex].fields[fieldKey]
-        ? `${env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/auth/sync?=${provider}`
-        : `${env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/auth/disconect?=${provider}`;
+        ? `${env.NEXT_PUBLIC_SYNC_SERVICE_URL}/api/auth/sync/sync-with?provider=${provider}`
+        : `${env.NEXT_PUBLIC_SYNC_SERVICE_URL}/api/auth/sync/sync-with?provider=${provider}`;
       window.location.href = href;
     }
     updatedServices[serviceIndex].fields[fieldKey] =
@@ -111,8 +111,8 @@ export default function Page() {
     const updatedServices = [...serviceList];
     if (!active) {
       const href = updatedServices[serviceIndex].fields[fieldKey]
-        ? `${env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/auth/sync?=${provider}`
-        : `${env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/auth/disconect?=${provider}`;
+        ? `${env.NEXT_PUBLIC_SYNC_SERVICE_URL}/api/auth/sync/sync-with?provider=${provider}`
+        : `${env.NEXT_PUBLIC_SYNC_SERVICE_URL}/api/auth/sync/sync-with?provider=${provider}`;
       window.location.href = href;
       updatedServices[serviceIndex].fields[fieldKey] = true;
     } else updatedServices[serviceIndex].fields[fieldKey] = false;

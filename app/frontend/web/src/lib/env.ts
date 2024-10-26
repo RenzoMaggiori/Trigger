@@ -8,12 +8,14 @@ export const withDevDefault = <T extends z.ZodTypeAny>(
 const envSchema = z.object({
   NEXT_PUBLIC_AUTH_SERVICE_URL: z.string().url(),
   NEXT_PUBLIC_ACTION_SERVICE_URL: z.string().url(),
+  NEXT_PUBLIC_SYNC_SERVICE_URL: z.string().url(),
 });
 
 function getEnv() {
   const { success, data, error } = envSchema.safeParse({
     NEXT_PUBLIC_AUTH_SERVICE_URL: process.env.NEXT_PUBLIC_AUTH_SERVICE_URL,
     NEXT_PUBLIC_ACTION_SERVICE_URL: process.env.NEXT_PUBLIC_ACTION_SERVICE_URL,
+    NEXT_PUBLIC_SYNC_SERVICE_URL: process.env.NEXT_PUBLIC_SYNC_SERVICE_URL,
   });
 
   if (!success) {
