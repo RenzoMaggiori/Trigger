@@ -1,6 +1,7 @@
 package trigger
 
 import (
+	"go.mongodb.org/mongo-driver/mongo"
 	"trigger.com/trigger/pkg/action"
 )
 
@@ -13,6 +14,7 @@ type Handler struct {
 }
 
 type Model struct {
+	Collection *mongo.Collection
 }
 
 type StopModel struct {

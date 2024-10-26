@@ -1,12 +1,12 @@
 package reaction
 
-import (
-	"context"
-	"net/http"
+// import (
+// 	"context"
+// 	"net/http"
 
-	"trigger.com/trigger/pkg/middleware"
-	"trigger.com/trigger/pkg/router"
-)
+// 	"trigger.com/trigger/pkg/middleware"
+// 	"trigger.com/trigger/pkg/router"
+// )
 
 // func Router(ctx context.Context) (*router.Router, error) {
 

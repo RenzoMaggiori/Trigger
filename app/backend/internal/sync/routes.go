@@ -52,6 +52,9 @@ func Router(ctx context.Context) (*router.Router, error) {
 			callback,
 			discord.ScopeIdentify,
 			discord.ScopeEmail,
+			discord.ScopeWebhook,
+			discord.ScopeBot,
+			discord.ScopeGuilds,
 		),
 	)
 
