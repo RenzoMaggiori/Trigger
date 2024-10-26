@@ -81,7 +81,7 @@ export default function SignUp() {
     ];
 
     const data = {
-        logo: require('../assets/images/react-logo.png'),
+        logo: require('../assets/images/logo.png'),
     };
 
     return (
@@ -176,10 +176,12 @@ const styles = StyleSheet.create({
     },
     navbar: {
         alignItems: 'center',
+        margin: 10,
+        marginBottom: 20,
     },
     logo: {
-        width: 80,
-        height: 80,
+        resizeMode: 'contain',
+        height: 30,
     },
     scrollContainer: {
         flexGrow: 1,

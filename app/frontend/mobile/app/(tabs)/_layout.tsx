@@ -41,7 +41,7 @@ export default function TabLayout() {
   };
 
   const data = {
-    logo: require('../../assets/images/react-logo.png'),
+    logo: require('../../assets/images/logo.png'),
   };
 
   return (
@@ -150,8 +150,8 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   logo: {
-    width: 40,
-    height: 40,
+    resizeMode: 'contain',
+    height: 30,
   },
   triggersButton: {
     width: 70,

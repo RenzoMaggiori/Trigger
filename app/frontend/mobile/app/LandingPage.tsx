@@ -20,7 +20,7 @@ export default function LandingPage() {
     };
 
     const data = {
-        logo: require('../assets/images/react-logo.png'),
+        logo: require('../assets/images/logo.png'),
         slogan: "Connect and Automate Effortlessly",
         description: "Trigger empowers you to connect services seamlessly. Automate tasks and enhance productivity by turning your ideas into efficient workflows.",
         buttons: {
@@ -42,6 +42,7 @@ export default function LandingPage() {
     return (
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.navbar}>
+                {/* <Logo width={80} height={80} /> */}
                 <Image source={data.logo} style={styles.logo} />
             </View>
 
@@ -116,8 +117,8 @@ const styles = StyleSheet.create({
         paddingTop: 20,
     },
     logo: {
-        width: 80,
-        height: 80,
+        resizeMode: 'contain',
+        height: 30,
     },
     scrollContainer: {
         flexGrow: 1,
