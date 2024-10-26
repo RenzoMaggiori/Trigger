@@ -88,7 +88,7 @@ func ActionCompletedRequest(accessToken string, update ActionCompletedModel) (in
 		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodPatch,
-			fmt.Sprintf("%s/api/workspace/completed_action", os.Getenv("ACTION_SERVICE_BASE_URL")),
+			fmt.Sprintf("%s/api/workspace/action_completed", os.Getenv("ACTION_SERVICE_BASE_URL")),
 			bytes.NewReader(body),
 			map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", accessToken),
@@ -115,6 +115,43 @@ func GetByUserId(accessToken string, userId string) ([]WorkspaceModel, int, erro
 			http.MethodGet,
 			fmt.Sprintf("%s/api/workspace/user_id/%s", os.Getenv("ACTION_SERVICE_BASE_URL"), userId),
 			nil,
+			map[string]string{
+				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
+				"Content-Type":  "application/json",
+			},
+		),
+	)
+
+	if err != nil {
+		return nil, res.StatusCode, err
+	}
+
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return nil, res.StatusCode, errors.ErrCompletingAction
+	}
+
+	workspaces, err := decode.Json[[]WorkspaceModel](res.Body)
+	if err != nil {
+		return nil, res.StatusCode, err
+	}
+
+	return workspaces, res.StatusCode, nil
+}
+
+func WatchCompletedRequest(accessToken string, watchCompleted WatchCompletedModel) ([]WorkspaceModel, int, error) {
+	body, err := json.Marshal(watchCompleted)
+
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+
+	res, err := fetch.Fetch(
+		http.DefaultClient,
+		fetch.NewFetchRequest(
+			http.MethodPatch,
+			fmt.Sprintf("%s/api/workspace/watch_completed", os.Getenv("ACTION_SERVICE_BASE_URL")),
+			bytes.NewReader(body),
 			map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
 				"Content-Type":  "application/json",

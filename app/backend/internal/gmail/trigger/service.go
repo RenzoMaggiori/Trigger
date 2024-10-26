@@ -24,7 +24,11 @@ import (
 )
 
 func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) error {
-	accessToken := ctx.Value(AccessTokenCtxKey)
+	accessToken, ok := ctx.Value(AccessTokenCtxKey).(string)
+
+	if !ok {
+		return errors.ErrAccessTokenCtx
+	}
 
 	watchBody := WatchBody{
 		LabelIds:  []string{"INBOX"},
@@ -60,6 +64,33 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 		}
 		log.Printf("Watch body: %s", bodyBytes)
 		return errors.ErrGmailWatch
+	}
+
+	watchResponse, err := decode.Json[WatchResponse](res.Body)
+
+	if err != nil {
+		return err
+	}
+
+	session, _, err := session.GetSessionByAccessTokenRequest(accessToken)
+
+	if err != nil {
+		return err
+	}
+
+	watchCompleted := workspace.WatchCompletedModel{
+		ActionId: actionNode.ActionId,
+		UserId:   session.UserId,
+		Output: map[string]string{
+			"historyId":  watchResponse.HistoryId,
+			"expiration": watchResponse.Expiration,
+		},
+	}
+
+	_, _, err = workspace.WatchCompletedRequest(accessToken, watchCompleted)
+
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -164,9 +195,13 @@ func (m Model) Webhook(ctx context.Context) error {
 	activeNodes := getActiveNodes(workspaces, action.Id)
 
 	for _, activeNode := range activeNodes {
-		log.Printf("Active Node : %s", activeNode.NodeId)
 
-		history, err := fetchUserHistory(googleSession.AccessToken, int(eventData.HistoryId))
+		intHistoryId, err := strconv.Atoi(activeNode.Output["historyId"])
+		if err != nil {
+			return err
+		}
+
+		history, err := fetchUserHistory(googleSession.AccessToken, intHistoryId)
 
 		if err != nil {
 			return err
@@ -176,7 +211,7 @@ func (m Model) Webhook(ctx context.Context) error {
 		update := workspace.ActionCompletedModel{
 			ActionId: action.Id,
 			UserId:   user.Id,
-			Output:   map[string]string{"historyId": strconv.Itoa(int(eventData.HistoryId))},
+			Output:   map[string]string{"email": ""},
 		}
 
 		_, err = workspace.ActionCompletedRequest(googleSession.AccessToken, update)

@@ -19,6 +19,7 @@ var (
 	// Bad Request Errors
 	ErrBadWorkspaceId        error = errors.New("bad workspace id")
 	ErrBadUserId             error = errors.New("bad user id")
+	ErrBadActionId           error = errors.New("bad action id")
 	ErrSessionTypeNone       error = errors.New("could not decypher session type")
 	ErrInvalidGithubStatus   error = errors.New("invalid github status")
 	ErrInvalidReactionInput  error = errors.New("invalid reaction input")
@@ -40,8 +41,9 @@ var (
 	ErrCreatingEmail     error = errors.New("failed to create raw email")
 
 	// Setting/Completing Errors
-	ErrSettingAction    error = errors.New("error while setting trigger or reaction")
-	ErrCompletingAction error = errors.New("error while completing action")
+	ErrSettingAction         error = errors.New("error while setting trigger or reaction")
+	ErrCompletingAction      error = errors.New("error while completing action")
+	ErrCompletingWatchAction error = errors.New("error while completing watch action")
 
 	// Retrieval/Fetching Errors
 	ErrFetchingSession error = errors.New("error while retrieving session")
@@ -66,6 +68,10 @@ var (
 		},
 		ErrBadUserId: {
 			Message: ErrBadUserId.Error(),
+			Code:    http.StatusBadRequest,
+		},
+		ErrBadActionId: {
+			Message: ErrBadActionId.Error(),
 			Code:    http.StatusBadRequest,
 		},
 		ErrSessionNotFound: {
@@ -106,6 +112,10 @@ var (
 		},
 		ErrCompletingAction: {
 			Message: ErrCompletingAction.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrCompletingWatchAction: {
+			Message: ErrCompletingWatchAction.Error(),
 			Code:    http.StatusInternalServerError,
 		},
 		ErrActionNotFound: {

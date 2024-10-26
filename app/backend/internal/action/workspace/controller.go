@@ -100,7 +100,6 @@ func (h *Handler) AddWorkspace(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) ActionCompletedWorkspace(w http.ResponseWriter, r *http.Request) {
-
 	update, err := decode.Json[ActionCompletedModel](r.Body)
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
@@ -149,6 +148,29 @@ func (h *Handler) UpdateById(w http.ResponseWriter, r *http.Request) {
 		customerror.Send(w, err, errors.ErrCodes)
 		return
 	}
+	if err = encode.Json(w, updatedWorkspace); err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+}
+
+func (h *Handler) WatchCompleted(w http.ResponseWriter, r *http.Request) {
+	update, err := decode.Json[WatchCompletedModel](r.Body)
+	if err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+
+	updatedWorkspace, err := h.Service.WatchCompleted(
+		context.TODO(),
+		update,
+	)
+
+	if err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+
 	if err = encode.Json(w, updatedWorkspace); err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
 		return

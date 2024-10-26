@@ -54,6 +54,11 @@ type HistoryList struct {
 	HistoryId     string    `json:"historyId"`
 }
 
+type WatchResponse struct {
+	HistoryId  string `json:"historyId"`
+	Expiration string `json:"expiration"`
+}
+
 type History struct {
 	Id              string           `json:"id"`
 	Messages        []Message        `json:"messages,omitempty"`

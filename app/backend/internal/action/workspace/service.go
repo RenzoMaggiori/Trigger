@@ -303,3 +303,42 @@ func (m Model) UpdateById(ctx context.Context, id primitive.ObjectID, update *Up
 	}
 	return &updatedUserAction, nil
 }
+
+func (m Model) WatchCompleted(ctx context.Context, watchCompleted WatchCompletedModel) ([]WorkspaceModel, error) {
+	// Find documents with the matching UserId
+	filter := bson.M{
+		"user_id": watchCompleted.UserId,
+		"nodes": bson.M{
+			"$elemMatch": bson.M{
+				"action_id": watchCompleted.ActionId,
+			},
+		},
+	}
+
+	// Define the update: set the output field for the matching nodes
+	update := bson.M{
+		"$set": bson.M{
+			"nodes.$.output": watchCompleted.Output,
+		},
+	}
+
+	// Perform the update
+	_, err := m.Collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		return nil, err
+	}
+
+	// Retrieve updated documents to return
+	cursor, err := m.Collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var workspaces []WorkspaceModel
+	if err = cursor.All(ctx, &workspaces); err != nil {
+		return nil, err
+	}
+
+	return workspaces, nil
+}

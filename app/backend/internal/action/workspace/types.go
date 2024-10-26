@@ -20,6 +20,7 @@ type Service interface {
 	Add(context.Context, *AddWorkspaceModel) (*WorkspaceModel, error)
 	ActionCompleted(context.Context, ActionCompletedModel) ([]WorkspaceModel, error)
 	UpdateById(context.Context, primitive.ObjectID, *UpdateWorkspaceModel) (*WorkspaceModel, error)
+	WatchCompleted(context.Context, WatchCompletedModel) ([]WorkspaceModel, error)
 	// DeleteById(context.Context, primitive.ObjectID) error
 }
 
@@ -86,5 +87,11 @@ type UpdateWorkspaceModel struct {
 type ActionCompletedModel struct {
 	ActionId primitive.ObjectID `json:"action_id"`
 	UserId   primitive.ObjectID `json:"user_id"`
+	Output   map[string]string  `json:"output"`
+}
+
+type WatchCompletedModel struct {
+	UserId   primitive.ObjectID `json:"user_id"`
+	ActionId primitive.ObjectID `json:"action_id"`
 	Output   map[string]string  `json:"output"`
 }
