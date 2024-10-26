@@ -4,26 +4,29 @@ import { Colors } from '@/constants/Colors';
 import Button from '@/components/Button';
 
 interface ActionSelectorProps {
-    onActionSelect: (id: number) => void;
+    provider: string | null;
+    onActionSelect: (action: string) => void;
 }
 
 const actions = [
-    { id: 1, input: [], output: [], provider:'gmail', type: 'trigger', action: 'new email_1'},
-    { id: 2, input: [], output: [], provider:'gmail', type: 'trigger', action: 'new email_2'},
-    { id: 3, input: [], output: [], provider:'gmail', type: 'trigger', action: 'new email_3'},
-    { id: 4, input: [], output: [], provider:'gmail', type: 'reaction', action: 'send email_1'},
-    { id: 5, input: [], output: [], provider:'gmail', type: 'reaction', action: 'send email_2'},
-    { id: 6, input: [], output: [], provider:'gmail', type: 'reaction', action: 'send email_3'},
+    { id: 1, input: [], output: [], provider:'google', type: 'trigger', action: 'new email_1'},
+    { id: 2, input: [], output: [], provider:'google', type: 'trigger', action: 'new email_2'},
+    { id: 3, input: [], output: [], provider:'google', type: 'trigger', action: 'new email_3'},
+    { id: 4, input: [], output: [], provider:'google', type: 'reaction', action: 'send email_1'},
+    { id: 5, input: [], output: [], provider:'google', type: 'reaction', action: 'send email_2'},
+    { id: 6, input: [], output: [], provider:'google', type: 'reaction', action: 'send email_3'},
 ];
 
-export default function ActionSelector({ onActionSelect }: ActionSelectorProps) {
+export default function ActionSelector({ provider, onActionSelect }: ActionSelectorProps) {
+    const filteredActions = actions.filter(action => action.provider === provider);
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Select a Provider</Text>
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.techList}>
-                {actions.map((action, index) => (
+            <Text style={styles.title}>Select an Action</Text>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.actionsList}>
+                {filteredActions.map((action, index) => (
                     <Button
-                        onPress={() => onActionSelect(action.id)}
+                        key={action.id}
+                        onPress={() => onActionSelect(action.action)}
                         title={action.action}
                     />
                 ))}
@@ -46,7 +49,7 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         textAlign: 'center',
     },
-    techList: {
+    actionsList: {
         flexDirection: 'column',
     },
 });

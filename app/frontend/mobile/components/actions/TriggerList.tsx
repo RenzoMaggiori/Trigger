@@ -3,39 +3,41 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import Animated, { FadeIn, FadeOut, Layout, useSharedValue } from 'react-native-reanimated';
 import { AntDesign, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
-import TechBox from './TechBox';
+import ProviderBox from '@/components/actions/ProviderBox';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Draggable from './Draggable';
 
-interface TechProps {
+interface ProviderProps {
     name: string;
     icon: React.ReactElement;
+    provider: string;
+    action: string;
 }
 
-interface TechBox extends TechProps {
+interface ProviderBox extends ProviderProps {
     id: number;
 }
 
-interface ActionReactionListProps {
-    tech?: TechProps;
+interface TriggerListProps {
+    provider?: ProviderProps;
 }
 
-export default function ActionReactionList({ tech }: ActionReactionListProps) {
+export default function TriggerList({ provider }: TriggerListProps) {
     const initialState = useRef<boolean>(true);
-    const [techs, setTechs] = useState<TechBox[]>([]);
+    const [providers, setProviders] = useState<ProviderBox[]>([]);
 
     useEffect(() => {
         initialState.current = false;
-        if (tech) {
-            setTechs(prevTechs => [...prevTechs, { ...tech, id: prevTechs.length }]);
+        if (provider) {
+            setProviders(prevProviders => [...prevProviders, { ...provider, id: prevProviders.length }]);
         }
-    }, [tech]);
+    }, [provider]);
 
     const onDelete = useCallback((id: number) => {
-        setTechs((currTechs: TechBox[]) => {
-            let newItems = currTechs.filter((item: any) => item.id !== id);
-            newItems.map((tech) => {
-                tech.id = newItems.indexOf(tech);
+        setProviders((currProviders: ProviderBox[]) => {
+            let newItems = currProviders.filter((item: any) => item.id !== id);
+            newItems.map((provider) => {
+                provider.id = newItems.indexOf(provider);
             });
             return newItems;
         });
@@ -43,15 +45,15 @@ export default function ActionReactionList({ tech }: ActionReactionListProps) {
 
     return (
         <GestureHandlerRootView style={{height: "100%", minHeight: 450}}>
-            {techs.length !== 0 ? (
+            {providers.length !== 0 ? (
             <View>
-                {techs.map((tech, index) => (
+                {providers.map((provider, index) => (
                 <Draggable key={index}>
-                    <TechBox
+                    <ProviderBox
                     index={index}
-                    id={tech.id}
-                    name={tech.name}
-                    icon={tech.icon}
+                    id={provider.id}
+                    name={provider.name}
+                    icon={provider.icon}
                     initialState={initialState}
                     onDelete={onDelete}
                     />
@@ -63,7 +65,7 @@ export default function ActionReactionList({ tech }: ActionReactionListProps) {
             </View>
             ) : (
                 <View>
-                    <Text>No techs available</Text>
+                    <Text>No providers available</Text>
                 </View>
             )}
         </GestureHandlerRootView>
@@ -102,7 +104,7 @@ const styles = StyleSheet.create({
     iconContainer: {
         marginBottom: 5,
     },
-    techName: {
+    providerName: {
         fontSize: 16,
         fontWeight: 'bold',
     },
