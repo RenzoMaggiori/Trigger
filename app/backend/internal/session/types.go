@@ -14,7 +14,8 @@ type Service interface {
 	Add(*AddSessionModel) (*SessionModel, error)
 	UpdateById(primitive.ObjectID, *UpdateSessionModel) (*SessionModel, error)
 	DeleteById(primitive.ObjectID) error
-	GetByToken(string) (*SessionModel, error)
+	GetByAccessToken(string) (*SessionModel, error)
+	GetByTokenId(string) (*SessionModel, error)
 }
 
 type Handler struct {

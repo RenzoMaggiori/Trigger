@@ -10,7 +10,7 @@ import (
 	"trigger.com/trigger/pkg/fetch"
 )
 
-func GetActionByIdRequest(accessToken string, actionId string) (*ActionModel, int, error) {
+func GetByIdRequest(accessToken string, actionId string) (*ActionModel, int, error) {
 	res, err := fetch.Fetch(http.DefaultClient, fetch.NewFetchRequest(
 		http.MethodGet,
 		fmt.Sprintf("%s/api/action/id/%s", os.Getenv("ACTION_SERVICE_BASE_URL"), actionId),
@@ -34,7 +34,7 @@ func GetActionByIdRequest(accessToken string, actionId string) (*ActionModel, in
 	return &action, res.StatusCode, nil
 }
 
-func GetActionsByProviderRequest(accessToken string, provider string) ([]ActionModel, int, error) {
+func GetByProviderRequest(accessToken string, provider string) ([]ActionModel, int, error) {
 	res, err := fetch.Fetch(http.DefaultClient, fetch.NewFetchRequest(
 		http.MethodGet,
 		fmt.Sprintf("%s/api/action/provider/%s", os.Getenv("ACTION_SERVICE_BASE_URL"), provider),
@@ -58,7 +58,7 @@ func GetActionsByProviderRequest(accessToken string, provider string) ([]ActionM
 	return action, res.StatusCode, nil
 }
 
-func GetActionByAction(accessToken string, actionName string) (*ActionModel, int, error) {
+func GetByActionNameRequest(accessToken string, actionName string) (*ActionModel, int, error) {
 	res, err := fetch.Fetch(http.DefaultClient, fetch.NewFetchRequest(
 		http.MethodGet,
 		fmt.Sprintf("%s/api/action/action/%s", os.Getenv("ACTION_SERVICE_BASE_URL"), actionName),

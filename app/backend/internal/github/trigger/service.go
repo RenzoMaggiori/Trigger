@@ -22,7 +22,7 @@ const (
 func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) error {
 	accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
 	if !ok {
-		return errors.ErrAccessTokenCtxKey
+		return errors.ErrAccessTokenCtx
 	}
 
 	body, err := json.Marshal(map[string]any{
@@ -44,8 +44,8 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 	}
 
 	// TODO: get correct access token from sync service
-	owner := actionNode.Input[0]
-	repo := actionNode.Input[1]
+	owner := actionNode.Input["owner"]
+	repo := actionNode.Input["repo"]
 	res, err := fetch.Fetch(
 		&http.Client{},
 		fetch.NewFetchRequest(
@@ -72,7 +72,7 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 func (m Model) Stop(ctx context.Context) error {
 	accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
 	if !ok {
-		return errors.ErrAccessTokenCtxKey
+		return errors.ErrAccessTokenCtx
 	}
 
 	body, ok := ctx.Value(github.StopCtxKey).(StopModel)
