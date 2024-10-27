@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	// "fmt"
+
+	// "fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -36,18 +38,18 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 }
 
 func newMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
-	if m.Author.ID == s.State.User.ID {
-		return
-	}
-	 // Identify which server the message is coming from
-	log.Printf("Message received in GuildID: %s, ChannelID: %s\n", m.GuildID, m.ChannelID)
+	// if m.Author.ID == s.State.User.ID {
+		// 	return
+		// }
+		// Identify which server the message is coming from
+	// log.Printf("Message received in GuildID: %s, ChannelID: %s\n", m.GuildID, m.ChannelID)
 
-	log.Printf("Message from %s: %s\n", m.Author.Username, m.Content)
-	s.Close()
+	// log.Printf("Message from %s: %s\n", m.Author.Username, m.Content)
 
-	// Respond to user
+	// // Respond to user
 	// s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Hello, %s! %s", m.Author.Username, "userInfo"))
-	// s.ChannelMessageSendComplex(channelID, message)
+	// defer s.Close()
+	// // s.ChannelMessageSendComplex(channelID, message)
 
 }
 
