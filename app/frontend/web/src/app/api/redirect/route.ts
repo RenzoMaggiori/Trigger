@@ -22,5 +22,13 @@ export async function GET(request: NextRequest) {
       credentials: "include",
     },
   );
-  return res;
+  if (!res.ok) {
+    return NextResponse.redirect(redirect);
+  }
+
+  const location = res.headers.get("Location");
+  if (!location) {
+    return NextResponse.redirect(redirect);
+  }
+  return NextResponse.redirect(location);
 }
