@@ -18,7 +18,6 @@ const (
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	gothUser, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
-		// redirect the user to provider oauth2 workflow
 		gothic.BeginAuthHandler(w, r)
 		return
 	}

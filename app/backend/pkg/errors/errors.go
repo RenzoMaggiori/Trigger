@@ -40,6 +40,9 @@ var (
 	ErrCreatingSession   error = errors.New("error while creating session")
 	ErrCreatingEmail     error = errors.New("failed to create raw email")
 
+	// Updating Errors
+	ErrUpdatingWorkspace error = errors.New("error while updating workspace")
+
 	// Setting/Completing Errors
 	ErrSettingAction         error = errors.New("error while setting trigger or reaction")
 	ErrCompletingAction      error = errors.New("error while completing action")
@@ -193,6 +196,10 @@ var (
 		ErrAuthorizationHeaderNotFound: {
 			Message: ErrAuthorizationHeaderNotFound.Error(),
 			Code:    http.StatusForbidden,
+		},
+		ErrUpdatingWorkspace: {
+			Message: ErrUpdatingWorkspace.Error(),
+			Code:    http.StatusNotFound,
 		},
 	}
 )
