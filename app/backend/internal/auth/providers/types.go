@@ -11,6 +11,7 @@ import (
 type Service interface {
 	authenticator.Authenticator
 	Callback(user goth.User) (string, error)
+	AccessToken(user goth.User) (string, error)
 }
 
 type Handler struct {

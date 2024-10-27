@@ -54,7 +54,7 @@ func (m Model) GetByProvider(provider string) ([]ActionModel, error) {
 	return sessions, nil
 }
 
-func (m Model) GetByAction(action string) (*ActionModel, error) {
+func (m Model) GetByActionName(action string) (*ActionModel, error) {
 	var session ActionModel
 	ctx := context.TODO()
 	filter := bson.M{"action": action}

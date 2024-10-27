@@ -3,46 +3,43 @@ package sync
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
 	"github.com/markbates/goth"
+	"github.com/markbates/goth/gothic"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"trigger.com/trigger/internal/settings"
 	"trigger.com/trigger/internal/user"
-	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/fetch"
 )
 
-func (m Model) SyncWith(gothUser goth.User) error {
-	res, err := fetch.Fetch(
-		http.DefaultClient,
-		fetch.NewFetchRequest(
-			http.MethodGet,
-			fmt.Sprintf("%s/api/user/email/%s", os.Getenv("USER_SERVICE_BASE_URL"), gothUser.Email),
-			nil,
-			map[string]string{
-				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
-			},
-		),
-	)
+func (m Model) GrantAccess(w http.ResponseWriter, r *http.Request) error {
+	redirectUrl := r.URL.Query().Get("redirect")
+	access_token := r.Header.Get("Authorization")
 
+	url := base64.URLEncoding.EncodeToString([]byte(redirectUrl))
+	token := base64.URLEncoding.EncodeToString([]byte(access_token))
+	state := fmt.Sprintf("%s:%s", url, token)
+
+	values := r.URL.Query()
+	values.Set("state", state)
+
+	r.URL.RawQuery = values.Encode()
+	gothic.BeginAuthHandler(w, r)
+	return nil
+}
+
+func (m Model) SyncWith(gothUser goth.User, access_token string) error {
+	user, _, err := user.GetUserByAccesstokenRequest(access_token)
 	if err != nil {
-		return errors.New("failed to fetch user")
-	}
-
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		return errors.New("status code not OK, couldn't fetch user")
-	}
-
-	user, err := decode.Json[user.UserModel](res.Body)
-	if err != nil {
-		return errors.New("failed to decode user")
+		return err
 	}
 
 	ctx := context.TODO()
@@ -69,36 +66,18 @@ func (m Model) SyncWith(gothUser goth.User) error {
 	return nil
 }
 
-func (m Model) Callback(gothUser goth.User) error {
-	res, err := fetch.Fetch(
-		http.DefaultClient,
-		fetch.NewFetchRequest(
-			http.MethodGet,
-			fmt.Sprintf("%s/api/user/email/%s", os.Getenv("USER_SERVICE_BASE_URL"), gothUser.Email),
-			nil,
-			map[string]string{
-				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
-			},
-		),
-	)
-
+func (m Model) Callback(gothUser goth.User, access_token string) error {
+	user, _, err := user.GetUserByAccesstokenRequest(access_token)
 	if err != nil {
-		return errors.New("failed to fetch user")
+		return err
 	}
 
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		return errors.New("status code not OK, couldn't fetch user")
-	}
-
-	user, err := decode.Json[user.UserModel](res.Body)
+	var sync SyncModel
+	err = m.Collection.FindOne(context.TODO(), bson.M{"userId": user.Id}).Decode(&sync)
 	if err != nil {
-		return errors.New("failed to decode user")
-	}
-
-	syncExists := m.Collection.FindOne(context.TODO(), bson.M{"userId": user.Id})
-	if syncExists.Err() == nil {
-		return m.SyncWith(gothUser)
+		if sync.ProviderName == &gothUser.Provider {
+			return m.SyncWith(gothUser, access_token)
+		}
 	}
 
 	newSync := SyncModel{
@@ -117,10 +96,11 @@ func (m Model) Callback(gothUser goth.User) error {
 		return errors.New("failed to insert sync")
 	}
 
+	log.Println("SYNC ADDED SUCCESSFULLY")
+
 	addSettings := settings.AddSettingsModel{
 		UserId:       user.Id,
 		ProviderName: &gothUser.Provider,
-		AccessToken:  gothUser.AccessToken,
 		Active:       true,
 	}
 
@@ -129,7 +109,7 @@ func (m Model) Callback(gothUser goth.User) error {
 		return errors.New("failed to marshal settings")
 	}
 
-	res, err = fetch.Fetch(
+	res, err := fetch.Fetch(
 		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodPost,
@@ -147,8 +127,10 @@ func (m Model) Callback(gothUser goth.User) error {
 
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusCreated {
-		return errors.New("status code not OK, couldn't add new settings")
+		return errors.New("status code not OK, couldn't add new setting")
 	}
+
+	log.Println("SETTINGS ADDED SUCCESSFULLY")
 
 	return nil
 }

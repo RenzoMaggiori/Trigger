@@ -12,6 +12,7 @@ export async function newTrigger(): Promise<z.infer<typeof triggerSchema>> {
     throw new Error("could not get access token");
   }
 
+  console.log("Fetching...");
   const res = await fetch(
     `${env.NEXT_PUBLIC_ACTION_SERVICE_URL}/api/workspace/add`,
     {

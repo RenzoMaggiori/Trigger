@@ -65,7 +65,7 @@ func (h *Handler) GetActionsByProvider(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetActionByAction(w http.ResponseWriter, r *http.Request) {
 	action := r.PathValue("action")
 
-	user, err := h.Service.GetByAction(action)
+	user, err := h.Service.GetByActionName(action)
 	if err != nil {
 		log.Print(err)
 		customerror.Send(w, err, errors.ErrCodes)
