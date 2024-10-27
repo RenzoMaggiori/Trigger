@@ -24,9 +24,9 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { sync } from "./lib/sync";
+// import { sync } from "./lib/sync";
 
-import { useMutation } from "@tanstack/react-query";
+// import { useMutation } from "@tanstack/react-query";
 // import { getConnections } from "./lib/get-conections";
 
 type SettingsProps = {
@@ -82,9 +82,9 @@ export default function Page() {
   const [serviceList, setServiceList] =
     React.useState<SettingsProps[]>(services);
 
-  const mutation = useMutation({
+  /* const mutation = useMutation({
     mutationFn: sync,
-  });
+  }); */
 
   const handleSwitchChange = (
     serviceIndex: number,
@@ -93,7 +93,8 @@ export default function Page() {
   ) => {
     const updatedServices = [...serviceList];
     if (fieldKey === "Connection") {
-      mutation.mutate(provider);
+      window.location.href = `/api/redirect?provider=${provider}`;
+      // mutation.mutate(provider);
     }
     updatedServices[serviceIndex].fields[fieldKey] =
       !updatedServices[serviceIndex].fields[fieldKey];
@@ -109,7 +110,8 @@ export default function Page() {
     const updatedServices = [...serviceList];
     if (!active) {
       updatedServices[serviceIndex].fields[fieldKey] = true;
-      mutation.mutate(provider);
+      window.location.href = `/api/redirect?provider=${provider}`;
+      // mutation.mutate(provider);
     } else {
       updatedServices[serviceIndex].fields[fieldKey] = false;
     }
