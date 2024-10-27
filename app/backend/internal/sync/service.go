@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -21,9 +22,15 @@ import (
 
 func (m Model) GrantAccess(w http.ResponseWriter, r *http.Request) error {
 	redirectUrl := r.URL.Query().Get("redirect")
-	state := base64.URLEncoding.EncodeToString([]byte(redirectUrl))
+	access_token := r.Header.Get("Authorization")
+
+	url := base64.URLEncoding.EncodeToString([]byte(redirectUrl))
+	token := base64.URLEncoding.EncodeToString([]byte(access_token))
+	state := fmt.Sprintf("%s:%s", url, token)
+
 	values := r.URL.Query()
 	values.Set("state", state)
+
 	r.URL.RawQuery = values.Encode()
 	gothic.BeginAuthHandler(w, r)
 	return nil
@@ -65,9 +72,12 @@ func (m Model) Callback(gothUser goth.User, access_token string) error {
 		return err
 	}
 
-	syncExists := m.Collection.FindOne(context.TODO(), bson.M{"userId": user.Id})
-	if syncExists.Err() == nil {
-		return m.SyncWith(gothUser, access_token)
+	var sync SyncModel
+	err = m.Collection.FindOne(context.TODO(), bson.M{"userId": user.Id}).Decode(&sync)
+	if err != nil {
+		if sync.ProviderName == &gothUser.Provider {
+			return m.SyncWith(gothUser, access_token)
+		}
 	}
 
 	newSync := SyncModel{
@@ -86,10 +96,11 @@ func (m Model) Callback(gothUser goth.User, access_token string) error {
 		return errors.New("failed to insert sync")
 	}
 
+	log.Println("SYNC ADDED SUCCESSFULLY")
+
 	addSettings := settings.AddSettingsModel{
 		UserId:       user.Id,
 		ProviderName: &gothUser.Provider,
-		AccessToken:  gothUser.AccessToken,
 		Active:       true,
 	}
 
@@ -116,8 +127,10 @@ func (m Model) Callback(gothUser goth.User, access_token string) error {
 
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusCreated {
-		return errors.New("status code not OK, couldn't add new settings")
+		return errors.New("status code not OK, couldn't add new setting")
 	}
+
+	log.Println("SETTINGS ADDED SUCCESSFULLY")
 
 	return nil
 }
