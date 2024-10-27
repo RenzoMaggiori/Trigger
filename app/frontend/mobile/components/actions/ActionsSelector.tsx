@@ -28,6 +28,10 @@ export default function ActionSelector({ provider, onActionSelect }: ActionSelec
                         key={action.id}
                         onPress={() => onActionSelect(action.action)}
                         title={action.action}
+                        textColor={Colors.light.tint}
+                        backgroundColor='#fff'
+                        borderCol={Colors.light.tint}
+                        style={{ marginVertical: 5 }}
                     />
                 ))}
             </ScrollView>

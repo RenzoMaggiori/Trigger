@@ -104,6 +104,7 @@ export default function SignUp() {
                     onChangeText={setConfirmPassword}
                 />
                 <Button
+                    backgroundColor={Colors.light.tint}
                     onPress={handleSignUp}
                     title="SIGN UP"
                 />

@@ -30,7 +30,7 @@ export default function TabLayout() {
   };
 
   const handleTriggersPress = (onPress: (e: GestureResponderEvent) => void) => (e: GestureResponderEvent) => {
-    setTriggersButtonColor(Colors.light.tintLight);
+    setTriggersButtonColor(Colors.light.tintDark);
     onPress(e);
   };
 

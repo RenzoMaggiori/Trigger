@@ -63,8 +63,9 @@ export default function FlowChartArea({ flow, onAddReaction, onRemoveAction, onS
 
                     {selectedItem.actionIndex === actionIndex && selectedItem.type === 'reaction' && selectedItem.reactionIndex !== null && (
                         <View style={styles.infoCard}>
-                            <Text style={styles.infoText}>Provider: {selectedItem.reactionIndex !== null && selectedItem.reactionIndex !== undefined ? flowItem.reactions[selectedItem.reactionIndex].provider : ''}</Text>
-                            <Text style={styles.infoText}>Reaction: {selectedItem.reactionIndex !== null && selectedItem.reactionIndex !== undefined ? flowItem.reactions[selectedItem.reactionIndex].reaction : ''}</Text>
+                            <Text style={styles.infoText}>Reaction Selected</Text>
+                            <Text>{selectedItem.reactionIndex !== null && selectedItem.reactionIndex !== undefined ? flowItem.reactions[selectedItem.reactionIndex].provider : ''}: {selectedItem.reactionIndex !== null && selectedItem.reactionIndex !== undefined ? flowItem.reactions[selectedItem.reactionIndex].reaction : ''}</Text>
+                            <Text></Text>
                             <Text>Here goes Reaction Data</Text>
                         </View>
                     )}
@@ -103,22 +104,24 @@ const styles = StyleSheet.create({
         elevation: 3,
     },
     actionContainer: {
-        backgroundColor: '#fff',
+        backgroundColor: Colors.light.tintDark,
         padding: 10,
         borderRadius: 5,
         marginBottom: 10,
     },
     actionText: {
         fontWeight: 'bold',
+        color: '#fff',
     },
     reactionContainer: {
-        backgroundColor: '#ffeaa7',
+        backgroundColor: '#fff',
         padding: 10,
         borderRadius: 5,
         marginTop: 5,
     },
     reactionText: {
         fontWeight: 'bold',
+        color: Colors.light.tintDark,
     },
     buttonsContainer: {
         flexDirection: 'column',

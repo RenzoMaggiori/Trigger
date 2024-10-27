@@ -70,6 +70,7 @@ export default function SignIn() {
                     onChangeText={setPassword}
                 />
                 <Button
+                    backgroundColor={Colors.light.tint}
                     onPress={handleSignIn}
                     title="SIGN IN"
                 />
