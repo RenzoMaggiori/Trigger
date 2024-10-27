@@ -33,6 +33,7 @@ func Router(ctx context.Context) (*router.Router, error) {
 	server.Handle("GET /", middlewares(http.HandlerFunc(handler.GetWorkspace)))
 	server.Handle("GET /id/{id}", middlewares(http.HandlerFunc(handler.GetWorkspaceById)))
 	server.Handle("GET /user_id/{user_id}", middlewares(http.HandlerFunc(handler.GetWorkspacesByUserId)))
+	server.Handle("GET /action_id/{action_id}", middlewares(http.HandlerFunc(handler.GetWorkspacesByActionId)))
 	server.Handle("POST /add", middlewares(http.HandlerFunc(handler.AddWorkspace)))
 	server.Handle("PATCH /action_completed", middlewares(http.HandlerFunc(handler.ActionCompletedWorkspace)))
 	server.Handle("PATCH /id/{id}", middlewares(http.HandlerFunc(handler.UpdateById)))
