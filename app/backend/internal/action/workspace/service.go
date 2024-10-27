@@ -1,4 +1,3 @@
-
 package workspace
 
 import (
@@ -47,6 +46,31 @@ func (m Model) GetByUserId(ctx context.Context, userId primitive.ObjectID) ([]Wo
 	var workspaces []WorkspaceModel
 
 	filter := bson.M{"user_id": userId}
+	cursor, err := m.Collection.Find(ctx, filter)
+
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", errors.ErrWorkspaceNotFound, err)
+	}
+	defer cursor.Close(ctx)
+
+	if err = cursor.All(ctx, &workspaces); err != nil {
+		return nil, err
+	}
+
+	return workspaces, nil
+}
+
+func (m Model) GetByActionId(ctx context.Context, actionId primitive.ObjectID) ([]WorkspaceModel, error) {
+	var workspaces []WorkspaceModel
+
+	filter := bson.M{
+		"nodes": bson.M{
+			"$elemMatch": bson.M{
+				"action_id": actionId,
+			},
+		},
+	}
+
 	cursor, err := m.Collection.Find(ctx, filter)
 
 	if err != nil {
