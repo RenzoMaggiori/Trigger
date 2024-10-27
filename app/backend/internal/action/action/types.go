@@ -11,7 +11,7 @@ type Service interface {
 	Get() ([]ActionModel, error)
 	GetById(primitive.ObjectID) (*ActionModel, error)
 	GetByProvider(string) ([]ActionModel, error)
-	GetByAction(string) (*ActionModel, error)
+	GetByActionName(string) (*ActionModel, error)
 	Add(*AddActionModel) (*ActionModel, error)
 }
 

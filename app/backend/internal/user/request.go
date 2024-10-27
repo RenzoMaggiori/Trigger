@@ -32,7 +32,7 @@ func GetUserByEmailRequest(accessToken string, email string) (*UserModel, int, e
 
 	user, err := decode.Json[UserModel](res.Body)
 	if err != nil {
-		return &user, res.StatusCode, err
+		return nil, res.StatusCode, err
 	}
 	return &user, res.StatusCode, nil
 }
@@ -97,7 +97,7 @@ func GetUserByIdRequest(accessToken string, userId string) (*UserModel, int, err
 }
 
 func GetUserByAccesstokenRequest(accessToken string) (*UserModel, int, error) {
-	session, status, err := session.GetSessionByTokenRequest(accessToken)
+	session, status, err := session.GetSessionByAccessTokenRequest(accessToken)
 
 	if err != nil {
 		return nil, status, errors.ErrSessionNotFound
@@ -106,8 +106,8 @@ func GetUserByAccesstokenRequest(accessToken string) (*UserModel, int, error) {
 	user, status, err := GetUserByIdRequest(accessToken, session.UserId.Hex())
 
 	if err != nil {
-        return nil, status, errors.ErrUserNotFound
-    }
+		return nil, status, errors.ErrUserNotFound
+	}
 
 	return user, status, nil
 }

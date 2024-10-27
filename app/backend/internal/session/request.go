@@ -36,7 +36,7 @@ func GetSessionByIdRequest(accessToken string, sessionId string) (*SessionModel,
 	return &session, res.StatusCode, nil
 }
 
-func GetSessionByTokenRequest(accessToken string) (*SessionModel, int, error) {
+func GetSessionByAccessTokenRequest(accessToken string) (*SessionModel, int, error) {
 	res, err := fetch.Fetch(http.DefaultClient, fetch.NewFetchRequest(
 		http.MethodGet,
 		fmt.Sprintf("%s/api/session/access_token/%s", os.Getenv("SESSION_SERVICE_BASE_URL"), accessToken),
@@ -53,6 +53,30 @@ func GetSessionByTokenRequest(accessToken string) (*SessionModel, int, error) {
 		return nil, res.StatusCode, errors.ErrSessionNotFound
 	}
 
+	session, err := decode.Json[SessionModel](res.Body)
+	if err != nil {
+		return nil, res.StatusCode, errors.ErrSessionTypeNone
+	}
+	return &session, res.StatusCode, nil
+}
+
+func GetSessionByTokenIdRequest(accessToken string, tokenId string) (*SessionModel, int, error) {
+	res, err := fetch.Fetch(http.DefaultClient, fetch.NewFetchRequest(
+		http.MethodGet,
+		fmt.Sprintf("%s/api/session/token_id/%s", os.Getenv("SESSION_SERVICE_BASE_URL"), tokenId),
+		nil,
+		map[string]string{
+			"Authorization": fmt.Sprintf("Bearer %s", accessToken),
+		},
+	))
+
+	if err != nil {
+		return nil, res.StatusCode, errors.ErrSessionNotFound
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return nil, res.StatusCode, errors.ErrSessionNotFound
+	}
 	session, err := decode.Json[SessionModel](res.Body)
 	if err != nil {
 		return nil, res.StatusCode, errors.ErrSessionTypeNone
@@ -106,7 +130,7 @@ func UpdateSessionByIdRequest(accessToken string, sessionId string, updateSessio
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		return nil, res.StatusCode, errors.ErrSessionNotRetrieved
+		return nil, res.StatusCode, errors.ErrFetchingSession
 	}
 
 	session, err := decode.Json[SessionModel](res.Body)
@@ -119,7 +143,7 @@ func UpdateSessionByIdRequest(accessToken string, sessionId string, updateSessio
 func AddSessionRequest(accessToken string, addSession AddSessionModel) (*SessionModel, int, error) {
 	body, err := json.Marshal(addSession)
 	if err != nil {
-		return nil, http.StatusInternalServerError, errors.ErrSessionNotCreated
+		return nil, http.StatusInternalServerError, errors.ErrCreatingSession
 	}
 
 	res, err := fetch.Fetch(
@@ -134,11 +158,11 @@ func AddSessionRequest(accessToken string, addSession AddSessionModel) (*Session
 		),
 	)
 	if err != nil {
-		return nil, http.StatusInternalServerError, errors.ErrSessionNotCreated
+		return nil, http.StatusInternalServerError, errors.ErrCreatingSession
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		return nil, res.StatusCode, errors.ErrSessionNotCreated
+		return nil, res.StatusCode, errors.ErrCreatingSession
 	}
 
 	session, err := decode.Json[SessionModel](res.Body)
