@@ -44,6 +44,7 @@ func main() {
 	router, err := router.Create(
 		ctx,
 		trigger.Router,
+		reaction.Router,
 	)
 	if err != nil {
 		log.Fatal(err)

@@ -1,5 +1,10 @@
 package worker
 
+type SpotifyFollowerHistory struct {
+	UserId string `bson:"user_id"`
+	Total  int    `bson:"total"`
+}
+
 type SpotifyUser struct {
 	Country         string `json:"country"`
 	DisplayName     string `json:"display_name"`

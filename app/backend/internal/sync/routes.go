@@ -10,6 +10,7 @@ import (
 	"github.com/markbates/goth/providers/discord"
 	"github.com/markbates/goth/providers/github"
 	"github.com/markbates/goth/providers/google"
+	"github.com/markbates/goth/providers/spotify"
 	"go.mongodb.org/mongo-driver/mongo"
 	"trigger.com/trigger/pkg/mongodb"
 	"trigger.com/trigger/pkg/router"
@@ -55,6 +56,13 @@ func Router(ctx context.Context) (*router.Router, error) {
 			discord.ScopeWebhook,
 			discord.ScopeBot,
 			discord.ScopeGuilds,
+		),
+		spotify.New(
+			os.Getenv("SPOTIFY_KEY"),
+			os.Getenv("SPOTIFY_SECRET"),
+			callback,
+			spotify.ScopeUserReadEmail,
+			spotify.ScopeUserReadPrivate,
 		),
 	)
 

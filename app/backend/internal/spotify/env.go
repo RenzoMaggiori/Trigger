@@ -13,7 +13,10 @@ import (
 
 var (
 	errEnvNotFound      string    = "Enviroment argument %s not found"
-	enviromentArguments [0]string = [...]string{}
+	enviromentArguments [2]string = [...]string{
+		"ACTION_SERVICE_BASE_URL",
+		"ADMIN_TOKEN",
+	}
 )
 
 func Env(envPath string) error {

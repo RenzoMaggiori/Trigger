@@ -1,14 +1,28 @@
 package worker
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
+	"net/http"
+	"os"
 
 	"github.com/robfig/cron"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/net/context"
+	"trigger.com/trigger/internal/action/action"
 	"trigger.com/trigger/internal/action/workspace"
+	trigger "trigger.com/trigger/internal/spotify/trigger"
+	"trigger.com/trigger/pkg/decode"
+	"trigger.com/trigger/pkg/fetch"
 	"trigger.com/trigger/pkg/mongodb"
+)
+
+const (
+	spotifyBaseUrl string = "https://api.spotify.com/v1"
 )
 
 var (
@@ -17,10 +31,10 @@ var (
 
 func New(ctx context.Context) *cron.Cron {
 	c := cron.New()
-	err := c.AddFunc("0 0 * * *", func() {
+	err := c.AddFunc("*/5 * * * *", func() {
 		log.Println("job running...")
 		if err := changeInFollowers(ctx); err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		log.Println("job ended")
 	})
@@ -35,36 +49,122 @@ func changeInFollowers(ctx context.Context) error {
 	if !ok || collection == nil {
 		return errCollectionNotFound
 	}
-	// TODO: Fetch users subscribed to Spotify (add query logic here)
-	// Pseudo-code:
-	// users, err := spotifyCollection.Find(ctx, bson.M{})
-	// if err != nil { return fmt.Errorf("failed to fetch users: %w", err) }
 
-	// Iterate over users
-	// for each user:
-	// 	// Get spotify user data using Spotify API client
-	// 	newFollowerCount, err := FetchSpotifyFollowerCount(user.SpotifyID)
-	// 	if err != nil {
-	// 		log.Printf("Failed to fetch followers for user %s: %v", user.SpotifyID, err)
-	// 		continue
-	// 	}
+	workspaces, err := getSpotifyWorkspaces()
+	if err != nil {
+		return err
+	}
 
-	// 	// Compare with stored follower count
-	// 	if newFollowerCount != user.StoredFollowerCount {
-	// 		log.Printf("Follower count changed for user %s: %d -> %d", user.SpotifyID, user.StoredFollowerCount, newFollowerCount)
-	// 		// Trigger action and update follower count in the database
-	// 		user.StoredFollowerCount = newFollowerCount
-	// 		_, err := spotifyCollection.UpdateOne(ctx, bson.M{"_id": user.ID}, bson.M{"$set": bson.M{"storedFollowerCount": newFollowerCount}})
-	// 		if err != nil {
-	// 			log.Printf("Failed to update follower count for user %s: %v", user.SpotifyID, err)
-	// 		}
-	// 	} else {
-	// 		log.Printf("No change in follower count for user %s", user.SpotifyID)
-	// 	}
+	for _, w := range workspaces {
+		accessToken, err := getUserAccessToken(w.UserId.String())
+		if err != nil {
+			return err
+		}
 
+		spotifyUser, err := getSpotifyUser(accessToken)
+		if err != nil {
+			return err
+		}
+
+		var userHistory SpotifyFollowerHistory
+		filter := bson.M{"user_id": w.UserId.String()}
+		if err = collection.FindOne(ctx, filter).Decode(&userHistory); err != nil {
+			spotifyHistory := SpotifyFollowerHistory{
+				UserId: w.UserId.String(),
+				Total:  spotifyUser.Followers.Total,
+			}
+			if err == mongo.ErrNoDocuments {
+				collection.InsertOne(ctx, spotifyHistory)
+			} else {
+				collection.UpdateOne(ctx, filter, spotifyHistory)
+			}
+			continue
+		}
+
+		if spotifyUser.Followers.Total != userHistory.Total {
+			err := fetchSpotifyWebhook(trigger.FollowerChange{
+				Followers: spotifyUser.Followers.Total,
+				Increased: spotifyUser.Followers.Total > userHistory.Total,
+			})
+			if err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
 
 func getSpotifyWorkspaces() ([]workspace.WorkspaceModel, error) {
-	return nil, nil
+	actions, _, err := action.GetByProviderRequest(
+		os.Getenv("ADMIN_TOKEN"),
+		"spotify",
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	var spotifyFollowerAction string = ""
+	for _, a := range actions {
+		if a.Type != "trigger" {
+			continue
+		}
+		if a.Action != "watch_followers" {
+			continue
+		}
+		spotifyFollowerAction = a.Id.String()
+	}
+
+	workspaces, _, err := workspace.GetByActionIdRequest(
+		os.Getenv("ADMIN_TOKEN"),
+		spotifyFollowerAction,
+	)
+	return workspaces, err
+}
+
+func getUserAccessToken(userId string) (string, error) {
+	// TODO: get the Access Token
+	return "", nil
+}
+
+func getSpotifyUser(accessToken string) (*SpotifyUser, error) {
+	res, err := fetch.Fetch(
+		http.DefaultClient,
+		fetch.NewFetchRequest(
+			http.MethodGet,
+			fmt.Sprintf("%s/me", spotifyBaseUrl),
+			nil,
+			map[string]string{
+				"Authorization": fmt.Sprintf("Bearer %s", accessToken),
+			},
+		),
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	spotifyUser, err := decode.Json[SpotifyUser](res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return &spotifyUser, nil
+}
+
+func fetchSpotifyWebhook(followerChange trigger.FollowerChange) error {
+	body, err := json.Marshal(followerChange)
+	if err != nil {
+		return err
+	}
+
+	_, err = fetch.Fetch(
+		http.DefaultClient,
+		fetch.NewFetchRequest(
+			http.MethodPost,
+			fmt.Sprintf("%s/api/spotify/trigger/webhook", os.Getenv("SPOTIFY_SERVICE_BASE_URL")),
+			bytes.NewReader(body),
+			nil,
+		),
+	)
+	return err
 }

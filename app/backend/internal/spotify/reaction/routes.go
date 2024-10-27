@@ -1,4 +1,4 @@
-package trigger
+package reaction
 
 import (
 	"context"
