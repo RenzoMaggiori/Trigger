@@ -3,7 +3,6 @@ package reaction
 import (
 	"fmt"
 	"net/http"
-
 	"trigger.com/trigger/pkg/fetch"
 )
 
