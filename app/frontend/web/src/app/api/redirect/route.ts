@@ -12,7 +12,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(redirect);
   }
 
-  const res = await fetch(
+  return NextResponse.redirect(
+    `${env.NEXT_PUBLIC_SYNC_SERVICE_URL}/api/sync/sync-with?provider=${provider}&redirect=${redirect}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
+  /* const res = await fetch(
     `${env.NEXT_PUBLIC_SYNC_SERVICE_URL}/api/sync/sync-with?provider=${provider}&redirect=${redirect}`,
     {
       method: "GET",
@@ -30,5 +38,5 @@ export async function GET(request: NextRequest) {
   if (!location) {
     return NextResponse.redirect(redirect);
   }
-  return NextResponse.redirect(location);
+  return NextResponse.redirect(location); */
 }
