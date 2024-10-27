@@ -9,6 +9,7 @@ const envSchema = z.object({
   NEXT_PUBLIC_AUTH_SERVICE_URL: z.string().url(),
   NEXT_PUBLIC_ACTION_SERVICE_URL: z.string().url(),
   NEXT_PUBLIC_SYNC_SERVICE_URL: z.string().url(),
+  NEXT_PUBLIC_WEB_URL: z.string().url(),
 });
 
 function getEnv() {
@@ -16,6 +17,7 @@ function getEnv() {
     NEXT_PUBLIC_AUTH_SERVICE_URL: process.env.NEXT_PUBLIC_AUTH_SERVICE_URL,
     NEXT_PUBLIC_ACTION_SERVICE_URL: process.env.NEXT_PUBLIC_ACTION_SERVICE_URL,
     NEXT_PUBLIC_SYNC_SERVICE_URL: process.env.NEXT_PUBLIC_SYNC_SERVICE_URL,
+    NEXT_PUBLIC_WEB_URL: process.env.NEXT_PUBLIC_WEB_URL,
   });
 
   if (!success) {

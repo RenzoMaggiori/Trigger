@@ -24,6 +24,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { sync } from "./lib/sync";
 
 /* import { useMutation } from "@tanstack/react-query";
 import { getConnections } from "./lib/get-conections"; */
@@ -40,7 +41,7 @@ const services: SettingsProps[] = [
     icon: <FcGoogle className="w-5 h-5" />,
     fields: {
       "Show on Profile": true,
-      Connected: true,
+      Connected: false,
     },
   },
   {
@@ -88,10 +89,7 @@ export default function Page() {
   ) => {
     const updatedServices = [...serviceList];
     if (fieldKey === "Connection") {
-      const href = updatedServices[serviceIndex].fields[fieldKey]
-        ? `${env.NEXT_PUBLIC_SYNC_SERVICE_URL}/api/auth/sync/sync-with?provider=${provider}`
-        : `${env.NEXT_PUBLIC_SYNC_SERVICE_URL}/api/auth/sync/sync-with?provider=${provider}`;
-      window.location.href = href;
+      sync(provider)
     }
     updatedServices[serviceIndex].fields[fieldKey] =
       !updatedServices[serviceIndex].fields[fieldKey];
@@ -110,10 +108,7 @@ export default function Page() {
   ) => {
     const updatedServices = [...serviceList];
     if (!active) {
-      const href = updatedServices[serviceIndex].fields[fieldKey]
-        ? `${env.NEXT_PUBLIC_SYNC_SERVICE_URL}/api/auth/sync/sync-with?provider=${provider}`
-        : `${env.NEXT_PUBLIC_SYNC_SERVICE_URL}/api/auth/sync/sync-with?provider=${provider}`;
-      window.location.href = href;
+      sync(provider)
       updatedServices[serviceIndex].fields[fieldKey] = true;
     } else updatedServices[serviceIndex].fields[fieldKey] = false;
     setServiceList(updatedServices);
