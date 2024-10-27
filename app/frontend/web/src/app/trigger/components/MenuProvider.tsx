@@ -5,7 +5,7 @@ import { NodeItem, TriggerWorkspace } from "@/app/trigger/lib/types";
 type MenuContextType = {
   triggerWorkspace: TriggerWorkspace | null;
   setNodes: (nodes: Record<string, NodeItem>) => void;
-  setFields: (nodeID: NodeItem["id"], fields: Record<string, any>) => void;
+  setFields: (nodeID: NodeItem["id"], fields: Record<string, unknown>) => void;
   setTriggerWorkspace: React.Dispatch<
     React.SetStateAction<TriggerWorkspace | null>
   >;
@@ -61,7 +61,10 @@ export function MenuProvider({
     });
   };
 
-  const setFields = (nodeID: NodeItem["id"], fields: Record<string, any>) => {
+  const setFields = (
+    nodeID: NodeItem["id"],
+    fields: Record<string, unknown>,
+  ) => {
     if (!triggerWorkspace) return;
 
     const node = triggerWorkspace.nodes[nodeID];

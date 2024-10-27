@@ -1,13 +1,22 @@
 "use client";
 
 import React from "react";
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Login } from "@/app/auth/components/login";
 import { Register } from "@/app/auth/components/register";
 
-const page = () => {
+export default function Page() {
+  return (
+    <Suspense>
+      <AuthPage />
+    </Suspense>
+  );
+}
+
+function AuthPage() {
   const searchParams = useSearchParams();
   const type = searchParams.get("type");
   const defaultValue = type === "login" ? "login" : "register";
@@ -43,6 +52,4 @@ const page = () => {
       </Tabs>
     </div>
   );
-};
-
-export default page;
+}

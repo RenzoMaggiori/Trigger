@@ -16,7 +16,7 @@ services:
     container_name: trigger-auth-instance
     build:
       context: ..
-      dockerfile: ./deploy/dockerfiles/auth.Dockerfile
+      dockerfile: ./deploy/dockerfiles/backend/auth.Dockerfile
     networks:
       - trigger
     environment:
@@ -29,6 +29,8 @@ services:
       AUTH_SERVICE_BASE_URL: ${AUTH_SERVICE_BASE_URL}
       USER_SERVICE_BASE_URL: ${USER_SERVICE_BASE_URL}
       SESSION_SERVICE_BASE_URL: ${SESSION_SERVICE_BASE_URL}
+      SYNC_SERVICE_BASE_URL: ${SYNC_SERVICE_BASE_URL}
+      SETTINGS_SERVICE_BASE_URL: ${SETTINGS_SERVICE_BASE_URL}
       WEB_BASE_URL: ${WEB_BASE_URL}
 
       ADMIN_TOKEN: ${ADMIN_TOKEN}
@@ -41,8 +43,11 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       GITHUB_KEY: ${GITHUB_KEY}
       GITHUB_SECRET: ${GITHUB_SECRET}
+      DISCORD_KEY: ${DISCORD_KEY}
+      DISCORD_SECRET: ${DISCORD_SECRET}
 
       AUTH_PORT: ${AUTH_PORT}
+      WEB_PORT: ${WEB_PORT}
     ports:
       - "${AUTH_PORT}:${AUTH_PORT}"
 
@@ -50,7 +55,7 @@ services:
     container_name: trigger-user-instance
     build:
       context: ..
-      dockerfile: ./deploy/dockerfiles/user.Dockerfile
+      dockerfile: ./deploy/dockerfiles/backend/user.Dockerfile
     networks:
       - trigger
     environment:
@@ -63,6 +68,8 @@ services:
       AUTH_SERVICE_BASE_URL: ${AUTH_SERVICE_BASE_URL}
       USER_SERVICE_BASE_URL: ${USER_SERVICE_BASE_URL}
       SESSION_SERVICE_BASE_URL: ${SESSION_SERVICE_BASE_URL}
+      SYNC_SERVICE_BASE_URL: ${SYNC_SERVICE_BASE_URL}
+      SETTINGS_SERVICE_BASE_URL: ${SETTINGS_SERVICE_BASE_URL}
 
       ADMIN_TOKEN: ${ADMIN_TOKEN}
 
@@ -74,7 +81,7 @@ services:
     container_name: trigger-session-instance
     build:
       context: ..
-      dockerfile: ./deploy/dockerfiles/session.Dockerfile
+      dockerfile: ./deploy/dockerfiles/backend/session.Dockerfile
     networks:
       - trigger
     environment:
@@ -87,6 +94,8 @@ services:
       AUTH_SERVICE_BASE_URL: ${AUTH_SERVICE_BASE_URL}
       USER_SERVICE_BASE_URL: ${USER_SERVICE_BASE_URL}
       SESSION_SERVICE_BASE_URL: ${SESSION_SERVICE_BASE_URL}
+      SYNC_SERVICE_BASE_URL: ${SYNC_SERVICE_BASE_URL}
+      SETTINGS_SERVICE_BASE_URL: ${SETTINGS_SERVICE_BASE_URL}
 
       ADMIN_TOKEN: ${ADMIN_TOKEN}
 
@@ -94,11 +103,63 @@ services:
     ports:
       - "${SESSION_PORT}:${SESSION_PORT}"
 
+  sync:
+    container_name: trigger-sync-instance
+    build:
+      context: ..
+      dockerfile: ./deploy/dockerfiles/backend/sync.Dockerfile
+    networks:
+      - trigger
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_PORT: ${MONGO_PORT}
+      MONGO_HOST: ${MONGO_HOST}
+      MONGO_DB: ${MONGO_DB}
+
+      AUTH_SERVICE_BASE_URL: ${AUTH_SERVICE_BASE_URL}
+      USER_SERVICE_BASE_URL: ${USER_SERVICE_BASE_URL}
+      SESSION_SERVICE_BASE_URL: ${SESSION_SERVICE_BASE_URL}
+      SYNC_SERVICE_BASE_URL: ${SYNC_SERVICE_BASE_URL}
+      SETTINGS_SERVICE_BASE_URL: ${SETTINGS_SERVICE_BASE_URL}
+
+      ADMIN_TOKEN: ${ADMIN_TOKEN}
+
+      SYNC_PORT: ${SYNC_PORT}
+    ports:
+      - "${SYNC_PORT}:${SYNC_PORT}"
+
+  settings:
+    container_name: trigger-settings-instance
+    build:
+      context: ..
+      dockerfile: ./deploy/dockerfiles/backend/settings.Dockerfile
+    networks:
+      - trigger
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_PORT: ${MONGO_PORT}
+      MONGO_HOST: ${MONGO_HOST}
+      MONGO_DB: ${MONGO_DB}
+
+      AUTH_SERVICE_BASE_URL: ${AUTH_SERVICE_BASE_URL}
+      USER_SERVICE_BASE_URL: ${USER_SERVICE_BASE_URL}
+      SESSION_SERVICE_BASE_URL: ${SESSION_SERVICE_BASE_URL}
+      SYNC_SERVICE_BASE_URL: ${SYNC_SERVICE_BASE_URL}
+      SETTINGS_SERVICE_BASE_URL: ${SETTINGS_SERVICE_BASE_URL}
+
+      ADMIN_TOKEN: ${ADMIN_TOKEN}
+
+      SETTINGS_PORT: ${SETTINGS_PORT}
+    ports:
+      - "${SETTINGS_PORT}:${SETTINGS_PORT}"
+
   action:
     container_name: trigger-action-instance
     build:
       context: ..
-      dockerfile: ./deploy/dockerfiles/action.Dockerfile
+      dockerfile: ./deploy/dockerfiles/backend/action.Dockerfile
     networks:
       - trigger
     environment:
@@ -113,6 +174,8 @@ services:
       SESSION_SERVICE_BASE_URL: ${SESSION_SERVICE_BASE_URL}
       ACTION_SERVICE_BASE_URL: ${ACTION_SERVICE_BASE_URL}
       GMAIL_SERVICE_BASE_URL: ${GMAIL_SERVICE_BASE_URL}
+      SYNC_SERVICE_BASE_URL: ${SYNC_SERVICE_BASE_URL}
+      SETTINGS_SERVICE_BASE_URL: ${SETTINGS_SERVICE_BASE_URL}
 
       ADMIN_TOKEN: ${ADMIN_TOKEN}
 
@@ -124,7 +187,7 @@ services:
     container_name: trigger-gmail-instance
     build:
       context: ..
-      dockerfile: ./deploy/dockerfiles/gmail.Dockerfile
+      dockerfile: ./deploy/dockerfiles/backend/gmail.Dockerfile
     networks:
       - trigger
     environment:
@@ -139,6 +202,8 @@ services:
       SESSION_SERVICE_BASE_URL: ${SESSION_SERVICE_BASE_URL}
       ACTION_SERVICE_BASE_URL: ${ACTION_SERVICE_BASE_URL}
       GMAIL_SERVICE_BASE_URL: ${GMAIL_SERVICE_BASE_URL}
+      SYNC_SERVICE_BASE_URL: ${SYNC_SERVICE_BASE_URL}
+      SETTINGS_SERVICE_BASE_URL: ${SETTINGS_SERVICE_BASE_URL}
 
       ADMIN_TOKEN: ${ADMIN_TOKEN}
 
@@ -149,7 +214,7 @@ services:
     container_name: trigger-github-instance
     build:
       context: ..
-      dockerfile: ./deploy/dockerfiles/github.Dockerfile
+      dockerfile: ./deploy/dockerfiles/backend/github.Dockerfile
     networks:
       - trigger
     environment:
@@ -158,6 +223,30 @@ services:
       GITHUB_PORT: ${GITHUB_PORT}
     ports:
       - "${GITHUB_PORT}:${GITHUB_PORT}"
+
+  mobile:
+    container_name: trigger-mobile-instance
+    build:
+      context: ..
+      dockerfile: ./deploy/dockerfiles/frontend/mobile.Dockerfile
+    networks:
+      - trigger
+    environment:
+      MOBILE_PORT: ${MOBILE_PORT}
+    ports:
+      - "${MOBILE_PORT}:${MOBILE_PORT}"
+
+  web:
+    container_name: trigger-web-instance
+    build:
+      context: ..
+      dockerfile: ./deploy/dockerfiles/frontend/web.Dockerfile
+    networks:
+      - trigger
+    environment:
+      WEB_PORT: ${WEB_PORT}
+    ports:
+      - "${WEB_PORT}:${WEB_PORT}"
 
 volumes:
   mongo_data:

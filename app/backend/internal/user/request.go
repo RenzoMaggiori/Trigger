@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 
+	"trigger.com/trigger/internal/session"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
@@ -22,7 +23,7 @@ func GetUserByEmailRequest(accessToken string, email string) (*UserModel, int, e
 		},
 	))
 	if err != nil {
-		return nil, res.StatusCode, errors.ErrUserNotFound
+		return nil, http.StatusInternalServerError, errors.ErrUserNotFound
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
@@ -37,7 +38,6 @@ func GetUserByEmailRequest(accessToken string, email string) (*UserModel, int, e
 }
 
 func AddUserRequest(accessToken string, addUser AddUserModel) (*UserModel, int, error) {
-
 	body, err := json.Marshal(addUser)
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
@@ -55,7 +55,7 @@ func AddUserRequest(accessToken string, addUser AddUserModel) (*UserModel, int, 
 		),
 	)
 	if err != nil {
-		return nil, res.StatusCode, errors.ErrUserNotFound
+		return nil, http.StatusInternalServerError, errors.ErrUserNotFound
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
@@ -63,11 +63,9 @@ func AddUserRequest(accessToken string, addUser AddUserModel) (*UserModel, int, 
 	}
 
 	user, err := decode.Json[UserModel](res.Body)
-
 	if err != nil {
 		return nil, res.StatusCode, err
 	}
-
 	return &user, res.StatusCode, nil
 }
 
@@ -84,9 +82,8 @@ func GetUserByIdRequest(accessToken string, userId string) (*UserModel, int, err
 		),
 	)
 	if err != nil {
-		return nil, res.StatusCode, errors.ErrUserNotFound
+		return nil, http.StatusInternalServerError, errors.ErrUserNotFound
 	}
-
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
 		return nil, res.StatusCode, errors.ErrUserNotFound
@@ -96,6 +93,21 @@ func GetUserByIdRequest(accessToken string, userId string) (*UserModel, int, err
 	if err != nil {
 		return nil, res.StatusCode, err
 	}
-
 	return &user, res.StatusCode, nil
+}
+
+func GetUserByAccesstokenRequest(accessToken string) (*UserModel, int, error) {
+	session, status, err := session.GetSessionByTokenRequest(accessToken)
+
+	if err != nil {
+		return nil, status, errors.ErrSessionNotFound
+	}
+
+	user, status, err := GetUserByIdRequest(accessToken, session.UserId.Hex())
+
+	if err != nil {
+        return nil, status, errors.ErrUserNotFound
+    }
+
+	return user, status, nil
 }

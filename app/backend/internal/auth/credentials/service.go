@@ -3,7 +3,6 @@ package credentials
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -13,14 +12,8 @@ import (
 	"trigger.com/trigger/pkg/jwt"
 )
 
-func (m Model) Login(ctx context.Context) (string, error) {
-	credentials, ok := ctx.Value(CredentialsCtxKey).(CredentialsModel)
-	if !ok {
-		return "", errCredentialsNotFound
-	}
-
+func (m Model) Login(credentials CredentialsModel) (string, error) {
 	user, _, err := user.GetUserByEmailRequest(os.Getenv("ADMIN_TOKEN"), credentials.Email)
-
 	if err != nil {
 		return "", err
 	}
@@ -37,7 +30,6 @@ func (m Model) Login(ctx context.Context) (string, error) {
 		os.Getenv("TOKEN_SECRET"),
 	)
 	if err != nil {
-		log.Println("Credentials Login [jwt.Create] error")
 		return "", fmt.Errorf("%w: %v", errCreateToken, err)
 	}
 	userSessions, _, err := session.GetSessionByUserIdRequest(token, user.Id.Hex())
@@ -82,7 +74,6 @@ func (m Model) Logout(ctx context.Context) (string, error) {
 }
 
 func (m Model) Register(regsiterModel RegisterModel) (string, error) {
-
 	addUser := user.AddUserModel{
 		Email:    regsiterModel.User.Email,
 		Password: regsiterModel.User.Password,
@@ -108,14 +99,10 @@ func (m Model) Register(regsiterModel RegisterModel) (string, error) {
 		return "", err
 	}
 
-	accessToken, err := m.Login(context.WithValue(
-		context.TODO(),
-		CredentialsCtxKey,
-		CredentialsModel{
-			Email:    regsiterModel.User.Email,
-			Password: *regsiterModel.User.Password,
-		},
-	))
+	accessToken, err := m.Login(CredentialsModel{
+		Email:    regsiterModel.User.Email,
+		Password: *regsiterModel.User.Password,
+	})
 	if err != nil {
 		return "", err
 	}

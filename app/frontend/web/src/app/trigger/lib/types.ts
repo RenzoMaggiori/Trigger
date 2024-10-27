@@ -22,7 +22,7 @@ export type TriggerWorkspace = {
 export type NodeItem = {
   id: string;
   type: string;
-  fields: Record<string, any>;
+  fields: Record<string, unknown>;
   parent_ids: Array<string>;
   child_ids: Array<string>;
   x_pos: number;
