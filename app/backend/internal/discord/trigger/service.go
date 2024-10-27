@@ -43,6 +43,7 @@ func newMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	log.Printf("Message received in GuildID: %s, ChannelID: %s\n", m.GuildID, m.ChannelID)
 
 	log.Printf("Message from %s: %s\n", m.Author.Username, m.Content)
+	s.Close()
 
 	// Respond to user
 	// s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Hello, %s! %s", m.Author.Username, "userInfo"))

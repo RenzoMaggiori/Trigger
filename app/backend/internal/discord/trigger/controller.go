@@ -2,31 +2,33 @@ package trigger
 
 import (
 	// "context"
+	"context"
 	"log"
 	"net/http"
 
-	// "trigger.com/trigger/internal/action/workspace"
-	// customerror "trigger.com/trigger/pkg/custom-error"
-	// "trigger.com/trigger/pkg/errors"
+	"trigger.com/trigger/internal/action/workspace"
+	"trigger.com/trigger/internal/discord"
+	customerror "trigger.com/trigger/pkg/custom-error"
+	"trigger.com/trigger/pkg/errors"
 
-	// "trigger.com/trigger/pkg/decode"
+	"trigger.com/trigger/pkg/decode"
 )
 
 func (h *Handler) WatchDiscord(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Watching discord")
-	// accessToken := r.Header.Get("Authorization")
-	// actionNode, err := decode.Json[workspace.ActionNodeModel](r.Body)
+	accessToken := r.Header.Get("Authorization")
+	actionNode, err := decode.Json[workspace.ActionNodeModel](r.Body)
 
-	// if err != nil {
-	// 	customerror.Send(w, err, errors.ErrCodes)
-	// 	return
-	// }
+	if err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
 
-	// err = h.Service.Watch(context.WithValue(context.TODO(), AccessTokenCtxKey, accessToken), actionNode)
+	err = h.Service.Watch(context.WithValue(context.TODO(), discord.AccessTokenCtxKey, accessToken), actionNode)
 
-	// if err != nil {
-	// 	customerror.Send(w, err, errors.ErrCodes)
-	// }
+	if err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+	}
 }
 
 func (h *Handler) WebhookDiscord(w http.ResponseWriter, r *http.Request) {
