@@ -25,7 +25,7 @@ const (
 func (m Model) Reaction(ctx context.Context, actionNode workspace.ActionNodeModel) error {
 	accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
 	if !ok {
-		return errors.ErrAccessTokenCtxKey
+		return errors.ErrAccessTokenCtx
 	}
 
 	res, err := fetch.Fetch(
@@ -78,7 +78,7 @@ func (m Model) Reaction(ctx context.Context, actionNode workspace.ActionNodeMode
 	// TODO: get correct access token from sync service
 
 	if len(actionNode.Output) != 2 {
-		return errors.ErrInvalidReactionOuput
+		return errors.ErrInvalidReactionOutput
 	}
 
 	body, err := json.Marshal(map[string]any{
@@ -92,8 +92,8 @@ func (m Model) Reaction(ctx context.Context, actionNode workspace.ActionNodeMode
 		return err
 	}
 
-	owner := actionNode.Input[0]
-	repo := actionNode.Input[1]
+	owner := actionNode.Input["owner"]
+	repo := actionNode.Input["repo"]
 	res, err = fetch.Fetch(
 		&http.Client{},
 		fetch.NewFetchRequest(

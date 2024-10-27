@@ -15,3 +15,7 @@ type Trigger interface {
 type Reaction interface {
 	Reaction(ctx context.Context, action workspace.ActionNodeModel) error
 }
+
+type MultipleReactions interface {
+	MutlipleReactions(actionName string, ctx context.Context, action workspace.ActionNodeModel) error
+}

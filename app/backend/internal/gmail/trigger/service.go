@@ -10,8 +10,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"trigger.com/trigger/internal/action/action"
 	"trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/internal/session"
@@ -22,7 +24,11 @@ import (
 )
 
 func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) error {
-	accessToken := ctx.Value(AccessTokenCtxKey)
+	accessToken, ok := ctx.Value(AccessTokenCtxKey).(string)
+
+	if !ok {
+		return errors.ErrAccessTokenCtx
+	}
 
 	watchBody := WatchBody{
 		LabelIds:  []string{"INBOX"},
@@ -42,7 +48,7 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 			"https://gmail.googleapis.com/gmail/v1/users/me/watch",
 			bytes.NewReader(body),
 			map[string]string{
-				"Authorization": fmt.Sprintf("%s", accessToken),
+				"Authorization": fmt.Sprintf("Bearer %s", accessToken),
 				"Content-Type":  "application/json",
 			},
 		),
@@ -57,19 +63,90 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 			return err
 		}
 		log.Printf("Watch body: %s", bodyBytes)
-		return errGmailWatch
+		return errors.ErrGmailWatch
 	}
 
-	log.Println(accessToken)
+	watchResponse, err := decode.Json[WatchResponse](res.Body)
+
+	if err != nil {
+		return err
+	}
+
+	session, _, err := session.GetSessionByAccessTokenRequest(accessToken)
+
+	if err != nil {
+		return err
+	}
+
+	watchCompleted := workspace.WatchCompletedModel{
+		ActionId: actionNode.ActionId,
+		UserId:   session.UserId,
+		Status:   "active",
+		Output: map[string]string{
+			"historyId":  watchResponse.HistoryId,
+			"expiration": watchResponse.Expiration,
+		},
+	}
+
+	_, _, err = workspace.WatchCompletedRequest(accessToken, watchCompleted)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func fetchUserHistory(accessToken string, lastHistoryId int) (*HistoryList, error) {
+	res, err := fetch.Fetch(
+		http.DefaultClient,
+		fetch.NewFetchRequest(
+			http.MethodGet,
+			fmt.Sprintf("https://gmail.googleapis.com/gmail/v1/users/me/history?startHistoryId=%d", lastHistoryId),
+			nil,
+			map[string]string{
+				"Authorization": fmt.Sprintf("Bearer %s", accessToken),
+				"Content-Type":  "application/json",
+			},
+		))
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		bodyBytes, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, err
+		}
+		log.Printf("Watch body: %s", bodyBytes)
+		return nil, errors.ErrGmailHistory
+	}
+
+	history, err := decode.Json[HistoryList](res.Body)
+	if err != nil {
+		return nil, errors.ErrGmailHistoryTypeNone
+	}
+	return &history, nil
+}
+
+func getActiveNodes(workspaces []workspace.WorkspaceModel, actionId primitive.ObjectID) []workspace.ActionNodeModel {
+	var activeNodes []workspace.ActionNodeModel
+
+	for _, workspace := range workspaces {
+		for _, node := range workspace.Nodes {
+			if node.ActionId == actionId && node.Status == "active" {
+				activeNodes = append(activeNodes, node)
+			}
+		}
+	}
+	return activeNodes
 }
 
 func (m Model) Webhook(ctx context.Context) error {
 	event, ok := ctx.Value(GmailEventCtxKey).(Event)
 	if !ok {
-		return errEventCtx
+		return errors.ErrEventCtx
 	}
-	fmt.Printf("event: %v\n", event)
 
 	data := make([]byte, len(event.Message.Data))
 	_, err := base64.NewDecoder(base64.StdEncoding, strings.NewReader(event.Message.Data)).Read(data)
@@ -81,8 +158,6 @@ func (m Model) Webhook(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf("eventData: %v\n", eventData)
 
 	user, _, err := user.GetUserByEmailRequest(os.Getenv("ADMIN_TOKEN"), eventData.EmailAddress)
 	if err != nil {
@@ -101,26 +176,50 @@ func (m Model) Webhook(ctx context.Context) error {
 			break
 		}
 	}
+
 	if googleSession == nil {
 		return errors.ErrSessionNotFound
 	}
 
-	action, _, err := action.GetActionByAction(googleSession.AccessToken, googleTriggerActionName)
+	action, _, err := action.GetByActionNameRequest(googleSession.AccessToken, googleWatchActionName)
 
 	if err != nil {
 		return err
 	}
 
-	update := workspace.ActionCompletedModel{
-		ActionId: action.Id,
-		UserId:   user.Id,
-		Output:   map[string]any{"hello": "world"},
-	}
-
-	_, err = workspace.ActionCompletedRequest(googleSession.AccessToken, update)
+	workspaces, _, err := workspace.GetByUserId(googleSession.AccessToken, user.Id.Hex())
 
 	if err != nil {
 		return err
+	}
+
+	activeNodes := getActiveNodes(workspaces, action.Id)
+
+	for _, activeNode := range activeNodes {
+
+		intHistoryId, err := strconv.Atoi(activeNode.Output["historyId"])
+		if err != nil {
+			return err
+		}
+
+		history, err := fetchUserHistory(googleSession.AccessToken, intHistoryId)
+
+		if err != nil {
+			return err
+		}
+		log.Printf("History: %+v", history)
+
+		update := workspace.ActionCompletedModel{
+			ActionId: action.Id,
+			UserId:   user.Id,
+			Output:   map[string]string{"email": ""},
+		}
+
+		_, err = workspace.ActionCompletedRequest(googleSession.AccessToken, update)
+
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -146,13 +245,16 @@ func (m Model) Stop(ctx context.Context) error {
 		return err
 	}
 	defer res.Body.Close()
+	if res.StatusCode == http.StatusUnauthorized {
+		return errors.ErrInvalidGoogleToken
+	}
 	if res.StatusCode != http.StatusOK {
 		bodyBytes, err := io.ReadAll(res.Body)
 		if err != nil {
 			return err
 		}
 		log.Printf("Stop body: %s", bodyBytes)
-		return errGmailStop
+		return errors.ErrGmailStop
 	}
 
 	log.Println(accessToken)
