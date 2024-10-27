@@ -2,6 +2,7 @@ package reaction
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,11 +10,12 @@ import (
 	"net/http"
 	"os"
 
+	"trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/fetch"
 )
 
-func (m Model) SendMessage(newMsg NewMessage) error {
+func (m Model) Reaction(ctx context.Context, actionNode workspace.ActionNodeModel) error {
 	payload := MessagegContent{
 		Content: newMsg.Content,
 		TTS:     newMsg.TTS,
@@ -176,40 +178,6 @@ func deleteWebhook(accessToken string, webhookId string, webhookToken string) er
 
 	return nil
 }
-
-// func sendMessage(accessToken string, webhookId string, webhookToken string, content string, username string) error {
-// 	message := NewMessage{
-// 		Content: content,
-// 		Username: username,
-// 		AvatarUrl: "",
-// 	}
-
-// 	body, err := json.Marshal(message)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	res, err := fetch.Fetch(
-// 		http.DefaultClient,
-// 		fetch.NewFetchRequest(
-// 			http.MethodPost,
-// 			// fmt.Sprintf("%s/webhooks/%s/%s", baseURL, webhookId, webhookToken),
-// 			fmt.Sprintf("%s/channels/%s/messages", baseURL, channelId),
-// 			bytes.NewReader(body),
-// 			map[string]string{
-// 				"Content-Type": "application/json",
-// 			},
-// 		),
-// 	)
-
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	defer res.Body.Close()
-
-// 	return nil
-// }
 
 func (m Model) RefreshToken(accessToken string, webhookId string, webhookToken string) (Webhook, error) {
 	// API_ENDPOINT := "https://discord.com/api/v10"

@@ -33,7 +33,7 @@ func (h *Handler) WatchDiscord(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) WebhookDiscord(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Webhook discord")
-	// event, err := decode.Json[Event](r.Body)
+	// event, err := decode.Json[discord.Event](r.Body)
 
 	// if err != nil {
 	// 	customerror.Send(w, err, errors.ErrCodes)
@@ -41,7 +41,7 @@ func (h *Handler) WebhookDiscord(w http.ResponseWriter, r *http.Request) {
 
 	// // log.Printf("Webhook triggered, received body=%+v\n", event)
 
-	// err = h.Service.Webhook(context.WithValue(context.TODO(), DiscordEventCtxKey, event))
+	// err = h.Service.Webhook(context.WithValue(context.TODO(), discord.DiscordEventCtxKey, event))
 
 	// if err != nil {
 	// 	customerror.Send(w, err, errors.ErrCodes)
@@ -50,12 +50,11 @@ func (h *Handler) WebhookDiscord(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) StopDiscord(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Stop discord")
-	// accessToken := r.Header.Get("Authorization")
+	accessToken := r.Header.Get("Authorization")
 
-	// err := h.Service.Stop(context.WithValue(context.TODO(), AccessTokenCtxKey, accessToken))
+	err := h.Service.Stop(context.WithValue(context.TODO(), discord.AccessTokenCtxKey, accessToken))
 
-	// if err != nil {
-	// 	customerror.Send(w, err, errors.ErrCodes)
-	// }
+	if err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+	}
 }

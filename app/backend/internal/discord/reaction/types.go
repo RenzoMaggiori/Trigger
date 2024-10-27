@@ -1,10 +1,7 @@
 package reaction
 
 import (
-// "context"
-
-// "trigger.com/trigger/internal/action/workspace"
-// "trigger.com/trigger/pkg/action"
+	"trigger.com/trigger/pkg/action"
 )
 
 const (
@@ -20,10 +17,7 @@ const AccessTokenCtxKey DiscordReactionCtx = DiscordReactionCtx("AuthorizationCt
 const ChannelIdCtxKey DiscordReactionCtx = DiscordReactionCtx("ChannelIdCtxKey")
 
 type Service interface {
-	// CreateWebhook(ctx context.Context, action workspace.ActionNodeModel) error
-	// DeleteWebhook(ctx context.Context, action workspace.ActionNodeModel) error
-	// SendMessage(ctx context.Context, action workspace.ActionNodeModel) error
-	SendMessage(newMsg NewMessage) error
+	action.Reaction
 }
 
 type Handler struct {
