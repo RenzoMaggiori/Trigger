@@ -158,7 +158,7 @@ func AddSessionRequest(accessToken string, addSession AddSessionModel) (*Session
 		),
 	)
 	if err != nil {
-		return nil, http.StatusInternalServerError, errors.ErrSessionNotCreated
+		return nil, http.StatusInternalServerError, errors.ErrCreatingSession
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
