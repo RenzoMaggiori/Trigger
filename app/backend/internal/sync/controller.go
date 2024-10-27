@@ -18,7 +18,8 @@ func (h *Handler) SyncWith(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.Service.SyncWith(gothUser, "access_token")
+	access_token := r.Header.Get("Authorization")
+	err = h.Service.SyncWith(gothUser, access_token)
 	if err != nil {
 		log.Println(err)
 		customerror.Send(w, err, errors.ErrCodes)
@@ -28,8 +29,9 @@ func (h *Handler) SyncWith(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
 	state := r.URL.Query().Get("state")
-	url := strings.Split(state, ":")[0]
-	token := strings.Split(state, ":")[1]
+	split := strings.Split(state, ":")
+	url := split[0]
+	token := split[1]
 
 	urlDecodedBytes, err := base64.URLEncoding.DecodeString(url)
 	if err != nil {
