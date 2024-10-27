@@ -13,8 +13,10 @@ import (
 
 var (
 	errEnvNotFound      string    = "Enviroment argument %s not found"
-	enviromentArguments [1]string = [...]string{
-		"DISCORD_WEBHOOK_URL",
+	enviromentArguments [3]string = [...]string{
+		"DISCORD_KEY",
+		"DISCORD_SECRET",
+		"BOT_TOKEN",
 	}
 )
 

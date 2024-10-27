@@ -6,7 +6,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-services="db auth user session action gmail sync settings github"
+services="db auth user session action gmail sync settings github discord"
 
 docker compose build $services
 if [ $? -ne 0 ]; then

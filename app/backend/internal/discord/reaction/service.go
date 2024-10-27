@@ -5,18 +5,64 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
+	"os"
 
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/fetch"
 )
 
-func (m Model) UserInfo(accessToken string) (UserInfo, error) {
+func (m Model) SendMessage(newMsg NewMessage) error {
+	payload := MessagegContent{
+		Content: newMsg.Content,
+		TTS:     newMsg.TTS,
+		StickerIDs: newMsg.StickerIDs,
+	}
+    body, err := json.Marshal(payload)
+    if err != nil {
+        return err
+    }
+
+	return sendMessage(newMsg.ChannelId, body)
+}
+
+func sendMessage(channelID string, body []byte) error {
+
+	res, err := fetch.Fetch(
+		http.DefaultClient,
+		fetch.NewFetchRequest(
+			http.MethodPost,
+			fmt.Sprintf("%s/channels/%s/messages", baseURL, channelID),
+			bytes.NewReader(body),
+			map[string]string{
+				"Authorization": "Bot " + os.Getenv("BOT_TOKEN"),
+				"Content-Type": "application/json",
+			},
+		),
+	)
+
+	if err != nil {
+		return err
+	}
+
+    defer res.Body.Close()
+
+    if res.StatusCode != http.StatusOK {
+        return fmt.Errorf("failed to send message, status: %d", res.StatusCode)
+    }
+
+    fmt.Println("Message sent successfully!")
+    return nil
+}
+
+
+func userInfo(accessToken string) (UserInfo, error) {
 	res, err := fetch.Fetch(
 		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodGet,
-			"https://discord.com/api/users/@me",
+			userEndpoint,
 			nil,
 			map[string]string{
 				"Authorization": "Bearer " + accessToken,
@@ -39,12 +85,12 @@ func (m Model) UserInfo(accessToken string) (UserInfo, error) {
 	return userInfo, nil
 }
 
-func (m Model) Guilds(accessToken string) (string, error) {
+func guilds(accessToken string) (string, error) {
 	res, err := fetch.Fetch(
 		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodGet,
-			"https://discord.com/api/users/@me/guilds",
+			fmt.Sprintf("%s/guilds", userEndpoint),
 			nil,
 			map[string]string{
 				"Authorization": "Bearer " + accessToken,
@@ -67,22 +113,22 @@ func (m Model) Guilds(accessToken string) (string, error) {
 	return string(body), nil
 }
 
-func (m Model) CreateWebhook(accessToken string, channelId string, webhookName string) (string, error) {
-	createWebhook := map[string]interface{}{
-		"name":   webhookName,
-		"avatar": nil,
+func createWebhook(accessToken string, channelId string, webhookName string) error {
+	createWebhook := NewWebhook{
+		Name: webhookName,
+		Avatar: "",
 	}
 
 	body, err := json.Marshal(createWebhook)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	res, err := fetch.Fetch(
 		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodPost,
-			fmt.Sprintf("https://discord.com/api/channels/%s/webhooks", channelId),
+			fmt.Sprintf("%s/channels/%s/webhooks", baseURL, channelId),
 			bytes.NewReader(body),
 			map[string]string{
 				"Authorization": "Bearer " + accessToken,
@@ -92,26 +138,29 @@ func (m Model) CreateWebhook(accessToken string, channelId string, webhookName s
 	)
 
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	defer res.Body.Close()
 
 	body, err = io.ReadAll(res.Body)
 
+	log.Println("create_webhook: string(body)")
+	log.Println(string(body))
+
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	return string(body), nil
+	return nil
 }
 
-func (m Model) DeleteWebhook(accessToken string, webhookId string, webhookToken string) error {
+func deleteWebhook(accessToken string, webhookId string, webhookToken string) error {
 	res, err := fetch.Fetch(
 		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodDelete,
-			fmt.Sprintf("https://discord.com/api/webhooks/%s/%s", webhookId, webhookToken),
+			fmt.Sprintf("%s/webhooks/%s/%s", baseURL, webhookId, webhookToken),
 			nil,
 			map[string]string{
 				"Authorization": "Bearer " + accessToken,
@@ -128,50 +177,51 @@ func (m Model) DeleteWebhook(accessToken string, webhookId string, webhookToken 
 	return nil
 }
 
-func (m Model) SendMessage(accessToken string, webhookId string, webhookToken string, content string, username string) error {
-	message := map[string]interface{}{
-		"content": content,
-		"username": username,
-		"avatar_url": nil,
-	}
+// func sendMessage(accessToken string, webhookId string, webhookToken string, content string, username string) error {
+// 	message := NewMessage{
+// 		Content: content,
+// 		Username: username,
+// 		AvatarUrl: "",
+// 	}
 
-	body, err := json.Marshal(message)
-	if err != nil {
-		return err
-	}
+// 	body, err := json.Marshal(message)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	res, err := fetch.Fetch(
-		http.DefaultClient,
-		fetch.NewFetchRequest(
-			http.MethodPost,
-			fmt.Sprintf("https://discord.com/api/webhooks/%s/%s", webhookId, webhookToken),
-			bytes.NewReader(body),
-			map[string]string{
-				"Content-Type": "application/json",
-			},
-		),
-	)
+// 	res, err := fetch.Fetch(
+// 		http.DefaultClient,
+// 		fetch.NewFetchRequest(
+// 			http.MethodPost,
+// 			// fmt.Sprintf("%s/webhooks/%s/%s", baseURL, webhookId, webhookToken),
+// 			fmt.Sprintf("%s/channels/%s/messages", baseURL, channelId),
+// 			bytes.NewReader(body),
+// 			map[string]string{
+// 				"Content-Type": "application/json",
+// 			},
+// 		),
+// 	)
 
-	if err != nil {
-		return err
-	}
+// 	if err != nil {
+// 		return err
+// 	}
 
-	defer res.Body.Close()
+// 	defer res.Body.Close()
 
-	return nil
-}
+// 	return nil
+// }
 
 func (m Model) RefreshToken(accessToken string, webhookId string, webhookToken string) (Webhook, error) {
 	// API_ENDPOINT := "https://discord.com/api/v10"
 	// CLIENT_ID := "332269999912132097"
 	// CLIENT_SECRET := "937it3ow87i4ery69876wqire"
-	// REDIRECT_URI := "https://nicememe.website"
+	// REDIRECT_URI := "https://localhost:3000"
 
 	res, err := fetch.Fetch(
 		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodGet,
-			"https://discord.com/api/oauth2/token",
+			tokenURL,
 			nil,
 			map[string]string{
 				"Content-Type": "application/x-www-form-urlencoded",
