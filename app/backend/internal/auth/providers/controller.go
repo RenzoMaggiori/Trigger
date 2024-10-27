@@ -15,28 +15,28 @@ const (
 )
 
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
-	// gothUser, err := gothic.CompleteUserAuth(w, r)
-	// if err != nil {
-	h.Service.Login(w, r)
-	return
-	// }
+	gothUser, err := gothic.CompleteUserAuth(w, r)
+	if err != nil {
+		h.Service.Login(w, r)
+		return
+	}
 
-	// accessToken, err := h.Service.AccessToken(gothUser)
-	// if err != nil {
-	// 	customerror.Send(w, err, errCodes)
-	// 	return
-	// }
+	accessToken, err := h.Service.AccessToken(gothUser)
+	if err != nil {
+		customerror.Send(w, err, errCodes)
+		return
+	}
 
-	// cookie := &http.Cookie{
-	// 	Name:     authCookieName,
-	// 	Value:    accessToken,
-	// 	Expires:  gothUser.ExpiresAt,
-	// 	HttpOnly: true,
-	// 	SameSite: http.SameSiteLaxMode,
-	// 	Path:     "/",
-	// 	Secure:   false, // TODO: true when in production
-	// }
-	// http.SetCookie(w, cookie)
+	cookie := &http.Cookie{
+		Name:     authCookieName,
+		Value:    accessToken,
+		Expires:  gothUser.ExpiresAt,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+		Secure:   false, // TODO: true when in production
+	}
+	http.SetCookie(w, cookie)
 }
 
 func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
