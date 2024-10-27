@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/markbates/goth/gothic"
 	customerror "trigger.com/trigger/pkg/custom-error"
@@ -11,13 +12,13 @@ import (
 )
 
 func (h *Handler) SyncWith(w http.ResponseWriter, r *http.Request) {
-	access_token := r.Header.Get("Authorization")
 	gothUser, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
 		h.Service.GrantAccess(w, r)
 		return
 	}
 
+	access_token := r.Header.Get("Authorization")
 	err = h.Service.SyncWith(gothUser, access_token)
 	if err != nil {
 		log.Println(err)
@@ -27,17 +28,27 @@ func (h *Handler) SyncWith(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
-	access_token := r.Header.Get("Authorization")
-
 	state := r.URL.Query().Get("state")
-	stateDecodedBytes, err := base64.URLEncoding.DecodeString(state)
+	split := strings.Split(state, ":")
+	url := split[0]
+	token := split[1]
+
+	urlDecodedBytes, err := base64.URLEncoding.DecodeString(url)
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
 		return
 	}
-
-	redirectUrl := string(stateDecodedBytes)
+	redirectUrl := string(urlDecodedBytes)
 	log.Println(redirectUrl)
+
+	tokenDecodedBytes, err := base64.URLEncoding.DecodeString(token)
+	if err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+	access_token := string(tokenDecodedBytes)
+	log.Println(access_token)
+
 	user, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
