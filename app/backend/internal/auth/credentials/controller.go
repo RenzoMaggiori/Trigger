@@ -1,7 +1,6 @@
 package credentials
 
 import (
-	"context"
 	"net/http"
 	"os"
 
@@ -21,11 +20,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessToken, err := h.Service.Login(context.WithValue(
-		context.TODO(),
-		CredentialsCtxKey,
-		credentials,
-	))
+	accessToken, err := h.Service.Login(credentials)
 	if err != nil {
 		customerror.Send(w, err, errCodes)
 		return
