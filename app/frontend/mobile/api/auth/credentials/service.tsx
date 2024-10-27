@@ -1,15 +1,17 @@
 import { NetworkInfo } from 'react-native-network-info';
 
 const IP = process.env['IPv4'];
-// const BASE_URL = `http://${IP}:8000/api/auth`;
+const BASE_URL = `http://${IP}:8000`;
+const NGROK = process.env['ngrok'];
 
 export class CredentialsService {
     static async getBaseUrl() {
         // const ip = await NetworkInfo.getIPV4Address();
         // return `http://${ip}:8000/api/auth`;
-        return `http://${IP}:8000/api/auth`;
+        return `${BASE_URL}/api/auth`;
         // return `https://458b-88-30-70-166.ngrok-free.app`
     }
+
     //? REGISTER
     static async register(email: string, password: string) {
         try {

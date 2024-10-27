@@ -6,6 +6,7 @@ import Button from '@/components/Button';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import ButtonIcon from '@/components/ButtonIcon';
 import { CredentialsService } from '@/api/auth/credentials/service';
+import { ProvidersService } from '@/api/auth/providers/service';
 
 export default function SignIn() {
     const [email, setEmail] = useState('');
@@ -29,15 +30,20 @@ export default function SignIn() {
         setErrorMessage("");
     };
 
-    const handleSocialSignIn = (service: string) => {
-        router.push('/(tabs)/HomeScreen');
-        console.log(`Signing up with ${service}`);
+    const handleSocialSignIn = async (providerName: string) => {
+        try {
+            await ProvidersService.handleOAuth(providerName);
+            router.push('/(tabs)/HomeScreen');
+        } catch (error) {
+            setErrorMessage((error as Error).message + "\nPlease try again.");
+            setModalVisible(true);
+        }
     };
 
     const technologies = [
-        { name: 'Google', icon: <Ionicons name="logo-google" size={30} color={Colors.light.google} />},
-        { name: 'Github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
-        { name: 'Outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.outlook} /> },
+        { name: 'google', icon: <Ionicons name="logo-google" size={30} color={Colors.light.google} />},
+        { name: 'github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
+        { name: 'outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.outlook} /> },
     ];
 
     const data = {

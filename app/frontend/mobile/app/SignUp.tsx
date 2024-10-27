@@ -8,6 +8,7 @@ import ButtonIcon from '@/components/ButtonIcon';
 import { CredentialsService } from '@/api/auth/credentials/service';
 import * as WebBrowser from 'expo-web-browser';
 import { WebView } from 'react-native-webview';
+import { ProvidersService } from '@/api/auth/providers/service';
 
 interface ProvidersProps {
     providers: {
@@ -19,10 +20,6 @@ interface ProvidersProps {
 }
 
 export default function SignUp() {
-    const IP = process.env['IPv4'];
-    const BASE_URL = `http://${IP}:8000`;
-    const NGROK = process.env['ngrok'];
-
     const [name, setName] = useState('');
     const [surname, setSurname] = useState('');
     const [email, setEmail] = useState('');
@@ -38,7 +35,7 @@ export default function SignUp() {
         await CredentialsService.register(email, password)
             .then(() => router.push('/(tabs)/HomeScreen'))
             .catch((error) => {
-                setErrorMessage(error.message + "\nPlease try again.");
+                setErrorMessage((error as Error).message + "\nPlease try again.");
                 setModalVisible(true);
             });
     };
@@ -49,28 +46,12 @@ export default function SignUp() {
     };
 
     const handleOpenAuth = async (providerName: string) => {
-        const baseUrl = await CredentialsService.getBaseUrl();
-        const url = `${NGROK}/api/oauth2/login?provider=${providerName}&redirect=${BASE_URL}/api/oauth2/callback`;
-
         try {
-            const result = await WebBrowser.openAuthSessionAsync(
-                url,
-                `${BASE_URL}/api/oauth2/callback`
-            );
-            if (result.type === 'cancel') {
-                Alert.alert('Browser Canceled', 'The browser was closed by the user.');
-            } else if (result.type === 'dismiss') {
-                Alert.alert('Browser Dismissed', 'The browser was dismissed.');
-            } else {
-                console.log('Browser opened successfully:', result);
-            }
-            if (result.type === 'success') {
-                console.log('result: ', result?.url);
-            }
-
+            await ProvidersService.handleOAuth(providerName);
+            router.push('/(tabs)/HomeScreen');
         } catch (error) {
-            Alert.alert('Error', 'Unable to open the URL');
-            console.error('Failed to open URL:', error);
+            setErrorMessage((error as Error).message + "\nPlease try again.");
+            setModalVisible(true);
         }
     };
 

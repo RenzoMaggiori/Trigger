@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Image, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Modal, TouchableNativeFeedback } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { MaterialIcons, Ionicons, FontAwesome, FontAwesome5 } from '@expo/vector-icons';
@@ -7,9 +7,12 @@ import TechCarousel from '@/components/TechCarousel';
 import { Video, ResizeMode } from 'expo-av';
 import ButtonIcon from '@/components/ButtonIcon';
 import Button from '@/components/Button';
+import { ProvidersService } from '@/api/auth/providers/service';
 
 export default function LandingPage() {
     const router = useRouter();
+    const [errorMessage, setErrorMessage] = useState("");
+    const [modalVisible, setModalVisible] = useState(false);
 
     const handleSignIn = () => {
         router.push('/SignIn');
@@ -18,6 +21,21 @@ export default function LandingPage() {
     const handleSignUp = () => {
         router.push('/SignUp');
     };
+
+    const handleDismissError = () => {
+        setModalVisible(false);
+        setErrorMessage("");
+    };
+
+    const handleSocialSignIn = async (provider: string) => {
+        try {
+            await ProvidersService.handleOAuth(provider);
+            router.push('/(tabs)/HomeScreen');
+        } catch (error) {
+            setErrorMessage((error as Error).message + "\nPlease try again.");
+            setModalVisible(true);
+        }
+    }
 
     const data = {
         logo: require('../assets/images/logo.png'),
@@ -32,11 +50,11 @@ export default function LandingPage() {
     };
 
     const technologies = [
-        { name: 'Google', icon: <Ionicons name="logo-google" size={30} color={Colors.light.tintLight} /> },
-        { name: 'Discord', icon: <FontAwesome5 name="discord" size={30} color={Colors.light.tintLight} /> },
-        { name: 'Github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.tintLight} /> },
-        { name: 'Slack', icon: <FontAwesome name="slack" size={30} color={Colors.light.tintLight} /> },
-        { name: 'Outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.tintLight} /> },
+        { name: 'google', icon: <Ionicons name="logo-google" size={30} color={Colors.light.tintLight} /> },
+        { name: 'discord', icon: <FontAwesome5 name="discord" size={30} color={Colors.light.tintLight} /> },
+        { name: 'github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.tintLight} /> },
+        { name: 'slack', icon: <FontAwesome name="slack" size={30} color={Colors.light.tintLight} /> },
+        { name: 'outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.tintLight} /> },
     ];
 
     return (
@@ -58,7 +76,7 @@ export default function LandingPage() {
                         textColor='#FFFFFF'
                     />
                     <ButtonIcon
-                        onPress={handleSignUp}
+                        onPress={() => handleSocialSignIn('google')}
                         title={data.buttons.google}
                         icon={<Image source={require('../assets/images/google-logo.png')} style={styles.googleLogo} />}
                         backgroundColor='#FFFFFF'
@@ -98,6 +116,29 @@ export default function LandingPage() {
                     buttonWidth='45%'
                 />
             </View>
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={handleDismissError}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.errorMessage} numberOfLines={2}>
+                            {errorMessage}
+                        </Text>
+                        <View style={styles.separator} />
+                        <TouchableNativeFeedback
+                            onPress={handleDismissError}
+                            background={TouchableNativeFeedback.Ripple('#f2f0eb', false)}
+                        >
+                            <View style={styles.dismissButton}>
+                                <Text style={styles.dismissButtonText}>DONE</Text>
+                            </View>
+                        </TouchableNativeFeedback>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 }
@@ -170,5 +211,41 @@ const styles = StyleSheet.create({
         width: '100%',
         justifyContent: 'space-around',
         paddingHorizontal: 16,
+    },
+
+    modalContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "rgba(0,0,0,0.5)",
+    },
+    modalContent: {
+        backgroundColor: "#fff",
+        padding: 20,
+        borderRadius: 4,
+        width: "80%",
+        elevation: 5,
+    },
+    errorMessage: {
+        color: "#f25749",
+        marginBottom: 10,
+        marginTop: 10,
+        textAlign: "center",
+        fontSize: 16,
+    },
+    dismissButton: {
+        marginTop: 10,
+        padding: 10,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    dismissButtonText: {
+        color: "#f25749",
+        fontWeight: "bold",
+    },
+    separator: {
+        height: 1,
+        backgroundColor: "#f2f0eb",
+        marginVertical: 12,
     },
 });
