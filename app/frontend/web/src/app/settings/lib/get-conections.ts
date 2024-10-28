@@ -25,7 +25,6 @@ export async function getConnections() {
   }
 
   const body = await res.json();
-  console.log(body)
   const { data, error } = settingsSchema.safeParse(body);
   if (error) {
     console.error(error);

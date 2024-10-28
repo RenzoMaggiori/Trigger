@@ -23,9 +23,10 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { getConnections } from "@/app/settings/lib/get-conections";
 import { SettingsType } from "@/app/settings/lib/types";
+import { sync } from "./lib/sync";
 
 const services = {
   "Google": <FcGoogle className="w-5 h-5" />,
@@ -49,6 +50,14 @@ export default function Page() {
     }
   }, [data]);
 
+  const mutation = useMutation({
+    mutationFn: (provider: string) =>
+      sync(provider),
+    onSuccess: (url) => {
+      window.location.href = url
+    },
+  });
+
   if (error) return <div>failed to get user settings.</div>
   if (isPending) return <div>loading...</div>
 
@@ -60,7 +69,7 @@ export default function Page() {
     const updatedServices = settings.find((s) => s.providerName.toLocaleLowerCase() === provider.toLocaleLowerCase());
     console.log(active)
     if (!active) {
-      window.location.href = `/api/redirect?provider=${provider.toLocaleLowerCase()}`;
+      mutation.mutate(provider.toLocaleLowerCase())
     } else {
       if (!updatedServices)
         return

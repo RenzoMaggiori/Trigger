@@ -24,7 +24,6 @@ func (m Model) GrantAccess(w http.ResponseWriter, r *http.Request) error {
 	redirectUrl := r.URL.Query().Get("redirect")
 	access_token := r.URL.Query().Get("token")
 
-	fmt.Println("access: ", access_token)
 	url := base64.URLEncoding.EncodeToString([]byte(redirectUrl))
 	token := base64.URLEncoding.EncodeToString([]byte(access_token))
 	state := fmt.Sprintf("%s:%s", url, token)
