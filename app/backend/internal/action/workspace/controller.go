@@ -74,6 +74,28 @@ func (h *Handler) GetWorkspacesByUserId(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+func (h *Handler) GetWorkspacesByActionId(w http.ResponseWriter, r *http.Request) {
+	id, err := primitive.ObjectIDFromHex(r.PathValue("action_id"))
+
+	if err != nil {
+		error := fmt.Errorf("%w: %v", errors.ErrBadActionId, err)
+		customerror.Send(w, error, errors.ErrCodes)
+		return
+	}
+
+	workspaces, err := h.Service.GetByActionId(context.TODO(), id)
+	if err != nil {
+		log.Print(err)
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+	if err = encode.Json(w, workspaces); err != nil {
+		log.Print(err)
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+}
+
 func (h *Handler) AddWorkspace(w http.ResponseWriter, r *http.Request) {
 	token, ok := r.Context().Value(middleware.TokenCtxKey).(string)
 
