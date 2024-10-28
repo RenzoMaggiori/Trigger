@@ -2,7 +2,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Switch } from "@/components/ui/switch";
 import React from "react";
 import { FcGoogle } from "react-icons/fc";
 
@@ -24,120 +23,89 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-// import { sync } from "./lib/sync";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { getConnections } from "@/app/settings/lib/get-conections";
+import { SettingsType } from "@/app/settings/lib/types";
+import { sync } from "./lib/sync";
 
-// import { useMutation } from "@tanstack/react-query";
-// import { getConnections } from "./lib/get-conections";
-
-type SettingsProps = {
-  name: string;
-  fields: Record<string, boolean>;
-  icon?: React.JSX.Element;
-};
-
-const services: SettingsProps[] = [
-  {
-    name: "Google",
-    icon: <FcGoogle className="w-5 h-5" />,
-    fields: {
-      "Show on Profile": true,
-      Connected: false,
-    },
-  },
-  {
-    name: "Discord",
-    icon: <FaDiscord className="w-5 h-5 text-blue-500" />,
-    fields: {
-      "Show on Profile": true,
-      Connected: false,
-    },
-  },
-  {
-    name: "Slack",
-    icon: <FaSlack className="w-5 h-5" />,
-    fields: {
-      "Show on Profile": true,
-      Connected: true,
-    },
-  },
-  {
-    name: "Outlook",
-    icon: <PiMicrosoftOutlookLogo className="w-5 h-5 text-black" />,
-    fields: {
-      "Show on Profile": true,
-      Connected: false,
-    },
-  },
-  {
-    name: "Github",
-    icon: <IoLogoGithub className="w-5 h-5" />,
-    fields: {
-      "Show on Profile": true,
-      Connected: true,
-    },
-  },
-];
+const services = {
+  "Google": <FcGoogle className="w-5 h-5" />,
+  "Discord": <FaDiscord className="w-5 h-5 text-blue-500" />,
+  "Slack": <FaSlack className="w-5 h-5" />,
+  "Outlook": <PiMicrosoftOutlookLogo className="w-5 h-5 text-black" />,
+  "Github": <IoLogoGithub className="w-5 h-5" />,
+} as const;
 
 export default function Page() {
-  const [serviceList, setServiceList] =
-    React.useState<SettingsProps[]>(services);
+  const [settings, setSettings] = React.useState<SettingsType>([]);
 
-  /* const mutation = useMutation({
-    mutationFn: sync,
-  }); */
+  const { data, isPending, error } = useQuery({
+    queryKey: ["settings"],
+    queryFn: () => getConnections(),
+  });
 
-  const handleSwitchChange = (
-    serviceIndex: number,
-    fieldKey: string,
-    provider: string,
-  ) => {
-    const updatedServices = [...serviceList];
-    if (fieldKey === "Connection") {
-      window.location.href = `/api/redirect?provider=${provider}`;
-      // mutation.mutate(provider);
+  React.useEffect(() => {
+    if (data) {
+      setSettings(data);
     }
-    updatedServices[serviceIndex].fields[fieldKey] =
-      !updatedServices[serviceIndex].fields[fieldKey];
-    setServiceList(updatedServices);
-  };
+  }, [data]);
+
+  const mutation = useMutation({
+    mutationFn: (provider: string) =>
+      sync(provider),
+    onSuccess: (url) => {
+      window.location.href = url
+    },
+  });
+
+  if (error) return <div>failed to get user settings.</div>
+  if (isPending) return <div>loading...</div>
+
 
   const handleConnectionClick = (
     active: boolean,
-    serviceIndex: number,
-    fieldKey: string,
     provider: string,
   ) => {
-    const updatedServices = [...serviceList];
+    const updatedServices = settings.find((s) => s.providerName.toLocaleLowerCase() === provider.toLocaleLowerCase());
+    console.log(active)
     if (!active) {
-      updatedServices[serviceIndex].fields[fieldKey] = true;
-      window.location.href = `/api/redirect?provider=${provider}`;
-      // mutation.mutate(provider);
+      mutation.mutate(provider.toLocaleLowerCase())
     } else {
-      updatedServices[serviceIndex].fields[fieldKey] = false;
+      if (!updatedServices)
+        return
+      updatedServices.active = false;
     }
-    setServiceList(updatedServices);
+    if (updatedServices)
+      setSettings([...settings, updatedServices]);
   };
 
   return (
     <div className="flex flex-col w-full h-full items-center justify-center gap-5">
       <ScrollArea className="w-full md:w-2/3 lg:w-1/2 max-h-[80vh] items-center justify-center border p-5 rounded-md">
         <div className="flex flex-col items-center justify-center gap-5 w-full">
-          {services.map((item, key) => (
+          {Object.entries(services).map(([providerName, icon]) => {
+            const matchingSetting = settings.find((s) => s.providerName.toLowerCase() === providerName.toLowerCase());
+            return {
+              providerName,
+              icon,
+              active: matchingSetting?.active || false,
+            };
+          }).map((item, key) => (
             <Card className="flex flex-col w-full h-auto" key={key}>
               <CardHeader className={`rounded-t-md border-b`}>
                 <CardTitle className="flex items-center justify-between text-xl text-start font-bold">
                   <div className="flex items-center gap-x-2">
                     {item.icon}
-                    {item.name}
+                    {item.providerName}
                   </div>
                   <div
-                    className={`flex items-center ${item.fields["Connection"] ? "text-green-500" : "text-red-500"}`}
+                    className={`flex items-center ${item.active ? "text-green-500" : "text-red-500"}`}
                   >
                     <div className="hidden md:block">
-                      {item.fields["Connection"] ? "Connected" : "Disconnected"}
+                      {item.active ? "Connected" : "Disconnected"}
                     </div>
                     <FaCircle
-                      className={`ml-2 ${item.fields["Connection"] ? "text-green-500" : "text-red-500"}`}
+                      className={`ml-2 ${item.active ? "text-green-500" : "text-red-500"}`}
                     />
                   </div>
                 </CardTitle>
@@ -145,70 +113,45 @@ export default function Page() {
               <CardContent
                 className={`flex w-full h-full rounded-b-md items-end justify-center`}
               >
-                <div className="w-full flex flex-col text-lg items-start justify-start gap-y-3 mt-5">
-                  {Object.entries(item.fields).map(
-                    ([fieldName, isActive], index) => (
-                      <div
-                        key={index}
-                        className="flex flex-row w-full items-center justify-between text-black font-bold"
-                      >
-                        {fieldName}
-                        {fieldName !== "Connected" ? (
-                          <Switch
-                            className="data-[state=checked]:bg-green-400 data-[state=unchecked]:bg-red-500"
-                            checked={isActive}
+                <div className="w-full flex flex-row text-lg items-start justify-between gap-y-3 mt-5">
+                  <p className="font-bold">Connection</p>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline">
+                        {item.active ? "Disconect" : "Connect"}
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="">
+                      <DialogHeader>
+                        <DialogTitle className="text-2xl">
+                          {item.active ? "Disconect" : "Connect"}{" "}
+                          {item.providerName}
+                        </DialogTitle>
+                        <DialogDescription className="text-xl">
+                          Are you sure you want to{" "}
+                          {item.active ? "disconect" : "connect"}{" "}
+                          {item.providerName}?
+                        </DialogDescription>
+                      </DialogHeader>
+                      <DialogFooter className="mt-5">
+                        <DialogClose asChild>
+                          <Button variant="outline">Cancel</Button>
+                        </DialogClose>
+                        <DialogClose>
+                          <Button
                             onClick={() =>
-                              handleSwitchChange(
-                                key,
-                                fieldName,
-                                item.name.toLowerCase(),
+                              handleConnectionClick(
+                                item.active,
+                                item.providerName,
                               )
                             }
-                          />
-                        ) : (
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button variant="outline">
-                                {isActive ? "Disconect" : "Connect"}
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="">
-                              <DialogHeader>
-                                <DialogTitle className="text-2xl">
-                                  {isActive ? "Disconect" : "Connect"}{" "}
-                                  {item.name}
-                                </DialogTitle>
-                                <DialogDescription className="text-xl">
-                                  Are you sure you want to{" "}
-                                  {isActive ? "disconect" : "connect"}{" "}
-                                  {item.name}?
-                                </DialogDescription>
-                              </DialogHeader>
-                              <DialogFooter className="mt-5">
-                                <DialogClose asChild>
-                                  <Button variant="outline">Cancel</Button>
-                                </DialogClose>
-                                <DialogClose>
-                                  <Button
-                                    onClick={() =>
-                                      handleConnectionClick(
-                                        isActive,
-                                        key,
-                                        fieldName,
-                                        item.name.toLowerCase(),
-                                      )
-                                    }
-                                  >
-                                    {isActive ? "Disconect" : "Connect"}
-                                  </Button>
-                                </DialogClose>
-                              </DialogFooter>
-                            </DialogContent>
-                          </Dialog>
-                        )}
-                      </div>
-                    ),
-                  )}
+                          >
+                            {item.active ? "Disconect" : "Connect"}
+                          </Button>
+                        </DialogClose>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </CardContent>
             </Card>
