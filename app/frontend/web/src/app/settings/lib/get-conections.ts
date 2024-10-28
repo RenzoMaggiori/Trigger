@@ -20,8 +20,9 @@ export async function getConnections() {
       },
     },
   );
-  if (!res.ok)
+  if (!res.ok) {
     throw new Error(`invalid status code: ${res.status}`);
+  }
 
   const { data, error } = settingsSchema.safeParse(await res.json());
   if (error) {

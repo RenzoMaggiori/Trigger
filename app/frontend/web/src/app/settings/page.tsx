@@ -26,10 +26,6 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { getConnections } from "@/app/settings/lib/get-conections";
 import { SettingsType } from "@/app/settings/lib/types";
-// import { sync } from "./lib/sync";
-
-// import { useMutation } from "@tanstack/react-query";
-// import { getConnections } from "./lib/get-conections";
 
 const services = {
   "Google": <FcGoogle className="w-5 h-5" />,
@@ -41,41 +37,37 @@ const services = {
 
 export default function Page() {
   const [settings, setSettings] = React.useState<SettingsType[]>([]);
-  /* const mutation = useMutation({
-    mutationFn: sync,
-  }); */
 
   const { data, isPending, error } = useQuery({
     queryKey: ["settings"],
-    queryFn: getConnections,
+    queryFn: () => getConnections(),
   });
+
+  React.useEffect(() => {
+    if (data) {
+      setSettings(data);
+    }
+  }, [data]);
 
   if (error) return <div>failed to get user settings.</div>
   if (isPending) return <div>loading...</div>
 
-  setSettings(
-    data.map((s) => ({
-      id: s.id,
-      userId: s.userId,
-      providerName: s.providerName,
-      active: s.active,
-    }))
-  );
 
   const handleConnectionClick = (
     active: boolean,
     provider: string,
   ) => {
     const updatedServices = settings.find((s) => s.providerName.toLocaleLowerCase() === provider.toLocaleLowerCase());
-    if (!updatedServices)
-      return
+    console.log(active)
     if (!active) {
-      updatedServices.active = true;
-      window.location.href = `/api/redirect?provider=${provider}`;
-      // mutation.mutate(provider);
-    } else
+      window.location.href = `/api/redirect?provider=${provider.toLocaleLowerCase()}`;
+    } else {
+      if (!updatedServices)
+        return
       updatedServices.active = false;
-    setSettings([...settings, updatedServices]);
+    }
+    if (updatedServices)
+      setSettings([...settings, updatedServices]);
   };
 
   return (
@@ -112,7 +104,8 @@ export default function Page() {
               <CardContent
                 className={`flex w-full h-full rounded-b-md items-end justify-center`}
               >
-                <div className="w-full flex flex-col text-lg items-start justify-start gap-y-3 mt-5">
+                <div className="w-full flex flex-row text-lg items-start justify-between gap-y-3 mt-5">
+                  <p className="font-bold">Connection</p>
                   <Dialog>
                     <DialogTrigger asChild>
                       <Button variant="outline">
