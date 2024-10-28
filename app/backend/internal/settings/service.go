@@ -26,7 +26,7 @@ func (m Model) GetById(id primitive.ObjectID) (*SettingsResponseModel, error) {
 }
 
 func (m Model) GetByUserId(userId primitive.ObjectID) ([]SettingsResponseModel, error) {
-	var settings []SettingsModel
+	settings := make([]SettingsModel, 0)
 	ctx := context.TODO()
 	filter := bson.M{"userId": userId}
 	cursor, err := m.Collection.Find(ctx, filter)
@@ -40,7 +40,7 @@ func (m Model) GetByUserId(userId primitive.ObjectID) ([]SettingsResponseModel, 
 		return nil, fmt.Errorf("%v", err)
 	}
 
-	var response []SettingsResponseModel
+	response := make([]SettingsResponseModel, 0)
 	for _, setting := range settings {
 		response = append(response, SettingsResponseModel{
 			ProviderName: setting.ProviderName,
@@ -51,13 +51,13 @@ func (m Model) GetByUserId(userId primitive.ObjectID) ([]SettingsResponseModel, 
 	return response, nil
 }
 
-func (m Model) Add(addSettings *AddSettingsModel) (error) {
+func (m Model) Add(addSettings *AddSettingsModel) error {
 	newSeetings := SettingsModel{
 		Id:           primitive.NewObjectID(),
 		UserId:       addSettings.UserId,
 		ProviderName: addSettings.ProviderName,
 		// AccessToken:  addSettings.AccessToken,
-		Active:       addSettings.Active,
+		Active: addSettings.Active,
 	}
 
 	_, err := m.Collection.InsertOne(context.TODO(), newSeetings)
