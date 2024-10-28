@@ -48,6 +48,7 @@ func Router(ctx context.Context) (*router.Router, error) {
 			callback,
 			twitch.ScopeUserReadEmail,
 			twitch.ScopeModeratorReadFollowers,
+			"user:write:chat",
 		),
 	)
 

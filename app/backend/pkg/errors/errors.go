@@ -65,6 +65,7 @@ var (
 	ErrTwitchUser           error = errors.New("error while fetching twitch user")
 	ErrTwitchUserFound      error = errors.New("twitch user found")
 	ErrTwitchAppAccessToken error = errors.New("error while fetching twitch app access token")
+	ErrTwitchSendMessage    error = errors.New("error while sending twitch channel message")
 
 	ErrCodes map[error]customerror.CustomError = map[error]customerror.CustomError{
 		ErrWorkspaceNotFound: {
@@ -217,6 +218,10 @@ var (
 		},
 		ErrTwitchAppAccessToken: {
 			Message: ErrTwitchAppAccessToken.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrTwitchSendMessage: {
+			Message: ErrTwitchSendMessage.Error(),
 			Code:    http.StatusInternalServerError,
 		},
 	}

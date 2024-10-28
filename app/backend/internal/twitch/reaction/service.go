@@ -3,105 +3,86 @@ package reaction
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io"
-	"log"
 	"net/http"
+	"os"
 
 	"trigger.com/trigger/internal/action/workspace"
-	"trigger.com/trigger/internal/session"
-	"trigger.com/trigger/internal/user"
-
+	"trigger.com/trigger/internal/twitch"
+	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
+	"trigger.com/trigger/pkg/middleware"
 )
 
 func (m Model) MutlipleReactions(actionName string, ctx context.Context, action workspace.ActionNodeModel) error {
-	accessToken, ok := ctx.Value(AccessTokenCtxKey).(string)
-
-	if !ok {
-		return errors.ErrAccessTokenCtx
-	}
-
 	switch actionName {
-	case "send_email":
-		return m.SendGmail(ctx, accessToken, action)
+	case "send_channel_message":
+		return m.SendChannelMessage(ctx, action)
 	}
 
 	return nil
 }
 
-func createRawEmail(from string, to string, subject string, body string) (string, error) {
-	var email bytes.Buffer
-	email.WriteString(fmt.Sprintf("From: %s\r\n", from))
-	email.WriteString(fmt.Sprintf("To: %s\r\n", to))
-	email.WriteString(fmt.Sprintf("Subject: %s\r\n", subject))
-	email.WriteString("\r\n")
-	email.WriteString(body)
+func (m Model) SendChannelMessage(ctx context.Context, actionNode workspace.ActionNodeModel) error {
+	accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
 
-	// Use URL encoding to avoid manual replacements of + and /
-	rawMessage := base64.URLEncoding.EncodeToString(email.Bytes())
+	if !ok {
+		return errors.ErrAccessTokenCtx
+	}
 
-	return rawMessage, nil
-}
-
-func (m Model) SendGmail(ctx context.Context, accessToken string, actionNode workspace.ActionNodeModel) error {
-	session, _, err := session.GetSessionByAccessTokenRequest(accessToken)
+	user, err := twitch.GetUserByAccessTokenRequest(accessToken)
 
 	if err != nil {
 		return err
 	}
 
-	user, _, err := user.GetUserByIdRequest(accessToken, session.UserId.Hex())
-
-	if err != nil {
-		return err
+	sendChannelMessageBody := SendChannelMessageBody{
+		BroadcasterId: user.Data[0].ID,
+		SenderId:      user.Data[0].ID,
+		Message:       actionNode.Input["message"],
 	}
 
-	// TODO: Replace hardcoded values with: actionNode.Inputs["from"], actionNode.Inputs["to"], ...
-	rawEmail, err := createRawEmail(user.Email,
-		actionNode.Input["to"], actionNode.Input["subject"], actionNode.Input["body"])
-
-	if err != nil {
-		return errors.ErrCreatingEmail
-	}
-
-	requestBody := map[string]string{
-		"raw": rawEmail,
-	}
-
-	body, err := json.Marshal(requestBody)
+	body, err := json.Marshal(sendChannelMessageBody)
 
 	if err != nil {
 		return err
 	}
 
 	res, err := fetch.Fetch(
-		&http.Client{},
+		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodPost,
-			"https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
+			"https://api.twitch.tv/helix/chat/messages",
 			bytes.NewReader(body),
 			map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", accessToken),
+				"Client-Id":     os.Getenv("TWITCH_CLIENT_ID"),
 				"Content-Type":  "application/json",
 			},
 		),
 	)
+
 	if err != nil {
 		return err
 	}
+
 	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		bodyBytes, err := io.ReadAll(res.Body)
-		if err != nil {
-			return err
-		}
-		log.Printf("Send gmail body: %s", bodyBytes)
-		return errors.ErrFailedToSendEmail
+	if res.StatusCode >= 400 {
+		return errors.ErrTwitchSendMessage
+	}
+
+	messageSent, err := decode.Json[MessageData](res.Body)
+
+	if err != nil {
+		return err
+	}
+
+	if len(messageSent.Data) == 0 || !messageSent.Data[0].IsSent {
+		return errors.ErrTwitchSendMessage
 	}
 
 	return nil
+
 }

@@ -1,23 +1,15 @@
 package reaction
 
 import (
-	"context"
 	"net/http"
 
 	"trigger.com/trigger/internal/action/workspace"
 	customerror "trigger.com/trigger/pkg/custom-error"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/errors"
-	"trigger.com/trigger/pkg/jwt"
 )
 
-func (h *Handler) SendEmail(w http.ResponseWriter, r *http.Request) {
-	token, err := jwt.FromRequest(r.Header.Get("Authorization"))
-	if err != nil {
-		customerror.Send(w, errors.ErrAuthorizationHeaderNotFound, errors.ErrCodes)
-		return
-	}
-
+func (h *Handler) SendChannelMessage(w http.ResponseWriter, r *http.Request) {
 	actionNode, err := decode.Json[workspace.ActionNodeModel](r.Body)
 
 	if err != nil {
@@ -25,8 +17,7 @@ func (h *Handler) SendEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.Service.MutlipleReactions("send_email",
-		context.WithValue(context.TODO(), AccessTokenCtxKey, token), actionNode)
+	err = h.Service.MutlipleReactions("send_channel_message", r.Context(), actionNode)
 
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
