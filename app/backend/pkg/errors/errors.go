@@ -67,6 +67,9 @@ var (
 	// Spotify Errors
 	ErrSpotifyBadStatus error = errors.New("invalid response status from spotify")
 
+	// Webhook
+	ErrBadWebhookData error = errors.New("could not parse the webhook data")
+
 	ErrCodes map[error]customerror.CustomError = map[error]customerror.CustomError{
 		ErrWorkspaceNotFound: {
 			Message: ErrWorkspaceNotFound.Error(),
@@ -219,6 +222,10 @@ var (
 		ErrSpotifyBadStatus: {
 			Message: ErrSpotifyBadStatus.Error(),
 			Code: http.StatusBadRequest,
-		}
+		},
+		ErrBadWebhookData: {
+			Message: ErrBadWebhookData.Error(),
+			Code: http.StatusUnprocessableEntity,
+		},
 	}
 )

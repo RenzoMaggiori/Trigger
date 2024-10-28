@@ -7,6 +7,7 @@ require (
 	github.com/gorilla/sessions v1.1.1
 	github.com/joho/godotenv v1.5.1
 	github.com/markbates/goth v1.80.0
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/robfig/cron v1.2.0
 	go.mongodb.org/mongo-driver v1.17.0
 	golang.org/x/crypto v0.27.0

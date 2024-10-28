@@ -18,7 +18,7 @@ func Router(ctx context.Context) (*router.Router, error) {
 		Service: Model{},
 	}
 
-	server.Handle("POST /send_email", middlewares(http.HandlerFunc(handler.SendEmail)))
+	server.Handle("POST /play_music", middlewares(http.HandlerFunc(handler.PlayMusic)))
 
 	return router.NewRouter("/gmail/reaction", server), nil
 }

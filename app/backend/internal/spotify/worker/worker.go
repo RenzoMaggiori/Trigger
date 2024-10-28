@@ -55,7 +55,15 @@ func changeInFollowers(ctx context.Context) error {
 		return errCollectionNotFound
 	}
 
-	workspaces, err := getSpotifyWorkspaces()
+	spotifyAction, err := getSpotifyAction()
+	if err != nil {
+		return err
+	}
+
+	workspaces, _, err := workspace.GetByActionIdRequest(
+		os.Getenv("ADMIN_TOKEN"),
+		spotifyAction.Id.String(),
+	)
 	if err != nil {
 		return err
 	}
@@ -63,19 +71,20 @@ func changeInFollowers(ctx context.Context) error {
 	var wg sync.WaitGroup
 	for _, w := range workspaces {
 		wg.Add(1)
-		go func(userId string) {
+		go func(w workspace.WorkspaceModel, a action.ActionModel) {
 			defer wg.Done()
-			err := userChangeInFollowers(ctx, collection, userId)
+			err := userChangeInFollowers(ctx, collection, w, a)
 			if err != nil {
-				log.Printf("Error processing user %s: %v", userId, err)
+				log.Printf("Error processing user %s: %v", w.UserId.String(), err)
 			}
-		}(w.UserId.String())
+		}(w, *spotifyAction)
 	}
 	wg.Wait()
 	return nil
 }
 
-func userChangeInFollowers(ctx context.Context, collection *mongo.Collection, userId string) error {
+func userChangeInFollowers(ctx context.Context, collection *mongo.Collection, workspace workspace.WorkspaceModel, action action.ActionModel) error {
+	userId := workspace.UserId.String()
 	accessToken, err := getUserAccessToken(userId)
 	if err != nil {
 		return err
@@ -105,9 +114,12 @@ func userChangeInFollowers(ctx context.Context, collection *mongo.Collection, us
 	}
 
 	if spotifyUser.Followers.Total != userHistory.Total {
-		err := fetchSpotifyWebhook(trigger.FollowerChange{
-			Followers: spotifyUser.Followers.Total,
-			Increased: spotifyUser.Followers.Total > userHistory.Total,
+		err := fetchSpotifyWebhook(accessToken, trigger.ActionBody{
+			Type: action.Action,
+			Data: trigger.FollowerChange{
+				Followers: spotifyUser.Followers.Total,
+				Increased: spotifyUser.Followers.Total > userHistory.Total,
+			},
 		})
 		if err != nil {
 			return err
@@ -125,7 +137,7 @@ func userChangeInFollowers(ctx context.Context, collection *mongo.Collection, us
 	return nil
 }
 
-func getSpotifyWorkspaces() ([]workspace.WorkspaceModel, error) {
+func getSpotifyAction() (*action.ActionModel, error) {
 	actions, _, err := action.GetByProviderRequest(
 		os.Getenv("ADMIN_TOKEN"),
 		"spotify",
@@ -134,7 +146,6 @@ func getSpotifyWorkspaces() ([]workspace.WorkspaceModel, error) {
 		return nil, err
 	}
 
-	var spotifyFollowerAction string = ""
 	for _, a := range actions {
 		if a.Type != "trigger" {
 			continue
@@ -142,17 +153,9 @@ func getSpotifyWorkspaces() ([]workspace.WorkspaceModel, error) {
 		if a.Action != "watch_followers" {
 			continue
 		}
-		spotifyFollowerAction = a.Id.String()
+		return &a, nil
 	}
-	if spotifyFollowerAction == "" {
-		return nil, errSpotifyAction
-	}
-
-	workspaces, _, err := workspace.GetByActionIdRequest(
-		os.Getenv("ADMIN_TOKEN"),
-		spotifyFollowerAction,
-	)
-	return workspaces, err
+	return nil, errSpotifyAction
 }
 
 func getUserAccessToken(userId string) (string, error) {
@@ -202,8 +205,8 @@ func getSpotifyUser(accessToken string) (*SpotifyUser, error) {
 	return &spotifyUser, nil
 }
 
-func fetchSpotifyWebhook(followerChange trigger.FollowerChange) error {
-	body, err := json.Marshal(followerChange)
+func fetchSpotifyWebhook(accessToken string, data trigger.ActionBody) error {
+	body, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}
@@ -214,7 +217,9 @@ func fetchSpotifyWebhook(followerChange trigger.FollowerChange) error {
 			http.MethodPost,
 			fmt.Sprintf("%s/api/spotify/trigger/webhook", os.Getenv("SPOTIFY_SERVICE_BASE_URL")),
 			bytes.NewReader(body),
-			nil,
+			map[string]string{
+				"Authroization": fmt.Sprintf("Bearer %s", accessToken),
+			},
 		),
 	)
 	if err != nil {

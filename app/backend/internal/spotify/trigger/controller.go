@@ -29,7 +29,7 @@ func (h *Handler) WebhookSpotify(w http.ResponseWriter, r *http.Request) {
 		customerror.Send(w, err, errors.ErrCodes)
 	}
 
-	err = h.Service.Webhook(context.WithValue(context.TODO(), SpotifyEventCtxKey, event))
+	err = h.Service.Webhook(context.WithValue(r.Context(), SpotifyEventCtxKey, event))
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
 		return
