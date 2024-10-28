@@ -134,3 +134,12 @@ func (m Model) Callback(gothUser goth.User, access_token string) error {
 
 	return nil
 }
+
+func (m Model) ByUserId(userId primitive.ObjectID, provider string) (SyncModel, error) {
+	var sync SyncModel
+	err := m.Collection.FindOne(context.TODO(), bson.M{"userId": userId, "providerName": provider}).Decode(&sync)
+	if err != nil {
+		return sync, fmt.Errorf("%s %v", "could not find sync", err)
+	}
+	return sync, nil
+}
