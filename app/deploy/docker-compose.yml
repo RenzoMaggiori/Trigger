@@ -183,6 +183,8 @@ services:
       GMAIL_SERVICE_BASE_URL: ${GMAIL_SERVICE_BASE_URL}
       SYNC_SERVICE_BASE_URL: ${SYNC_SERVICE_BASE_URL}
       SETTINGS_SERVICE_BASE_URL: ${SETTINGS_SERVICE_BASE_URL}
+      GITHUB_SERVICE_BASE_URL: ${GITHUB_SERVICE_BASE_URL}
+      SPOTIFY_SERVICE_BASE_URL: ${SPOTIFY_SERVICE_BASE_URL}
 
       ADMIN_TOKEN: ${ADMIN_TOKEN}
 
@@ -230,6 +232,24 @@ services:
       GITHUB_PORT: ${GITHUB_PORT}
     ports:
       - "${GITHUB_PORT}:${GITHUB_PORT}"
+  spotify:
+    container_name: trigger-spotify-instance
+    build:
+      context: ..
+      dockerfile: ./deploy/dockerfiles/backend/spotify.Dockerfile
+    networks:
+      - trigger
+    environment:
+      ACTION_SERVICE_BASE_URL: ${ACTION_SERVICE_BASE_URL}
+      SESSION_SERVICE_BASE_URL: ${SESSION_SERVICE_BASE_URL}
+      SYNC_SERVICE_BASE_URL: ${SYNC_SERVICE_BASE_URL}
+      USER_SERVICE_BASE_URL: ${USER_SERVICE_BASE_URL}
+      WORKSPACE_SERVICE_BASE_URL: ${WORKSPACE_SERVICE_BASE_URL}
+      ADMIN_TOKEN: ${ADMIN_TOKEN}
+
+      SPOTIFY_PORT: ${SPOTIFY_PORT}
+    ports:
+      - "${SPOTIFY_PORT}:${SPOTIFY_PORT}"
 
   mobile:
     container_name: trigger-mobile-instance
