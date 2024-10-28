@@ -10,6 +10,7 @@ import (
 
 	"trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/internal/session"
+	"trigger.com/trigger/internal/sync"
 	"trigger.com/trigger/internal/user"
 
 	"trigger.com/trigger/pkg/decode"
@@ -29,7 +30,7 @@ func (m Model) Reaction(ctx context.Context, actionNode workspace.ActionNodeMode
 	}
 
 	res, err := fetch.Fetch(
-		&http.Client{},
+		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodGet,
 			fmt.Sprintf("%s/api/session/access_token/%s", os.Getenv("SESSION_SERVICE_BASE_URL"), accessToken),
@@ -53,7 +54,7 @@ func (m Model) Reaction(ctx context.Context, actionNode workspace.ActionNodeMode
 	}
 
 	res, err = fetch.Fetch(
-		&http.Client{},
+		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodGet,
 			fmt.Sprintf("%s/api/user/%s", os.Getenv("USER_SERVICE_BASE_URL"), session.UserId),
@@ -75,7 +76,14 @@ func (m Model) Reaction(ctx context.Context, actionNode workspace.ActionNodeMode
 	if err != nil {
 		return err
 	}
-	// TODO: get correct access token from sync service
+
+	syncProvider, _, err := sync.GetSyncAccessTokenRequest(accessToken, user.Id.String(), "github")
+	if err != nil {
+		return err
+	}
+	if syncProvider == nil {
+		return errors.ErrSyncAccessTokenNotFound
+	}
 
 	if len(actionNode.Output) != 2 {
 		return errors.ErrInvalidReactionOutput
@@ -95,13 +103,13 @@ func (m Model) Reaction(ctx context.Context, actionNode workspace.ActionNodeMode
 	owner := actionNode.Input["owner"]
 	repo := actionNode.Input["repo"]
 	res, err = fetch.Fetch(
-		&http.Client{},
+		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodPost,
 			fmt.Sprintf("%s/repos/%s/%s/issues", githuBaseUrl, owner, repo),
 			bytes.NewReader(body),
 			map[string]string{
-				"Authorization":        fmt.Sprintf("Bearer %s", accessToken),
+				"Authorization":        fmt.Sprintf("Bearer %s", syncProvider.AccessToken),
 				"Accept":               "application/vnd.github+json",
 				"X-GitHub-Api-Version": "2022-11-28",
 			},

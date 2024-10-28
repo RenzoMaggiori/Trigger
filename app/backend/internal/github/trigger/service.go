@@ -10,6 +10,8 @@ import (
 
 	"trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/internal/github"
+	"trigger.com/trigger/internal/sync"
+	"trigger.com/trigger/internal/user"
 	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
 	"trigger.com/trigger/pkg/middleware"
@@ -43,17 +45,29 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 		return errors.ErrInvalidReactionInput
 	}
 
-	// TODO: get correct access token from sync service
+	user, _, err := user.GetUserByAccesstokenRequest(accessToken)
+	if err != nil {
+		return err
+	}
+
+	syncProvider, _, err := sync.GetSyncAccessTokenRequest(accessToken, user.Id.String(), "github")
+	if err != nil {
+		return err
+	}
+	if syncProvider == nil {
+		return errors.ErrSyncAccessTokenNotFound
+	}
+
 	owner := actionNode.Input["owner"]
 	repo := actionNode.Input["repo"]
 	res, err := fetch.Fetch(
-		&http.Client{},
+		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodPost,
 			fmt.Sprintf("%s/repos/%s/%s/hooks", githuBaseUrl, owner, repo),
 			bytes.NewReader(body),
 			map[string]string{
-				"Authorization":        fmt.Sprintf("Bearer %s", accessToken),
+				"Authorization":        fmt.Sprintf("Bearer %s", syncProvider.AccessToken),
 				"Accept":               "application/vnd.github+json",
 				"X-GitHub-Api-Version": "2022-11-28",
 			},
@@ -81,7 +95,7 @@ func (m Model) Stop(ctx context.Context) error {
 	}
 
 	res, err := fetch.Fetch(
-		&http.Client{},
+		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodDelete,
 			fmt.Sprintf("%s/repos/%s/%s/hooks/%s", githuBaseUrl, body.Owner, body.Repo, body.HookId),
