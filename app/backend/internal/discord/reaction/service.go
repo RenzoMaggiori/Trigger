@@ -9,27 +9,47 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
 	"trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/fetch"
 )
 
-func (m Model) Reaction(ctx context.Context, actionNode workspace.ActionNodeModel) error {
+func (m Model) MutlipleReactions(actionName string, ctx context.Context, action workspace.ActionNodeModel) error {
+	log.Println("actionName: ", actionName)
+	switch actionName {
+	case "send_message":
+		return m.sendMessage(ctx, action)
+	}
+
+	return nil
+}
+
+func (m Model) sendMessage(ctx context.Context, actionNode workspace.ActionNodeModel) error {
+	content := actionNode.Input["content"]
+	channel_id := actionNode.Input["channel_id"]
+	ttsStr := actionNode.Input["tts"]
+    tts, err := strconv.ParseBool(ttsStr)
+
+	if err != nil {
+		return err
+	}
+
 	payload := MessagegContent{
-		Content: newMsg.Content,
-		TTS:     newMsg.TTS,
-		StickerIDs: newMsg.StickerIDs,
+		Content: content,
+		TTS: tts,
 	}
     body, err := json.Marshal(payload)
     if err != nil {
         return err
     }
 
-	return sendMessage(newMsg.ChannelId, body)
+	return manageNewMessage(channel_id, body)
 }
 
-func sendMessage(channelID string, body []byte) error {
+func manageNewMessage(channelID string, body []byte) error {
+	log.Println("channelID: ", channelID)
 
 	res, err := fetch.Fetch(
 		http.DefaultClient,

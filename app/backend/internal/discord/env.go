@@ -13,10 +13,11 @@ import (
 
 var (
 	errEnvNotFound      string    = "Enviroment argument %s not found"
-	enviromentArguments [3]string = [...]string{
+	enviromentArguments [4]string = [...]string{
 		"DISCORD_KEY",
 		"DISCORD_SECRET",
 		"BOT_TOKEN",
+		"AUTH_SERVICE_BASE_URL",
 	}
 )
 

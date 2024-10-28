@@ -17,7 +17,7 @@ const AccessTokenCtxKey DiscordReactionCtx = DiscordReactionCtx("AuthorizationCt
 const ChannelIdCtxKey DiscordReactionCtx = DiscordReactionCtx("ChannelIdCtxKey")
 
 type Service interface {
-	action.Reaction
+	action.MultipleReactions
 }
 
 type Handler struct {
@@ -111,6 +111,6 @@ type MessagegContent struct {
 	// Files           []*File                 `json:"-"`
 	// AllowedMentions *MessageAllowedMentions `json:"allowed_mentions,omitempty"`
 	// Reference       *MessageReference       `json:"message_reference,omitempty"`
-	StickerIDs []string `json:"sticker_ids"`
+	// StickerIDs []string `json:"sticker_ids"`
 	// Flags           MessageFlags            `json:"flags,omitempty"`
 }

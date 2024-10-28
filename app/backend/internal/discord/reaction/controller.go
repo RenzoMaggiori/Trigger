@@ -2,32 +2,33 @@ package reaction
 
 import (
 	// "context"
-	"log"
+	"context"
 	"net/http"
 
-	// "trigger.com/trigger/internal/action/workspace"
+	"trigger.com/trigger/internal/action/workspace"
 	customerror "trigger.com/trigger/pkg/custom-error"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/errors"
+	"trigger.com/trigger/pkg/jwt"
 )
 
 func (h *Handler) SendMessage(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Sending message")
+	token, err := jwt.FromRequest(r.Header.Get("Authorization"))
+	if err != nil {
+		customerror.Send(w, errors.ErrAuthorizationHeaderNotFound, errors.ErrCodes)
+		return
+	}
 
-	// accessToken := r.Header.Get("Authorization")
-	// actionNode, err := decode.Json[workspace.ActionNodeModel](r.Body)
-	// if err != nil {
-	// 	customerror.Send(w, err, errors.ErrCodes)
-	// 	return
-	// }
+	actionNode, err := decode.Json[workspace.ActionNodeModel](r.Body)
 
-	newMsg, err := decode.Json[NewMessage](r.Body)
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
 		return
 	}
 
-	err = h.Service.SendMessage(newMsg)
+	err = h.Service.MutlipleReactions("send_message",
+		context.WithValue(context.TODO(), AccessTokenCtxKey, token), actionNode)
+
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
 		return
