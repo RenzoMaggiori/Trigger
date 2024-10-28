@@ -11,7 +11,7 @@ import (
 )
 
 func (m Model) Get() ([]UserModel, error) {
-	var users []UserModel
+	users := make([]UserModel, 0)
 	ctx := context.TODO()
 	filter := bson.M{}
 	cursor, err := m.Collection.Find(ctx, filter)
