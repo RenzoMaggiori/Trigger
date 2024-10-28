@@ -39,14 +39,14 @@ func (h *Handler) WebhookDiscord(w http.ResponseWriter, r *http.Request) {
 	// 	customerror.Send(w, err, errors.ErrCodes)
 	// }
 
-	// // log.Printf("Webhook triggered, received body=%+v\n", event)
+	// log.Printf("Webhook triggered, received body=%+v\n", event)
 
-	// err = h.Service.Webhook(context.WithValue(context.TODO(), discord.DiscordEventCtxKey, event))
+	err := h.Service.Webhook(context.TODO())
 
-	// if err != nil {
-	// 	customerror.Send(w, err, errors.ErrCodes)
-	// 	return
-	// }
+	if err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
 }
 
 func (h *Handler) StopDiscord(w http.ResponseWriter, r *http.Request) {

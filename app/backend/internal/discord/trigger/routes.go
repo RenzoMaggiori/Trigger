@@ -15,7 +15,7 @@ func Router(ctx context.Context) (*router.Router, error) {
 		middleware.Auth,
 	)
 	handler := Handler{
-		Service: Model{},
+		Service: &Model{},
 	}
 
 	server.Handle("POST /watch", (http.HandlerFunc(handler.WatchDiscord)))
