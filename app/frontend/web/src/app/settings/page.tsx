@@ -24,67 +24,46 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { getConnections } from "@/app/settings/lib/get-conections";
+import { SettingsType } from "@/app/settings/lib/types";
 // import { sync } from "./lib/sync";
 
 // import { useMutation } from "@tanstack/react-query";
 // import { getConnections } from "./lib/get-conections";
 
-type SettingsProps = {
-  name: string;
-  fields: Record<string, boolean>;
-  icon?: React.JSX.Element;
-};
-
-const services: SettingsProps[] = [
-  {
-    name: "Google",
-    icon: <FcGoogle className="w-5 h-5" />,
-    fields: {
-      "Show on Profile": true,
-      Connected: false,
-    },
-  },
-  {
-    name: "Discord",
-    icon: <FaDiscord className="w-5 h-5 text-blue-500" />,
-    fields: {
-      "Show on Profile": true,
-      Connected: false,
-    },
-  },
-  {
-    name: "Slack",
-    icon: <FaSlack className="w-5 h-5" />,
-    fields: {
-      "Show on Profile": true,
-      Connected: true,
-    },
-  },
-  {
-    name: "Outlook",
-    icon: <PiMicrosoftOutlookLogo className="w-5 h-5 text-black" />,
-    fields: {
-      "Show on Profile": true,
-      Connected: false,
-    },
-  },
-  {
-    name: "Github",
-    icon: <IoLogoGithub className="w-5 h-5" />,
-    fields: {
-      "Show on Profile": true,
-      Connected: true,
-    },
-  },
-];
+const services = {
+  "Google": <FcGoogle className="w-5 h-5" />,
+  "Discord": <FaDiscord className="w-5 h-5 text-blue-500" />,
+  "Slack": <FaSlack className="w-5 h-5" />,
+  "Outlook": <PiMicrosoftOutlookLogo className="w-5 h-5 text-black" />,
+  "Github": <IoLogoGithub className="w-5 h-5" />,
+} as const ;
 
 export default function Page() {
   const [serviceList, setServiceList] =
-    React.useState<SettingsProps[]>(services);
-
+    React.useState<Record<string, React.JSX.Element>>(services);
+  const [settings, setSettings] = React.useState<SettingsType[]>([]);
   /* const mutation = useMutation({
     mutationFn: sync,
   }); */
+
+  const { data, isPending, error } = useQuery({
+    queryKey: ["settings"],
+    queryFn: getConnections,
+  });
+
+  if (error) return <div>failed to get user settings.</div>
+  if (isPending) return <div>loading...</div>
+
+  setSettings(
+    data.map((s) => ({
+      id: s.id,
+      userId: s.userId,
+      providerName: s.providerName,
+      active: s.active,
+    }))
+  );
 
   const handleSwitchChange = (
     serviceIndex: number,
