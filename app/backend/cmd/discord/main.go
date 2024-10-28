@@ -3,12 +3,14 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"trigger.com/trigger/internal/discord"
 	"trigger.com/trigger/internal/discord/reaction"
 	"trigger.com/trigger/internal/discord/trigger"
 	"trigger.com/trigger/pkg/arguments"
 	"trigger.com/trigger/pkg/middleware"
+	"trigger.com/trigger/pkg/mongodb"
 	"trigger.com/trigger/pkg/router"
 	"trigger.com/trigger/pkg/server"
 )
@@ -24,8 +26,22 @@ func main() {
 		log.Fatal(err)
 	}
 
-	router, err := router.Create(
+	mongoClient, _, err := mongodb.Open(mongodb.ConnectionString())
+	if err != nil {
+		log.Fatal(err)
+	}
+	discordCollection := mongoClient.Database(
+		os.Getenv("MONGO_DB"),
+	).Collection("discord")
+
+	ctx := context.WithValue(
 		context.TODO(),
+		mongodb.CtxKey,
+		discordCollection,
+	)
+
+	router, err := router.Create(
+		ctx,
 		trigger.Router,
 		reaction.Router,
 	)
