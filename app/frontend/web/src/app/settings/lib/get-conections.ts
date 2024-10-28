@@ -10,7 +10,7 @@ export async function getConnections() {
   }
 
   const res = await fetch(
-    `${env.NEXT_PUBLIC_ACTION_SERVICE_URL}/api/`,
+    `${env.NEXT_PUBLIC_SETTINGS_SERVICE_URL}/api/settings`,
     {
       method: "GET",
       headers: {
