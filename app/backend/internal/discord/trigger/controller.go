@@ -58,3 +58,26 @@ func (h *Handler) StopDiscord(w http.ResponseWriter, r *http.Request) {
 		customerror.Send(w, err, errors.ErrCodes)
 	}
 }
+
+func (h *Handler) GetGuilds(w http.ResponseWriter, r *http.Request) {
+	err := h.Service.Guilds()
+
+	if err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+	}
+}
+
+func (h *Handler) GetGuildChannels(w http.ResponseWriter, r *http.Request) {
+	guildID := r.PathValue("guild_id")
+
+	if guildID == "" {
+		customerror.Send(w, errors.ErrUserTypeNone, errors.ErrCodes)
+		return
+	}
+
+	err := h.Service.GuildChannels(guildID)
+
+	if err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+	}
+}

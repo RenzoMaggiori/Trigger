@@ -49,8 +49,6 @@ func (m Model) sendMessage(ctx context.Context, actionNode workspace.ActionNodeM
 }
 
 func manageNewMessage(channelID string, body []byte) error {
-	log.Println("channelID: ", channelID)
-
 	res, err := fetch.Fetch(
 		http.DefaultClient,
 		fetch.NewFetchRequest(

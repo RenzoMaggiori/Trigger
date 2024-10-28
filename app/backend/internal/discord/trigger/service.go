@@ -3,6 +3,7 @@ package trigger
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 
@@ -59,4 +60,51 @@ func (m Model) Webhook(ctx context.Context) error {
 
 func (m Model) Stop(ctx context.Context) error {
 	return nil
+}
+
+
+func (m Model) Guilds() error {
+	discord, err := discordgo.New("Bot " + os.Getenv("BOT_TOKEN"))
+
+	if err != nil {
+		return errors.New("error creating Discord session")
+	}
+	defer discord.Close()
+
+
+	discord.AddHandler(func(s *discordgo.Session, event *discordgo.GuildCreate) {
+		fmt.Printf("Guild ID: %s, Name: %s\n", event.Guild.ID, event.Guild.Name)
+	})
+
+	if err := discord.Open(); err != nil {
+		return errors.New("error opening connection")
+	}
+
+	return nil
+}
+
+func (m Model) GuildChannels(guildID string) error {
+	discord, err := discordgo.New("Bot " + os.Getenv("BOT_TOKEN"))
+
+	if err != nil {
+		return errors.New("error creating Discord session")
+	}
+
+	defer discord.Close()
+
+	channels, err := discord.GuildChannels(guildID)
+
+	if err != nil {
+		return err
+	}
+
+	for _, channel := range channels {
+		if channel.Type != discordgo.ChannelTypeGuildText {
+			continue
+		}
+		fmt.Printf("Channel ID: %s, Name: %s\n", channel.ID, channel.Name)
+	}
+
+	return nil
+
 }

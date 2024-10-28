@@ -7,6 +7,8 @@ import (
 
 type Service interface {
 	action.Trigger
+	Guilds() error
+	GuildChannels(guildID string) error
 }
 
 type Handler struct {
