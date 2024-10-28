@@ -9,7 +9,7 @@ import (
 )
 
 func (m Model) Get() ([]ActionModel, error) {
-	var sessions []ActionModel
+	actions := make([]ActionModel, 0)
 	ctx := context.TODO()
 	filter := bson.M{}
 	cursor, err := m.Collection.Find(ctx, filter)
@@ -19,26 +19,26 @@ func (m Model) Get() ([]ActionModel, error) {
 	}
 	defer cursor.Close(ctx)
 
-	if err = cursor.All(ctx, &sessions); err != nil {
+	if err = cursor.All(ctx, &actions); err != nil {
 		return nil, err
 	}
-	return sessions, nil
+	return actions, nil
 }
 
 func (m Model) GetById(id primitive.ObjectID) (*ActionModel, error) {
-	var session ActionModel
+	var action ActionModel
 	ctx := context.TODO()
 	filter := bson.M{"_id": id}
-	err := m.Collection.FindOne(ctx, filter).Decode(&session)
+	err := m.Collection.FindOne(ctx, filter).Decode(&action)
 
 	if err != nil {
 		return nil, errors.ErrActionNotFound
 	}
-	return &session, nil
+	return &action, nil
 }
 
 func (m Model) GetByProvider(provider string) ([]ActionModel, error) {
-	var sessions []ActionModel
+	actions := make([]ActionModel, 0)
 	ctx := context.TODO()
 	filter := bson.M{"provider": provider}
 	cursor, err := m.Collection.Find(ctx, filter)
@@ -48,22 +48,22 @@ func (m Model) GetByProvider(provider string) ([]ActionModel, error) {
 	}
 	defer cursor.Close(ctx)
 
-	if err = cursor.All(ctx, &sessions); err != nil {
+	if err = cursor.All(ctx, &actions); err != nil {
 		return nil, err
 	}
-	return sessions, nil
+	return actions, nil
 }
 
 func (m Model) GetByActionName(action string) (*ActionModel, error) {
-	var session ActionModel
+	var actions ActionModel
 	ctx := context.TODO()
 	filter := bson.M{"action": action}
-	err := m.Collection.FindOne(ctx, filter).Decode(&session)
+	err := m.Collection.FindOne(ctx, filter).Decode(&actions)
 
 	if err != nil {
 		return nil, errors.ErrActionNotFound
 	}
-	return &session, nil
+	return &actions, nil
 }
 
 func (m Model) Add(add *AddActionModel) (*ActionModel, error) {

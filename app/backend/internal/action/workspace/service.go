@@ -1,4 +1,3 @@
-
 package workspace
 
 import (
@@ -17,7 +16,7 @@ import (
 type fnIsNodeReady func(ActionNodeModel) bool
 
 func (m Model) Get(ctx context.Context) ([]WorkspaceModel, error) {
-	var workspaces []WorkspaceModel
+	workspaces := make([]WorkspaceModel, 0)
 	filter := bson.M{}
 	cursor, err := m.Collection.Find(ctx, filter)
 
@@ -44,7 +43,7 @@ func (m Model) GetById(ctx context.Context, id primitive.ObjectID) (*WorkspaceMo
 }
 
 func (m Model) GetByUserId(ctx context.Context, userId primitive.ObjectID) ([]WorkspaceModel, error) {
-	var workspaces []WorkspaceModel
+	workspaces := make([]WorkspaceModel, 0)
 
 	filter := bson.M{"user_id": userId}
 	cursor, err := m.Collection.Find(ctx, filter)
@@ -177,7 +176,7 @@ func (m Model) processUserWorkspaces(workspaces []WorkspaceModel, actionComplete
 	var (
 		wg                sync.WaitGroup
 		mu                sync.Mutex
-		updatedWorkspaces []WorkspaceModel
+		updatedWorkspaces = make([]WorkspaceModel, 0)
 		errChan           = make(chan error, len(workspaces))
 	)
 
@@ -338,7 +337,7 @@ func (m Model) WatchCompleted(ctx context.Context, watchCompleted WatchCompleted
 	}
 	defer cursor.Close(ctx)
 
-	var workspaces []WorkspaceModel
+	workspaces := make([]WorkspaceModel, 0)
 	if err = cursor.All(ctx, &workspaces); err != nil {
 		return nil, err
 	}
