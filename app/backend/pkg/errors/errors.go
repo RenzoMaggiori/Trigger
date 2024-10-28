@@ -60,6 +60,10 @@ var (
 	ErrGmailHistory       error = errors.New("error while fetching gmail history")
 	ErrInvalidGoogleToken error = errors.New("token provided is not valid")
 
+	// Sync Errors
+	ErrSyncAccessTokenNotFound error = errors.New("error could not find sync access token")
+	ErrSyncModelTypeNone       error = errors.New("error could not decode sync model")
+
 	ErrCodes map[error]customerror.CustomError = map[error]customerror.CustomError{
 		ErrWorkspaceNotFound: {
 			Message: ErrWorkspaceNotFound.Error(),
@@ -200,6 +204,14 @@ var (
 		ErrUpdatingWorkspace: {
 			Message: ErrUpdatingWorkspace.Error(),
 			Code:    http.StatusNotFound,
+		},
+		ErrSyncAccessTokenNotFound: {
+			Message: ErrUpdatingWorkspace.Error(),
+			Code:    http.StatusNotFound,
+		},
+		ErrSyncModelTypeNone: {
+			Message: ErrSyncModelTypeNone.Error(),
+			Code:    http.StatusInternalServerError,
 		},
 	}
 )
