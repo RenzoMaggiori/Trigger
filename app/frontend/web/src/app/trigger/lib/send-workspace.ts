@@ -18,7 +18,7 @@ export async function send_workspace(triggerWorkspace: TriggerWorkspace) {
       body: JSON.stringify({
         nodes: Object.keys(triggerWorkspace.nodes).map((k) => ({
           node_id: k,
-          fields: [],
+          fields: triggerWorkspace.nodes[k].fields,
           parents: triggerWorkspace.nodes[k].parent_ids,
           children: triggerWorkspace.nodes[k].child_ids,
           x_pos: triggerWorkspace.nodes[k].x_pos,
