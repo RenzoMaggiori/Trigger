@@ -13,8 +13,8 @@ import { useMenu } from "@/app/trigger/components/MenuProvider";
 import { transformCustomNodes } from "@/app/trigger/lib/transform-custom-nodes";
 import { useMutation } from "@tanstack/react-query";
 import { send_workspace } from "@/app/trigger/lib/send-workspace";
-import { ServicesComponent } from "../components/service-page";
-import { ReactFlowComponent } from "../components/react-flow";
+import { ServicesComponent } from "@/app/trigger/components/service-page";
+import { ReactFlowComponent } from "@/app/trigger/components/react-flow";
 
 const services: Service[] = [
   {

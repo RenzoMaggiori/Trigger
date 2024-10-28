@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card'
 import React from 'react'
-import { Service } from '../lib/types';
+import { Service } from '@/app/trigger/lib/types';
 
 interface TriggerDraggableProps extends React.HTMLAttributes<HTMLDivElement> {
     service: Service;
