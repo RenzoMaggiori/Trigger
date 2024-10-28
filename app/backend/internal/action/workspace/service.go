@@ -1,9 +1,9 @@
-
 package workspace
 
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strings"
 	"sync"
 
@@ -61,6 +61,35 @@ func (m Model) GetByUserId(ctx context.Context, userId primitive.ObjectID) ([]Wo
 	return workspaces, nil
 }
 
+func (m Model) updateNodesStatus(actionId string, userId string, status string) error {
+	filter := bson.M{
+		"user_id": userId,
+		"nodes": bson.M{
+			"$elemMatch": bson.M{
+				"action_id": actionId,
+			},
+		},
+	}
+
+	// Define the update: set the output field for the matching nodes
+	update := bson.M{
+		"$set": bson.M{
+			"nodes.$.status": status,
+		},
+	}
+
+	res, err := m.Collection.UpdateMany(context.TODO(), filter, update)
+	if err != nil {
+		return err
+	}
+
+	if res.MatchedCount == 0 {
+		return errors.ErrWorkspaceNotFound
+	}
+
+	return nil
+}
+
 func initAction(actionNode ActionNodeModel, accessToken string) error {
 
 	action, _, err := action.GetByIdRequest(accessToken, actionNode.ActionId.Hex())
@@ -69,14 +98,19 @@ func initAction(actionNode ActionNodeModel, accessToken string) error {
 		return err
 	}
 
-	_, err = StartActionRequest(accessToken, actionNode, *action)
+	status, err := StartActionRequest(accessToken, actionNode, *action)
 	if err != nil {
 		return err
 	}
+
+	if status != http.StatusOK {
+		return errors.ErrSettingAction
+	}
+
 	return nil
 }
 
-func initWorkspace(workspace *WorkspaceModel, accessToken string, isNodeReady fnIsNodeReady) error {
+func (m Model) initWorkspace(workspace *WorkspaceModel, accessToken string, isNodeReady fnIsNodeReady) error {
 	for _, node := range workspace.Nodes {
 		if isNodeReady(node) {
 			assignInputToAction(&node, workspace.Nodes)
@@ -84,6 +118,7 @@ func initWorkspace(workspace *WorkspaceModel, accessToken string, isNodeReady fn
 			if err != nil {
 				return err
 			}
+			m.updateNodesStatus(node.ActionId.Hex(), workspace.UserId.Hex(), "active")
 		}
 	}
 	return nil
@@ -139,7 +174,7 @@ func (m Model) Add(ctx context.Context, add *AddWorkspaceModel) (*WorkspaceModel
 	}
 
 	// Initialize the workspace
-	err = initWorkspace(&newWorkspace, accessToken, func(node ActionNodeModel) bool { return len(node.Parents) == 0 })
+	err = m.initWorkspace(&newWorkspace, accessToken, func(node ActionNodeModel) bool { return len(node.Parents) == 0 })
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +284,7 @@ func (m Model) processWorkspace(
 		return err
 	}
 
-	initWorkspace(
+	m.initWorkspace(
 		updatedResult,
 		accessToken,
 		func(node ActionNodeModel) bool {
@@ -320,7 +355,6 @@ func (m Model) WatchCompleted(ctx context.Context, watchCompleted WatchCompleted
 	// Define the update: set the output field for the matching nodes
 	update := bson.M{
 		"$set": bson.M{
-			"nodes.$.status": watchCompleted.Status,
 			"nodes.$.output": watchCompleted.Output,
 		},
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/markbates/goth/providers/discord"
 	"github.com/markbates/goth/providers/github"
 	"github.com/markbates/goth/providers/google"
+	"github.com/markbates/goth/providers/twitch"
 	"trigger.com/trigger/pkg/router"
 )
 
@@ -40,6 +41,13 @@ func Router(ctx context.Context) (*router.Router, error) {
 			callback,
 			discord.ScopeIdentify,
 			discord.ScopeEmail,
+		),
+		twitch.New(
+			os.Getenv("TWITCH_CLIENT_ID"),
+			os.Getenv("TWITCH_CLIENT_SECRET"),
+			callback,
+			twitch.ScopeUserReadEmail,
+			twitch.ScopeModeratorReadFollowers,
 		),
 	)
 

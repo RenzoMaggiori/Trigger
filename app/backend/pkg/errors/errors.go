@@ -16,6 +16,7 @@ var (
 	ErrGithubStopModelNotFound     error = errors.New("github stop model not found")
 	ErrNodeNotFound                error = errors.New("action node not found")
 	ErrAuthorizationHeaderNotFound error = errors.New("authorization header not found")
+
 	// Bad Request Errors
 	ErrBadWorkspaceId        error = errors.New("bad workspace id")
 	ErrBadUserId             error = errors.New("bad user id")
@@ -59,6 +60,11 @@ var (
 	ErrGmailStop          error = errors.New("error while stopping gmail")
 	ErrGmailHistory       error = errors.New("error while fetching gmail history")
 	ErrInvalidGoogleToken error = errors.New("token provided is not valid")
+
+	// Twitch Errors
+	ErrTwitchUser           error = errors.New("error while fetching twitch user")
+	ErrTwitchUserFound      error = errors.New("twitch user found")
+	ErrTwitchAppAccessToken error = errors.New("error while fetching twitch app access token")
 
 	ErrCodes map[error]customerror.CustomError = map[error]customerror.CustomError{
 		ErrWorkspaceNotFound: {
@@ -200,6 +206,18 @@ var (
 		ErrUpdatingWorkspace: {
 			Message: ErrUpdatingWorkspace.Error(),
 			Code:    http.StatusNotFound,
+		},
+		ErrTwitchUser: {
+			Message: ErrTwitchUser.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrTwitchUserFound: {
+			Message: ErrTwitchUserFound.Error(),
+			Code:    http.StatusOK,
+		},
+		ErrTwitchAppAccessToken: {
+			Message: ErrTwitchAppAccessToken.Error(),
+			Code:    http.StatusInternalServerError,
 		},
 	}
 )
