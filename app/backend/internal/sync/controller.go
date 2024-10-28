@@ -21,7 +21,7 @@ func (h *Handler) SyncWith(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	access_token := r.Header.Get("Authorization")
+	access_token := r.URL.Query().Get("token")
 	err = h.Service.SyncWith(gothUser, access_token)
 	if err != nil {
 		log.Println(err)
@@ -77,7 +77,6 @@ func (h *Handler) GetByUserId(w http.ResponseWriter, r *http.Request) {
 		customerror.Send(w, error, errors.ErrCodes)
 		return
 	}
-
 
 	sync, err := h.Service.ByUserId(userId, provider)
 	if err != nil {

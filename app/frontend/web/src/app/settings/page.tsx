@@ -36,7 +36,7 @@ const services = {
 } as const;
 
 export default function Page() {
-  const [settings, setSettings] = React.useState<SettingsType[]>([]);
+  const [settings, setSettings] = React.useState<SettingsType>([]);
 
   const { data, isPending, error } = useQuery({
     queryKey: ["settings"],

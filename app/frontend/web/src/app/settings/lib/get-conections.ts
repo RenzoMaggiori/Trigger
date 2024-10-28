@@ -24,7 +24,9 @@ export async function getConnections() {
     throw new Error(`invalid status code: ${res.status}`);
   }
 
-  const { data, error } = settingsSchema.safeParse(await res.json());
+  const body = await res.json();
+  console.log(body)
+  const { data, error } = settingsSchema.safeParse(body);
   if (error) {
     console.error(error);
     throw new Error("could not parse api response");

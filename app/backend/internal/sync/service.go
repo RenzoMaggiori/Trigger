@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -17,13 +16,15 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"trigger.com/trigger/internal/settings"
 	"trigger.com/trigger/internal/user"
+	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
 )
 
 func (m Model) GrantAccess(w http.ResponseWriter, r *http.Request) error {
 	redirectUrl := r.URL.Query().Get("redirect")
-	access_token := r.Header.Get("Authorization")
+	access_token := r.URL.Query().Get("token")
 
+	fmt.Println("access: ", access_token)
 	url := base64.URLEncoding.EncodeToString([]byte(redirectUrl))
 	token := base64.URLEncoding.EncodeToString([]byte(access_token))
 	state := fmt.Sprintf("%s:%s", url, token)
@@ -53,14 +54,14 @@ func (m Model) SyncWith(gothUser goth.User, access_token string) error {
 	updateData := bson.M{"$set": update}
 	_, err = m.Collection.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		return errors.New("failed to find sync")
+		return errors.ErrSessionNotFound
 	}
 
 	var updatedSync SyncModel
 	err = m.Collection.FindOne(ctx, filter).Decode(&updatedSync)
 
 	if err != nil {
-		return errors.New("sync not found")
+		return errors.ErrSessionNotFound
 	}
 
 	return nil
@@ -93,7 +94,7 @@ func (m Model) Callback(gothUser goth.User, access_token string) error {
 	ctx := context.TODO()
 	_, err = m.Collection.InsertOne(ctx, newSync)
 	if err != nil {
-		return errors.New("failed to insert sync")
+		return errors.ErrSessionNotFound
 	}
 
 	log.Println("SYNC ADDED SUCCESSFULLY")
@@ -106,7 +107,7 @@ func (m Model) Callback(gothUser goth.User, access_token string) error {
 
 	body, err := json.Marshal(addSettings)
 	if err != nil {
-		return errors.New("failed to marshal settings")
+		return errors.ErrSessionNotFound
 	}
 
 	res, err := fetch.Fetch(
@@ -122,12 +123,12 @@ func (m Model) Callback(gothUser goth.User, access_token string) error {
 	)
 
 	if err != nil {
-		return errors.New("failed to add new settings")
+		return errors.ErrSessionNotFound
 	}
 
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusCreated {
-		return errors.New("status code not OK, couldn't add new setting")
+		return errors.ErrSessionNotFound
 	}
 
 	log.Println("SETTINGS ADDED SUCCESSFULLY")

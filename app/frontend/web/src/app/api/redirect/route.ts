@@ -13,11 +13,6 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.redirect(
-    `${env.NEXT_PUBLIC_SYNC_SERVICE_URL}/api/sync/sync-with?provider=${provider}&redirect=${redirect}`,
-    {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    },
+    `${env.NEXT_PUBLIC_SYNC_SERVICE_URL}/api/sync/sync-with?provider=${provider}&redirect=${redirect}&token=${accessToken}`,
   );
 }
