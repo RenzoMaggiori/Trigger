@@ -6,7 +6,8 @@ export const triggerSchema = z.object({
     z.object({
       node_id: z.string(),
       action_id: z.string(),
-      fields: z.record(z.string(), z.unknown()),
+      input: z.record(z.string(), z.string()),
+      output: z.record(z.string(), z.string()),
       parents: z.array(z.string()),
       children: z.array(z.string()),
       status: z.string(),
@@ -15,3 +16,5 @@ export const triggerSchema = z.object({
     }),
   ),
 });
+
+export type TriggerSchemaType = z.infer<typeof triggerSchema>;

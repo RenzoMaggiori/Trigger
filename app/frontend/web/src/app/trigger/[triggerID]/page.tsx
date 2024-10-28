@@ -11,10 +11,11 @@ import { PiMicrosoftOutlookLogo } from "react-icons/pi";
 import { CustomNode, NodeItem, Service } from "@/app/trigger/lib/types";
 import { useMenu } from "@/app/trigger/components/MenuProvider";
 import { transformCustomNodes } from "@/app/trigger/lib/transform-custom-nodes";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { send_workspace } from "@/app/trigger/lib/send-workspace";
-import { ServicesComponent } from "../components/service-page";
-import { ReactFlowComponent } from "../components/react-flow";
+import { ServicesComponent } from "@/app/trigger/components/service-page";
+import { ReactFlowComponent } from "@/app/trigger/components/react-flow";
+import { getWorkspace } from "@/app/trigger/lib/get-workspace";
 
 const services: Service[] = [
   {
@@ -48,23 +49,69 @@ export default function Page({ params }: { params: { triggerID: string } }) {
 
   const { triggerWorkspace, setTriggerWorkspace, setNodes } = useMenu();
 
-  /* const mutation = useMutation({
-    mutationFn: getWorkspace,
-  }); */
-
-  React.useEffect(() => {
-    if (!triggerWorkspace || triggerWorkspace.id !== params.triggerID) {
-      setTriggerWorkspace((prev) => prev || { id: params.triggerID, nodes: {} });
-    }
-  }, [params.triggerID, triggerWorkspace, setTriggerWorkspace]);
-
-
   React.useEffect(() => {
     if (customNodes.length > 0 || edges.length > 0) {
       const transformedNodes = transformCustomNodes(customNodes, edges);
       setNodes(transformedNodes);
     }
   }, [customNodes, edges]);
+
+
+  const { data, isPending, error } = useQuery({
+    queryKey: ["workspace", params.triggerID],
+    queryFn: () => getWorkspace({ id: params.triggerID }),
+  });
+
+  const mutation = useMutation({
+    mutationFn: send_workspace,
+    onSuccess: (data) => {
+      const nodes: Record<string, NodeItem> = {};
+      for (const n of data.nodes) {
+        nodes[n.node_id] = {
+          id: n.node_id,
+          type: n.action_id,
+          fields: n.input,
+          parent_ids: n.parents,
+          child_ids: n.children,
+          x_pos: n.x_pos,
+          y_pos: n.y_pos,
+        };
+      }
+      setTriggerWorkspace({ id: data.id, nodes });
+    },
+  });
+
+  React.useEffect(() => {
+    if (!data) return;
+
+    setTriggerWorkspace({
+      id: data.id,
+      nodes: data.nodes.reduce((acc, n) => {
+        acc[n.node_id] = {
+          id: n.node_id,
+          type: n.action_id || "",
+          fields: n.input || {},
+          parent_ids: n.parents || [],
+          child_ids: n.children || [],
+          x_pos: n.x_pos || 0,
+          y_pos: n.y_pos || 0,
+        };
+        return acc;
+      }, {} as { [key: string]: NodeItem }),
+    });
+  }, [data, setTriggerWorkspace]);
+
+
+  if (error) return <div>failed to get workspace.</div>
+  if (isPending) return <div>loading...</div>
+
+  // React.useEffect(() => {
+  //   if (!triggerWorkspace || triggerWorkspace.id !== params.triggerID) {
+  //     setTriggerWorkspace((prev) => prev || { id: params.triggerID, nodes: {} });
+  //   }
+  // }, [params.triggerID, triggerWorkspace, setTriggerWorkspace]);
+
+
 
   const updateParentNodes = (nodeId: string) => {
     const parentNodes = findParentNodes(nodeId, edges, customNodes);
@@ -120,25 +167,6 @@ export default function Page({ params }: { params: { triggerID: string } }) {
       setCustomNodes((nds) => [...nds, newNode]);
     }
   };
-
-  const mutation = useMutation({
-    mutationFn: send_workspace,
-    onSuccess: (data) => {
-      const nodes: Record<string, NodeItem> = {};
-      for (const n of data.nodes) {
-        nodes[n.node_id] = {
-          id: n.node_id,
-          type: n.action_id,
-          fields: n.fields,
-          parent_ids: n.parents,
-          child_ids: n.children,
-          x_pos: n.x_pos,
-          y_pos: n.y_pos,
-        };
-      }
-      setTriggerWorkspace({ id: data.id, nodes });
-    },
-  });
 
   const handleOnClick = () => {
     if (!triggerWorkspace) return;

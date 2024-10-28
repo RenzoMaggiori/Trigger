@@ -18,7 +18,8 @@ export async function send_workspace(triggerWorkspace: TriggerWorkspace) {
       body: JSON.stringify({
         nodes: Object.keys(triggerWorkspace.nodes).map((k) => ({
           node_id: k,
-          fields: triggerWorkspace.nodes[k].fields,
+          input: triggerWorkspace.nodes[k].fields,
+          output: {},
           parents: triggerWorkspace.nodes[k].parent_ids,
           children: triggerWorkspace.nodes[k].child_ids,
           x_pos: triggerWorkspace.nodes[k].x_pos,
@@ -30,7 +31,10 @@ export async function send_workspace(triggerWorkspace: TriggerWorkspace) {
   if (!res.ok) {
     throw new Error(`Failed to send workspace: ${res.status}`);
   }
-  const { data, error } = triggerSchema.safeParse(await res.json());
+
+  const body = await res.json()
+  console.log(body)
+  const { data, error } = triggerSchema.safeParse(body);
   if (error) {
     console.error(error);
     throw new Error("could not parse api response");
