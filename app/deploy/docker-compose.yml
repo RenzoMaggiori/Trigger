@@ -219,6 +219,7 @@ services:
       GMAIL_PORT: ${GMAIL_PORT}
     ports:
       - "${GMAIL_PORT}:${GMAIL_PORT}"
+
   github:
     container_name: trigger-github-instance
     build:
@@ -232,6 +233,7 @@ services:
       GITHUB_PORT: ${GITHUB_PORT}
     ports:
       - "${GITHUB_PORT}:${GITHUB_PORT}"
+
   spotify:
     container_name: trigger-spotify-instance
     build:
@@ -240,11 +242,17 @@ services:
     networks:
       - trigger
     environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_PORT: ${MONGO_PORT}
+      MONGO_HOST: ${MONGO_HOST}
+      MONGO_DB: ${MONGO_DB}
+
       ACTION_SERVICE_BASE_URL: ${ACTION_SERVICE_BASE_URL}
       SESSION_SERVICE_BASE_URL: ${SESSION_SERVICE_BASE_URL}
       SYNC_SERVICE_BASE_URL: ${SYNC_SERVICE_BASE_URL}
       USER_SERVICE_BASE_URL: ${USER_SERVICE_BASE_URL}
-      WORKSPACE_SERVICE_BASE_URL: ${WORKSPACE_SERVICE_BASE_URL}
+
       ADMIN_TOKEN: ${ADMIN_TOKEN}
 
       SPOTIFY_PORT: ${SPOTIFY_PORT}
