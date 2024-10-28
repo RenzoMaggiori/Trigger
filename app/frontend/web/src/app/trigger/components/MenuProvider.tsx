@@ -61,6 +61,33 @@ export function MenuProvider({
     });
   };
 
+  const updateNodes = (nodes: Record<string, NodeItem>) => {
+    setTriggerWorkspace((prev) => {
+      if (!prev) return prev;
+
+      const updates = { ...prev.nodes };
+      Object.entries(nodes).forEach(([id, newNode]) => {
+        const existingNode = updates[id];
+
+        if (existingNode) {
+          updates[id] = {
+            ...existingNode,
+            ...newNode,
+            fields: {
+              ...newNode.fields,
+            },
+          };
+        } else {
+          updates[id] = newNode;
+        }
+      });
+      return {
+        ...prev,
+        nodes: updates,
+      };
+    });
+  };
+
   const setFields = (
     nodeID: NodeItem["id"],
     fields: Record<string, unknown>,
@@ -72,11 +99,10 @@ export function MenuProvider({
     const updates: NodeItem = {
       ...node,
       fields: {
-        ...node.fields,
         ...fields,
       },
     };
-    setNodes({ [nodeID]: updates });
+    updateNodes({ [nodeID]: updates });
   };
 
   return (

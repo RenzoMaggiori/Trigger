@@ -12,7 +12,7 @@ import { FaSlack } from "react-icons/fa6";
 import { PiMicrosoftOutlookLogo } from "react-icons/pi";
 
 import { FaCircle } from "react-icons/fa6";
-import { env } from "@/lib/env";
+// import { env } from "@/lib/env";
 import {
   Dialog,
   DialogContent,
@@ -24,9 +24,10 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+// import { sync } from "./lib/sync";
 
-/* import { useMutation } from "@tanstack/react-query";
-import { getConnections } from "./lib/get-conections"; */
+// import { useMutation } from "@tanstack/react-query";
+// import { getConnections } from "./lib/get-conections";
 
 type SettingsProps = {
   name: string;
@@ -40,7 +41,7 @@ const services: SettingsProps[] = [
     icon: <FcGoogle className="w-5 h-5" />,
     fields: {
       "Show on Profile": true,
-      Connected: true,
+      Connected: false,
     },
   },
   {
@@ -81,6 +82,10 @@ export default function Page() {
   const [serviceList, setServiceList] =
     React.useState<SettingsProps[]>(services);
 
+  /* const mutation = useMutation({
+    mutationFn: sync,
+  }); */
+
   const handleSwitchChange = (
     serviceIndex: number,
     fieldKey: string,
@@ -88,19 +93,13 @@ export default function Page() {
   ) => {
     const updatedServices = [...serviceList];
     if (fieldKey === "Connection") {
-      const href = updatedServices[serviceIndex].fields[fieldKey]
-        ? `${env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/auth/sync?=${provider}`
-        : `${env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/auth/disconect?=${provider}`;
-      window.location.href = href;
+      window.location.href = `/api/redirect?provider=${provider}`;
+      // mutation.mutate(provider);
     }
     updatedServices[serviceIndex].fields[fieldKey] =
       !updatedServices[serviceIndex].fields[fieldKey];
     setServiceList(updatedServices);
   };
-
-  /* const mutation = useMutation({
-    mutationFn: getConnections,
-  }); */
 
   const handleConnectionClick = (
     active: boolean,
@@ -110,12 +109,12 @@ export default function Page() {
   ) => {
     const updatedServices = [...serviceList];
     if (!active) {
-      const href = updatedServices[serviceIndex].fields[fieldKey]
-        ? `${env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/auth/sync?=${provider}`
-        : `${env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/auth/disconect?=${provider}`;
-      window.location.href = href;
       updatedServices[serviceIndex].fields[fieldKey] = true;
-    } else updatedServices[serviceIndex].fields[fieldKey] = false;
+      window.location.href = `/api/redirect?provider=${provider}`;
+      // mutation.mutate(provider);
+    } else {
+      updatedServices[serviceIndex].fields[fieldKey] = false;
+    }
     setServiceList(updatedServices);
   };
 
