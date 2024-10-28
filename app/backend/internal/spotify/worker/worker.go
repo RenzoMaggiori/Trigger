@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 
 	"github.com/robfig/cron"
 	"go.mongodb.org/mongo-driver/bson"
@@ -15,7 +16,9 @@ import (
 	"golang.org/x/net/context"
 	"trigger.com/trigger/internal/action/action"
 	"trigger.com/trigger/internal/action/workspace"
-	trigger "trigger.com/trigger/internal/spotify/trigger"
+	"trigger.com/trigger/internal/session"
+	"trigger.com/trigger/internal/spotify/trigger"
+	userSync "trigger.com/trigger/internal/sync"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/fetch"
 	"trigger.com/trigger/pkg/mongodb"
@@ -26,7 +29,12 @@ const (
 )
 
 var (
-	errCollectionNotFound = errors.New("could not find spotify collection")
+	errCollectionNotFound error = errors.New("could not find spotify collection")
+	errSessionNotFound    error = errors.New("could not find user session")
+	errSyncModelNull      error = errors.New("the sync models type is null")
+	errSpotifyAction      error = errors.New("spotify action not found")
+	errSpotifyBadStatus   error = errors.New("bad status code from spotify")
+	errWebhookBadStatus   error = errors.New("webhook returned a bad status")
 )
 
 func New(ctx context.Context) *cron.Cron {
@@ -55,41 +63,67 @@ func changeInFollowers(ctx context.Context) error {
 		return err
 	}
 
+	var wg sync.WaitGroup
 	for _, w := range workspaces {
-		accessToken, err := getUserAccessToken(w.UserId.String())
-		if err != nil {
-			return err
-		}
+		wg.Add(1)
+		go func(userId string) {
+			defer wg.Done()
+			err := userChangeInFollowers(ctx, collection, userId)
+			if err != nil {
+				log.Printf("Error processing user %s: %v", userId, err)
+			}
+		}(w.UserId.String())
+	}
+	wg.Wait()
+	return nil
+}
 
-		spotifyUser, err := getSpotifyUser(accessToken)
-		if err != nil {
-			return err
-		}
+func userChangeInFollowers(ctx context.Context, collection *mongo.Collection, userId string) error {
+	accessToken, err := getUserAccessToken(userId)
+	if err != nil {
+		return err
+	}
 
-		var userHistory SpotifyFollowerHistory
-		filter := bson.M{"user_id": w.UserId.String()}
-		if err = collection.FindOne(ctx, filter).Decode(&userHistory); err != nil {
+	spotifyUser, err := getSpotifyUser(accessToken)
+	if err != nil {
+		return err
+	}
+
+	var userHistory SpotifyFollowerHistory
+	filter := bson.M{"user_id": userId}
+	if err = collection.FindOne(ctx, filter).Decode(&userHistory); err != nil {
+		if err == mongo.ErrNoDocuments {
 			spotifyHistory := SpotifyFollowerHistory{
-				UserId: w.UserId.String(),
+				UserId: userId,
 				Total:  spotifyUser.Followers.Total,
 			}
-			if err == mongo.ErrNoDocuments {
-				collection.InsertOne(ctx, spotifyHistory)
-			} else {
-				collection.UpdateOne(ctx, filter, spotifyHistory)
-			}
-			continue
-		}
-
-		if spotifyUser.Followers.Total != userHistory.Total {
-			err := fetchSpotifyWebhook(trigger.FollowerChange{
-				Followers: spotifyUser.Followers.Total,
-				Increased: spotifyUser.Followers.Total > userHistory.Total,
-			})
+			_, err := collection.InsertOne(ctx, spotifyHistory)
 			if err != nil {
 				return err
 			}
+			userHistory.Total = spotifyUser.Followers.Total
+		} else {
+			return err
 		}
+	}
+
+	if spotifyUser.Followers.Total != userHistory.Total {
+		err := fetchSpotifyWebhook(trigger.FollowerChange{
+			Followers: spotifyUser.Followers.Total,
+			Increased: spotifyUser.Followers.Total > userHistory.Total,
+		})
+		if err != nil {
+			return err
+		}
+
+		_, err = collection.UpdateOne(ctx, filter, bson.M{
+			"$set": bson.M{"total": spotifyUser.Followers.Total},
+		},
+		)
+		if err != nil {
+			return err
+		}
+
 	}
 	return nil
 }
@@ -113,6 +147,9 @@ func getSpotifyWorkspaces() ([]workspace.WorkspaceModel, error) {
 		}
 		spotifyFollowerAction = a.Id.String()
 	}
+	if spotifyFollowerAction == "" {
+		return nil, errSpotifyAction
+	}
 
 	workspaces, _, err := workspace.GetByActionIdRequest(
 		os.Getenv("ADMIN_TOKEN"),
@@ -122,8 +159,22 @@ func getSpotifyWorkspaces() ([]workspace.WorkspaceModel, error) {
 }
 
 func getUserAccessToken(userId string) (string, error) {
-	// TODO: get the Access Token
-	return "", nil
+	session, _, err := session.GetSessionByUserIdRequest(os.Getenv("ADMIN_TOKEN"), userId)
+	if err != nil {
+		return "", err
+	}
+	if session == nil || len(session) == 0 {
+		return "", errSessionNotFound
+	}
+
+	user, _, err := userSync.GetSyncAccessTokenRequest(session[0].AccessToken, userId, "spotify")
+	if err != nil {
+		return "", err
+	}
+	if user == nil {
+		return "", errSyncModelNull
+	}
+	return user.AccessToken, nil
 }
 
 func getSpotifyUser(accessToken string) (*SpotifyUser, error) {
@@ -142,6 +193,9 @@ func getSpotifyUser(accessToken string) (*SpotifyUser, error) {
 		return nil, err
 	}
 	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return nil, errSpotifyBadStatus
+	}
 
 	spotifyUser, err := decode.Json[SpotifyUser](res.Body)
 	if err != nil {
@@ -157,7 +211,7 @@ func fetchSpotifyWebhook(followerChange trigger.FollowerChange) error {
 		return err
 	}
 
-	_, err = fetch.Fetch(
+	res, err := fetch.Fetch(
 		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodPost,
@@ -166,5 +220,12 @@ func fetchSpotifyWebhook(followerChange trigger.FollowerChange) error {
 			nil,
 		),
 	)
-	return err
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return errWebhookBadStatus
+	}
+	return nil
 }
