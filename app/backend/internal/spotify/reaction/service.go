@@ -5,14 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"log"
 	"net/http"
 
 	"trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/internal/session"
-	"trigger.com/trigger/internal/user"
-
+	"trigger.com/trigger/internal/spotify"
+	"trigger.com/trigger/internal/sync"
 	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
 	"trigger.com/trigger/pkg/middleware"
@@ -34,18 +32,38 @@ func (m Model) MutlipleReactions(actionName string, ctx context.Context, action 
 
 func (m Model) PlayMusic(ctx context.Context, accessToken string, actionNode workspace.ActionNodeModel) error {
 	session, _, err := session.GetSessionByAccessTokenRequest(accessToken)
-
 	if err != nil {
 		return err
 	}
 
-	user, _, err := user.GetUserByIdRequest(accessToken, session.UserId.Hex())
-
+	syncModel, _, err := sync.GetSyncAccessTokenRequest(accessToken, session.UserId.String(), "spotify")
 	if err != nil {
 		return err
 	}
 
-	// TODO: play music
+	body, err := json.Marshal(struct{}{})
+	if err != nil {
+		return err
+	}
 
+	res, err := fetch.Fetch(
+		http.DefaultClient,
+		fetch.NewFetchRequest(
+			http.MethodPut,
+			fmt.Sprintf("%s/me/player/play", spotify.BaseUrl),
+			bytes.NewReader(body),
+			map[string]string{
+				"Authorization": fmt.Sprintf("Bearer %s", syncModel.AccessToken),
+				"Content-Type":  "application/json",
+			},
+		),
+	)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	if err != nil {
+		return errors.ErrSpotifyBadStatus
+	}
 	return nil
 }
