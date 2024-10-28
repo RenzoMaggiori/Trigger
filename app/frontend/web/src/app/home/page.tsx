@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { LogoIcon } from "@/components/ui/logoIcon";
-import { SideMenu } from "./components/sidemenu";
+import { SideMenu } from "@/app/home/components/sidemenu";
 
 /* import { getWorkspaces } from "./lib/get-workspace";
 import { useMutation } from "@tanstack/react-query"; */
@@ -66,7 +66,14 @@ export default function Page() {
                       >
                         <CardHeader className="p-4 border-b">
                           <CardTitle className="text-xl font-bold">
-                            <Image src={trigger.img} alt={trigger.title} />
+                            <Image
+                              src={trigger.img}
+                              alt={trigger.title}
+                              width={500}
+                              height={500}
+                              layout="responsive" // For responsiveness
+                            />
+
                           </CardTitle>
                         </CardHeader>
                       </Card>

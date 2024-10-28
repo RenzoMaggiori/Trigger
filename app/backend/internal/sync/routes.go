@@ -10,7 +10,9 @@ import (
 	"github.com/markbates/goth/providers/discord"
 	"github.com/markbates/goth/providers/github"
 	"github.com/markbates/goth/providers/google"
+	"github.com/markbates/goth/providers/spotify"
 	"go.mongodb.org/mongo-driver/mongo"
+	"trigger.com/trigger/pkg/middleware"
 	"trigger.com/trigger/pkg/mongodb"
 	"trigger.com/trigger/pkg/router"
 )
@@ -22,7 +24,9 @@ func Router(ctx context.Context) (*router.Router, error) {
 	}
 
 	server := http.NewServeMux()
-
+	middlewares := middleware.Create(
+		middleware.Auth,
+	)
 	handler := Handler{
 		Service: Model{
 			Collection: syncCollection,
@@ -56,9 +60,17 @@ func Router(ctx context.Context) (*router.Router, error) {
 			discord.ScopeBot,
 			discord.ScopeGuilds,
 		),
+		spotify.New(
+			os.Getenv("SPOTIFY_KEY"),
+			os.Getenv("SPOTIFY_SECRET"),
+			callback,
+			spotify.ScopeUserReadEmail,
+			spotify.ScopeUserReadPrivate,
+		),
 	)
 
 	server.Handle("GET /sync-with", http.HandlerFunc(handler.SyncWith))
 	server.Handle("GET /callback", http.HandlerFunc(handler.Callback))
+	server.Handle("GET /{user_id}/{provider}", middlewares(http.HandlerFunc(handler.GetByUserId)))
 	return router.NewRouter("/sync", server), nil
 }

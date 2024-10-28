@@ -130,7 +130,7 @@ func fetchUserHistory(accessToken string, lastHistoryId int) (*HistoryList, erro
 }
 
 func getActiveNodes(workspaces []workspace.WorkspaceModel, actionId primitive.ObjectID) []workspace.ActionNodeModel {
-	var activeNodes []workspace.ActionNodeModel
+	activeNodes := make([]workspace.ActionNodeModel, 0)
 
 	for _, workspace := range workspaces {
 		for _, node := range workspace.Nodes {
@@ -260,3 +260,4 @@ func (m Model) Stop(ctx context.Context) error {
 	log.Println(accessToken)
 	return nil
 }
+

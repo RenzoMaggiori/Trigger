@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { env } from "@/lib/env";
-import { triggerSchema } from "./types";
+import { triggerSchema } from "@/app/home/lib/types";
 
 export async function getWorkspaces() {
   const accessToken = cookies().get("Authorization")?.value;
@@ -11,7 +11,7 @@ export async function getWorkspaces() {
   }
 
   const res = await fetch(
-    `${env.NEXT_PUBLIC_ACTION_SERVICE_URL}/api/`, // TODO: Add correct endpoint
+    `${env.NEXT_PUBLIC_ACTION_SERVICE_URL}/api/workspace`,
     {
       method: "GET",
       headers: {

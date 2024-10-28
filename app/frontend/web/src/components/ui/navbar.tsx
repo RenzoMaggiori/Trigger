@@ -2,7 +2,7 @@
 import React from "react";
 import { Button } from "./button";
 import Link from "next/link";
-import { LogoIcon } from "./logoIcon";
+import { LogoIcon } from "@/components/ui/logoIcon";
 import { IoMenu } from "react-icons/io5";
 import {
   Sheet,
@@ -11,13 +11,13 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "./sheet";
+} from "@/components/ui/sheet";
 import { MdAddBox } from "react-icons/md";
 import { GrDocumentImage } from "react-icons/gr";
 import { SiGooglegemini } from "react-icons/si";
 import { IoSettingsOutline } from "react-icons/io5";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const navbarItems = [
   { name: "Home", href: "/home" },

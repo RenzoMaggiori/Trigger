@@ -2,12 +2,15 @@ package sync
 
 import (
 	"encoding/base64"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
 
 	"github.com/markbates/goth/gothic"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	customerror "trigger.com/trigger/pkg/custom-error"
+	"trigger.com/trigger/pkg/encode"
 	"trigger.com/trigger/pkg/errors"
 )
 
@@ -18,7 +21,7 @@ func (h *Handler) SyncWith(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	access_token := r.Header.Get("Authorization")
+	access_token := r.URL.Query().Get("token")
 	err = h.Service.SyncWith(gothUser, access_token)
 	if err != nil {
 		log.Println(err)
@@ -63,4 +66,27 @@ func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, redirectUrl, http.StatusPermanentRedirect)
+}
+
+func (h *Handler) GetByUserId(w http.ResponseWriter, r *http.Request) {
+	userId, err := primitive.ObjectIDFromHex(r.PathValue("user_id"))
+	provider := r.PathValue("provider")
+
+	if err != nil {
+		error := fmt.Errorf("%w: %v", errors.ErrBadUserId, err)
+		customerror.Send(w, error, errors.ErrCodes)
+		return
+	}
+
+	sync, err := h.Service.ByUserId(userId, provider)
+	if err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+
+	if err = encode.Json(w, sync); err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+
 }

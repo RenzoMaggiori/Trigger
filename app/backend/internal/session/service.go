@@ -10,7 +10,7 @@ import (
 )
 
 func (m Model) Get() ([]SessionModel, error) {
-	var sessions []SessionModel
+	sessions := make([]SessionModel, 0)
 	ctx := context.TODO()
 	filter := bson.M{}
 	cursor, err := m.Collection.Find(ctx, filter)
@@ -39,7 +39,7 @@ func (m Model) GetById(id primitive.ObjectID) (*SessionModel, error) {
 }
 
 func (m Model) GetByUserId(userId primitive.ObjectID) ([]SessionModel, error) {
-	var sessions []SessionModel
+	sessions := make([]SessionModel, 0)
 	ctx := context.TODO()
 	filter := bson.M{"user_id": userId}
 	cursor, err := m.Collection.Find(ctx, filter)

@@ -13,8 +13,8 @@ import { useMenu } from "@/app/trigger/components/MenuProvider";
 import { transformCustomNodes } from "@/app/trigger/lib/transform-custom-nodes";
 import { useMutation } from "@tanstack/react-query";
 import { send_workspace } from "@/app/trigger/lib/send-workspace";
-import { ServicesComponent } from "../components/service-page";
-import { ReactFlowComponent } from "../components/react-flow";
+import { ServicesComponent } from "@/app/trigger/components/service-page";
+import { ReactFlowComponent } from "@/app/trigger/components/react-flow";
 
 const services: Service[] = [
   {
@@ -44,28 +44,34 @@ export default function Page({ params }: { params: { triggerID: string } }) {
   const [edges, setEdges] = React.useState<Edge[]>([]);
   const [settings, setSettings] = React.useState<Service["settings"]>();
   const [parentNodes, setParentNodes] = React.useState<CustomNode[]>([]);
-  const [selectedNode, setSelectedNode] = React.useState<CustomNode | null>(
-    null,
-  );
+  const [selectedNode, setSelectedNode] = React.useState<CustomNode | null>(null);
+
   const { triggerWorkspace, setTriggerWorkspace, setNodes } = useMenu();
 
+  /* const mutation = useMutation({
+    mutationFn: getWorkspace,
+  }); */
+
   React.useEffect(() => {
-    setTriggerWorkspace((prev) => prev || { id: params.triggerID, nodes: {} });
-  }, [params.triggerID, setTriggerWorkspace]);
+    if (!triggerWorkspace || triggerWorkspace.id !== params.triggerID) {
+      setTriggerWorkspace((prev) => prev || { id: params.triggerID, nodes: {} });
+    }
+  }, [params.triggerID, triggerWorkspace, setTriggerWorkspace]);
+
 
   React.useEffect(() => {
     if (customNodes.length > 0 || edges.length > 0) {
       const transformedNodes = transformCustomNodes(customNodes, edges);
       setNodes(transformedNodes);
     }
-  }, [customNodes, edges, setNodes]);
+  }, [customNodes, edges]);
 
   const updateParentNodes = (nodeId: string) => {
     const parentNodes = findParentNodes(nodeId, edges, customNodes);
     setParentNodes(parentNodes);
   };
 
-  const handleNodeClick = (_event: React.MouseEvent, node: CustomNode) => {
+  const handleNodeClick = (event: React.MouseEvent, node: CustomNode) => {
     if (node.data?.settings) {
       setSettings(node.data.settings);
       updateParentNodes(node.id);
@@ -73,10 +79,7 @@ export default function Page({ params }: { params: { triggerID: string } }) {
     }
   };
 
-  const handleDragStart = (
-    e: React.DragEvent<HTMLDivElement>,
-    service: Service,
-  ): void => {
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, service: Service): void => {
     const serviceData = { name: service.name };
     e.dataTransfer.setData("service", JSON.stringify(serviceData));
   };
