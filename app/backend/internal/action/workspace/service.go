@@ -33,6 +33,7 @@ func (m Model) Get(ctx context.Context) ([]WorkspaceModel, error) {
 
 func (m Model) GetById(ctx context.Context, id primitive.ObjectID) (*WorkspaceModel, error) {
 	var workspace WorkspaceModel
+	workspace.Nodes = make([]ActionNodeModel, 0)
 	filter := bson.M{"_id": id}
 	err := m.Collection.FindOne(ctx, filter).Decode(&workspace)
 
@@ -61,7 +62,7 @@ func (m Model) GetByUserId(ctx context.Context, userId primitive.ObjectID) ([]Wo
 }
 
 func (m Model) GetByActionId(ctx context.Context, actionId primitive.ObjectID) ([]WorkspaceModel, error) {
-	var workspaces []WorkspaceModel
+	workspaces := make([]WorkspaceModel, 0)
 
 	filter := bson.M{
 		"nodes": bson.M{
@@ -139,7 +140,7 @@ func (m Model) Add(ctx context.Context, add *AddWorkspaceModel) (*WorkspaceModel
 	newWorkspace := WorkspaceModel{
 		Id:     primitive.NewObjectID(),
 		UserId: session.UserId,
-		Nodes:  []ActionNodeModel{},
+		Nodes:  make([]ActionNodeModel, 0),
 	}
 
 	for _, node := range add.Nodes {
@@ -322,6 +323,7 @@ func (m Model) UpdateById(ctx context.Context, id primitive.ObjectID, update *Up
 	}
 
 	var updatedUserAction WorkspaceModel
+	updatedUserAction.Nodes = make([]ActionNodeModel, 0)
 	err = m.Collection.FindOne(ctx, filter).Decode(&updatedUserAction)
 
 	if err != nil {

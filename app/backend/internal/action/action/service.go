@@ -27,6 +27,8 @@ func (m Model) Get() ([]ActionModel, error) {
 
 func (m Model) GetById(id primitive.ObjectID) (*ActionModel, error) {
 	var action ActionModel
+	action.Input = make([]string, 0)
+	action.Output = make([]string, 0)
 	ctx := context.TODO()
 	filter := bson.M{"_id": id}
 	err := m.Collection.FindOne(ctx, filter).Decode(&action)
@@ -54,16 +56,18 @@ func (m Model) GetByProvider(provider string) ([]ActionModel, error) {
 	return actions, nil
 }
 
-func (m Model) GetByActionName(action string) (*ActionModel, error) {
-	var actions ActionModel
+func (m Model) GetByActionName(actionName string) (*ActionModel, error) {
+	var action ActionModel
+	action.Input = make([]string, 0)
+	action.Output = make([]string, 0)
 	ctx := context.TODO()
-	filter := bson.M{"action": action}
-	err := m.Collection.FindOne(ctx, filter).Decode(&actions)
+	filter := bson.M{"action": actionName}
+	err := m.Collection.FindOne(ctx, filter).Decode(&action)
 
 	if err != nil {
 		return nil, errors.ErrActionNotFound
 	}
-	return &actions, nil
+	return &action, nil
 }
 
 func (m Model) Add(add *AddActionModel) (*ActionModel, error) {
