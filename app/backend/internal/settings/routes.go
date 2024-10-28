@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"go.mongodb.org/mongo-driver/mongo"
+	"trigger.com/trigger/pkg/middleware"
 	"trigger.com/trigger/pkg/mongodb"
 	"trigger.com/trigger/pkg/router"
 )
@@ -17,15 +18,18 @@ func Router(ctx context.Context) (*router.Router, error) {
 	}
 
 	server := http.NewServeMux()
-
+	middlewares := middleware.Create(
+		middleware.Auth,
+	)
 	handler := Handler{
 		Service: Model{
 			Collection: settingsCollection,
 		},
 	}
-	server.Handle("GET /id/{id}", http.HandlerFunc(handler.GetById))
-	server.Handle("POST /add", http.HandlerFunc(handler.Add))
-	server.Handle("GET /user_id/{id}", http.HandlerFunc(handler.GetByUserId))
+	server.Handle("GET /me", middlewares(http.HandlerFunc(handler.GetMySettings)))
+	server.Handle("GET /id/{id}", middlewares(http.HandlerFunc(handler.GetById)))
+	server.Handle("POST /add", middlewares(http.HandlerFunc(handler.Add)))
+	server.Handle("GET /user_id/{id}", middlewares(http.HandlerFunc(handler.GetByUserId)))
 
 	return router.NewRouter("/settings", server), nil
 }
