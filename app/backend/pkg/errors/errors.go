@@ -64,6 +64,9 @@ var (
 	ErrSyncAccessTokenNotFound error = errors.New("error could not find sync access token")
 	ErrSyncModelTypeNone       error = errors.New("error could not decode sync model")
 
+	// Spotify Errors
+	ErrSpotifyBadStatus error = errors.New("invalid response status from spotify")
+
 	ErrCodes map[error]customerror.CustomError = map[error]customerror.CustomError{
 		ErrWorkspaceNotFound: {
 			Message: ErrWorkspaceNotFound.Error(),
@@ -213,5 +216,9 @@ var (
 			Message: ErrSyncModelTypeNone.Error(),
 			Code:    http.StatusInternalServerError,
 		},
+		ErrSpotifyBadStatus: {
+			Message: ErrSpotifyBadStatus.Error(),
+			Code: http.StatusBadRequest,
+		}
 	}
 )

@@ -17,15 +17,12 @@ import (
 	"trigger.com/trigger/internal/action/action"
 	"trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/internal/session"
+	"trigger.com/trigger/internal/spotify"
 	"trigger.com/trigger/internal/spotify/trigger"
 	userSync "trigger.com/trigger/internal/sync"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/fetch"
 	"trigger.com/trigger/pkg/mongodb"
-)
-
-const (
-	spotifyBaseUrl string = "https://api.spotify.com/v1"
 )
 
 var (
@@ -182,7 +179,7 @@ func getSpotifyUser(accessToken string) (*SpotifyUser, error) {
 		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodGet,
-			fmt.Sprintf("%s/me", spotifyBaseUrl),
+			fmt.Sprintf("%s/me", spotify.BaseUrl),
 			nil,
 			map[string]string{
 				"Authorization": fmt.Sprintf("Bearer %s", accessToken),
