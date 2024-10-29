@@ -27,7 +27,6 @@ type Me struct {
 	DiscordId string `json:"id"`
 	Username string `json:"username"`
 	Email string `json:"email"`
-	Avatar string `json:"avatar"`
 }
 
 type DiscordMe struct {

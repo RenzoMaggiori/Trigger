@@ -1,21 +1,21 @@
 package trigger
 
 import (
-	"context"
+	// "context"
 	"sync"
 
 	"github.com/bwmarrin/discordgo"
 	"go.mongodb.org/mongo-driver/mongo"
-	"trigger.com/trigger/internal/action/workspace"
-	// "trigger.com/trigger/pkg/action"
+	// "trigger.com/trigger/internal/action/workspace"
+	"trigger.com/trigger/pkg/action"
 )
 
 type Service interface {
-	// action.Trigger
+	action.Trigger
 
-	Stop(ctx context.Context, userID string) error
-	Watch(ctx context.Context, userID string, actionNode workspace.ActionNodeModel) error
-	Webhook(ctx context.Context, userID string) error
+	// Stop(ctx context.Context, userID string) error
+	// Watch(ctx context.Context, userID string, actionNode workspace.ActionNodeModel) error
+	// Webhook(ctx context.Context, userID string) error
 	runDiscordSession(discord *discordgo.Session, stopChan chan struct{})
 }
 
@@ -46,7 +46,7 @@ type UserSession struct {
     UserID   string `bson:"user_id"`
     Token    string `bson:"token"`
     Running  bool   `bson:"running"`
-    StopChan bool   `bson:"stop_chan"` // indicates if a stop channel is active
+    StopChan bool   `bson:"stop_chan"`
 }
 
 

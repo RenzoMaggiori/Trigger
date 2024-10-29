@@ -2,6 +2,7 @@ package worker
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -20,6 +21,7 @@ func (m Model) Me(token string) (*Me, error) {
 	}
 
 	sync, _, err := sync.GetSyncAccessTokenRequest(token, user.Id.Hex(), "discord")
+	log.Println("sync_access_token", sync.AccessToken)
 	if err != nil {
 		return nil, err
 	}
@@ -51,12 +53,17 @@ func (m Model) Me(token string) (*Me, error) {
 		return nil, fmt.Errorf("%w: %v", errors.ErrDecodeData, err)
 	}
 
+	log.Println("id", discord_me.Id)
+	log.Println("username", discord_me.Username)
+	log.Println("email", discord_me.Email)
+
 	me := Me{
 		DiscordId:       discord_me.Id,
 		Username: discord_me.Username,
 		Email:    discord_me.Email,
-		Avatar:   *discord_me.AvatarDecorationData,
 	}
+
+	log.Println("me", me)
 
 	return &me, nil
 }

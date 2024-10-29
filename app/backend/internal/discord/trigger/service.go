@@ -69,7 +69,7 @@ func watchSession(ctx context.Context, discord *discordgo.Session, stop chan str
 //     return nil
 // }
 
-func (m *Model) Watch(ctx context.Context, userID string, actionNode workspace.ActionNodeModel) error {
+func (m *Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) error {
     m.mutex.Lock()
     defer m.mutex.Unlock()
 
@@ -91,7 +91,6 @@ func (m *Model) Watch(ctx context.Context, userID string, actionNode workspace.A
     stopChan := make(chan struct{})
     go m.runDiscordSession(discord, stopChan)
 
-    // Update MongoDB with the new session data
     _, err = m.Collection.UpdateOne(
         ctx,
         bson.M{"user_id": userID},
@@ -116,7 +115,7 @@ func (m *Model) runDiscordSession(discord *discordgo.Session, stopChan chan stru
     }
     log.Println("Bot running...")
 
-    <-stopChan // Wait until stop is triggered
+    <-stopChan
 
     log.Println("Bot session stopped.")
 }
@@ -149,35 +148,29 @@ func newMessage(s *discordgo.Session, m *discordgo.MessageCreate, stop chan stru
 //     return nil
 // }
 
-func (m *Model) Webhook(ctx context.Context, userID string) error {
+func (m *Model) Webhook(ctx context.Context) error {
     m.mutex.Lock()
     defer m.mutex.Unlock()
 
-    // Fetch the user's session information from MongoDB
     var userSession UserSession
     err := m.Collection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&userSession)
     if err != nil {
         return fmt.Errorf("error finding user session: %v", err)
     }
 
-    // Check if the bot is running for the user
     if !userSession.Running {
         return errors.New("bot is not running for this user")
     }
 
-    // Create a new Discord session for this user
     discord, err := discordgo.New("Bot " + userSession.Token)
     if err != nil {
         return errors.New("error creating Discord session")
     }
 
-    // Add a message handler to respond to messages
     discord.AddHandler(func(s *discordgo.Session, msg *discordgo.MessageCreate) {
-        // Pass the stop channel from MongoDB if necessary
-        newMessage(s, msg, make(chan struct{})) // MongoDB doesn’t handle channels, so instantiate a temporary channel for handling
+        newMessage(s, msg, make(chan struct{}))
     })
 
-    // Open the Discord session to start receiving messages
     if err := discord.Open(); err != nil {
         return errors.New("error opening connection")
     }
@@ -207,7 +200,7 @@ func (m *Model) Webhook(ctx context.Context, userID string) error {
 //     return nil
 // }
 
-func (m *Model) Stop(ctx context.Context, userID string) error {
+func (m *Model) Stop(ctx context.Context) error {
     m.mutex.Lock()
     defer m.mutex.Unlock()
 
@@ -221,7 +214,6 @@ func (m *Model) Stop(ctx context.Context, userID string) error {
         return errors.New("bot is not running for this user")
     }
 
-    // Update the session state in MongoDB
     _, err = m.Collection.UpdateOne(
         ctx,
         bson.M{"user_id": userID},
