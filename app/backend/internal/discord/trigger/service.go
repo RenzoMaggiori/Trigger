@@ -2,7 +2,6 @@ package trigger
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -12,12 +11,16 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"trigger.com/trigger/internal/action/workspace"
+	"trigger.com/trigger/internal/discord/worker"
+	"trigger.com/trigger/internal/user"
+	"trigger.com/trigger/pkg/errors"
+	"trigger.com/trigger/pkg/middleware"
 )
 
 func createDiscordSession() (*discordgo.Session, error) {
     discord, err := discordgo.New("Bot " + os.Getenv("BOT_TOKEN"))
     if err != nil {
-        return nil, errors.New("error creating Discord session")
+        return nil, errors.ErrCreateDiscordGoSession
     }
     return discord, nil
 }
@@ -30,7 +33,7 @@ func addMessageHandler(discord *discordgo.Session, stop chan struct{}) {
 
 func watchSession(ctx context.Context, discord *discordgo.Session, stop chan struct{}) error {
     if err := discord.Open(); err != nil {
-        return errors.New("error opening connection")
+        return errors.ErrOpeningDiscordConnection
     }
     defer discord.Close()
 
@@ -69,45 +72,64 @@ func watchSession(ctx context.Context, discord *discordgo.Session, stop chan str
 //     return nil
 // }
 
+func getCurrUser(ctx context.Context) (*user.UserModel, error) {
+    accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
+    if !ok {
+        return nil, errors.ErrAccessTokenCtx
+    }
+
+    user, _, err := user.GetUserByAccesstokenRequest(accessToken)
+    if err != nil {
+        return nil, errors.ErrUserNotFound
+    }
+
+    return user, nil
+}
+
 func (m *Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) error {
     m.mutex.Lock()
     defer m.mutex.Unlock()
 
-    var userSession UserSession
-    err := m.Collection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&userSession)
-    if err != nil && err != mongo.ErrNoDocuments {
-        return fmt.Errorf("error finding user session: %v", err)
-    }
-
-    if userSession.Running {
-        return errors.New("bot is already running for this user")
-    }
-
-    discord, err := discordgo.New("Bot " + os.Getenv("BOT_TOKEN"))
+    user, err := getCurrUser(ctx)
     if err != nil {
-        return errors.New("error creating Discord session")
+        return err
     }
 
-    stopChan := make(chan struct{})
-    go m.runDiscordSession(discord, stopChan)
+    var discordSession worker.DiscordSessionModel
+    err = m.Collection.FindOne(ctx, bson.M{"user_id": user.Id}).Decode(&discordSession)
+    if err != nil && err != mongo.ErrNoDocuments {
+        return errors.ErrDiscordUserSessionNotFound
+    }
+
+    if discordSession.Running {
+        return errors.ErrBotAlreadyRunning
+    }
+
+    discord, err := createDiscordSession()
+    if err != nil {
+        return err
+    }
+
+    stop := make(chan struct{})
+    go m.runDiscordSession(discord, stop)
 
     _, err = m.Collection.UpdateOne(
         ctx,
-        bson.M{"user_id": userID},
-        bson.M{"$set": UserSession{UserID: userID, Token: os.Getenv("BOT_TOKEN"), Running: true, StopChan: true}},
+        bson.M{"user_id": user.Id},
+        bson.M{"$set": worker.DiscordSessionModel{UserID: user.Id.Hex(), Token: os.Getenv("BOT_TOKEN"), Running: true, Stop: true}},
         options.Update().SetUpsert(true),
     )
     if err != nil {
         return fmt.Errorf("error storing user session: %v", err)
     }
 
-    log.Printf("Bot started and running for user %s...\n", userID)
+    log.Printf("Bot started and running for user %s...\n", user.Id.Hex())
+
     return nil
 }
 
-func (m *Model) runDiscordSession(discord *discordgo.Session, stopChan chan struct{}) {
+func (m *Model) runDiscordSession(discord *discordgo.Session, stop chan struct{}) {
     defer discord.Close()
-
     err := discord.Open()
     if err != nil {
         log.Printf("error opening Discord session: %v", err)
@@ -115,7 +137,7 @@ func (m *Model) runDiscordSession(discord *discordgo.Session, stopChan chan stru
     }
     log.Println("Bot running...")
 
-    <-stopChan
+    <-stop
 
     log.Println("Bot session stopped.")
 }
@@ -152,19 +174,24 @@ func (m *Model) Webhook(ctx context.Context) error {
     m.mutex.Lock()
     defer m.mutex.Unlock()
 
-    var userSession UserSession
-    err := m.Collection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&userSession)
+    user, err := getCurrUser(ctx)
+    if err != nil {
+        return err
+    }
+
+    var discordSession worker.DiscordSessionModel
+    err = m.Collection.FindOne(ctx, bson.M{"user_id": user.Id}).Decode(&discordSession)
     if err != nil {
         return fmt.Errorf("error finding user session: %v", err)
     }
 
-    if !userSession.Running {
-        return errors.New("bot is not running for this user")
+    if !discordSession.Running {
+        return errors.ErrBotNotRunning
     }
 
-    discord, err := discordgo.New("Bot " + userSession.Token)
+    discord, err := discordgo.New("Bot " + discordSession.Token)
     if err != nil {
-        return errors.New("error creating Discord session")
+        return errors.ErrCreateDiscordGoSession
     }
 
     discord.AddHandler(func(s *discordgo.Session, msg *discordgo.MessageCreate) {
@@ -172,10 +199,10 @@ func (m *Model) Webhook(ctx context.Context) error {
     })
 
     if err := discord.Open(); err != nil {
-        return errors.New("error opening connection")
+        return errors.ErrOpeningDiscordConnection
     }
 
-    log.Printf("Message handler added for user %s.\n", userID)
+    log.Printf("Message handler added for user %s.\n", user.Id.Hex())
     return nil
 }
 
@@ -204,25 +231,30 @@ func (m *Model) Stop(ctx context.Context) error {
     m.mutex.Lock()
     defer m.mutex.Unlock()
 
-    var userSession UserSession
-    err := m.Collection.FindOne(ctx, bson.M{"user_id": userID}).Decode(&userSession)
+    user, err := getCurrUser(ctx)
+    if err != nil {
+        return err
+    }
+
+    var discordSession worker.DiscordSessionModel
+    err = m.Collection.FindOne(ctx, bson.M{"user_id": user.Id}).Decode(&discordSession)
     if err != nil {
         return fmt.Errorf("error finding user session: %v", err)
     }
 
-    if !userSession.Running {
-        return errors.New("bot is not running for this user")
+    if !discordSession.Running {
+        return errors.ErrBotNotRunning
     }
 
     _, err = m.Collection.UpdateOne(
         ctx,
-        bson.M{"user_id": userID},
+        bson.M{"user_id": user.Id},
         bson.M{"$set": bson.M{"running": false, "stop_chan": false}},
     )
     if err != nil {
         return fmt.Errorf("error updating user session: %v", err)
     }
 
-    log.Printf("Bot stopped for user %s.\n", userID)
+    log.Printf("Bot stopped for user %s.\n", user.Id.Hex())
     return nil
 }

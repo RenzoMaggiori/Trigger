@@ -4,18 +4,6 @@ import (
 	"trigger.com/trigger/pkg/action"
 )
 
-const (
-	authURL      string = "https://discord.com/api/oauth2/authorize"
-	tokenURL     string = "https://discord.com/api/v10/oauth2/token"
-	userEndpoint string = "https://discord.com/api/v10/users/@me"
-	baseURL      string = "https://discord.com/api/v10"
-)
-
-type DiscordReactionCtx string
-
-const AccessTokenCtxKey DiscordReactionCtx = DiscordReactionCtx("AuthorizationCtxKey")
-const ChannelIdCtxKey DiscordReactionCtx = DiscordReactionCtx("ChannelIdCtxKey")
-
 type Service interface {
 	action.MultipleReactions
 }
@@ -25,25 +13,6 @@ type Handler struct {
 }
 
 type Model struct {
-}
-
-type AvatarDecorationData struct {
-	SkuID string `json:"sku_id"`
-	Asset string `json:"asset"`
-}
-type UserInfo struct {
-	Id                     string               `json:"id"`
-	Username               string               `json:"username"`
-	Discriminator          string               `json:"discriminator"`
-	Avatar                 string               `json:"avatar"`
-	Verified               bool                 `json:"verified"`
-	Email                  string               `json:"email"`
-	Flags                  int                  `json:"flags"`
-	Banner                 string               `json:"banner"`
-	Accent_color           int                  `json:"accent_color"`
-	Premium_type           int                  `json:"premium_type"`
-	Public_flags           int                  `json:"public_flags"`
-	Avatar_decoration_data AvatarDecorationData `json:"avatar_decoration_data"`
 }
 
 type Guild struct {

@@ -81,7 +81,14 @@ var (
 	// Discord
 	ErrDiscordGuilds error = errors.New("could not retrieve guilds")
 	ErrDiscordMe	 error = errors.New("could not retrieve user/@me data")
-	ErrCreateDiscordSession error = errors.New("could not create discord session")
+	ErrCreateDiscordGoSession error = errors.New("could not create discord session")
+	ErrOpeningDiscordConnection error = errors.New("error opening discord connection")
+	ErrBotAlreadyRunning error = errors.New("bot is already running for this user")
+	ErrBotNotRunning error = errors.New("bot is not running for this user")
+	ErrDiscordUserSessionNotFound error = errors.New("discord user session not found")
+	ErrGuildIdNotFound error = errors.New("guild id not found")
+	ErrAddDiscordSession error = errors.New("error storing discord session in db")
+	ErrUpdateDiscordSession error = errors.New("error updating discord session in db")
 
 	ErrCodes map[error]customerror.CustomError = map[error]customerror.CustomError{
 		ErrWorkspaceNotFound: {
@@ -274,6 +281,38 @@ var (
 		},
 		ErrDiscordMe: {
 			Message: ErrDiscordMe.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrGuildIdNotFound: {
+			Message: ErrGuildIdNotFound.Error(),
+			Code:    http.StatusNotFound,
+		},
+		ErrCreateDiscordGoSession: {
+			Message: ErrCreateDiscordGoSession.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrOpeningDiscordConnection: {
+			Message: ErrOpeningDiscordConnection.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrBotAlreadyRunning: {
+			Message: ErrBotAlreadyRunning.Error(),
+			Code:    http.StatusConflict,
+		},
+		ErrBotNotRunning: {
+			Message: ErrBotNotRunning.Error(),
+			Code:    http.StatusConflict,
+		},
+		ErrDiscordUserSessionNotFound: {
+			Message: ErrDiscordUserSessionNotFound.Error(),
+			Code:    http.StatusNotFound,
+		},
+		ErrAddDiscordSession: {
+			Message: ErrAddDiscordSession.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrUpdateDiscordSession: {
+			Message: ErrUpdateDiscordSession.Error(),
 			Code:    http.StatusInternalServerError,
 		},
 	}

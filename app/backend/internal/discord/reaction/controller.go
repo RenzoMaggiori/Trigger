@@ -2,22 +2,23 @@ package reaction
 
 import (
 	// "context"
-	"context"
+	"log"
 	"net/http"
 
 	"trigger.com/trigger/internal/action/workspace"
 	customerror "trigger.com/trigger/pkg/custom-error"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/errors"
-	"trigger.com/trigger/pkg/jwt"
+	"trigger.com/trigger/pkg/middleware"
 )
 
 func (h *Handler) SendMessage(w http.ResponseWriter, r *http.Request) {
-	token, err := jwt.FromRequest(r.Header.Get("Authorization"))
-	if err != nil {
-		customerror.Send(w, errors.ErrAuthorizationHeaderNotFound, errors.ErrCodes)
+	accessToken, ok := r.Context().Value(middleware.TokenCtxKey).(string)
+	if !ok {
+		customerror.Send(w, errors.ErrAccessTokenCtx, errors.ErrCodes)
 		return
 	}
+	log.Println("accessToken: ", accessToken)
 
 	actionNode, err := decode.Json[workspace.ActionNodeModel](r.Body)
 
@@ -26,8 +27,7 @@ func (h *Handler) SendMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.Service.MutlipleReactions("send_message",
-		context.WithValue(context.TODO(), AccessTokenCtxKey, token), actionNode)
+	err = h.Service.MutlipleReactions("send_message", r.Context(), actionNode)
 
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)

@@ -1,12 +1,14 @@
 package worker
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/bwmarrin/discordgo"
+	"go.mongodb.org/mongo-driver/bson"
 	"trigger.com/trigger/internal/sync"
 	"trigger.com/trigger/internal/user"
 	"trigger.com/trigger/pkg/decode"
@@ -14,7 +16,7 @@ import (
 	"trigger.com/trigger/pkg/fetch"
 )
 
-func (m Model) Me(token string) (*Me, error) {
+func (m *Model) Me(token string) (*Me, error) {
 	user, _, err := user.GetUserByAccesstokenRequest(token)
 	if err != nil {
 		return nil, err
@@ -63,16 +65,14 @@ func (m Model) Me(token string) (*Me, error) {
 		Email:    discord_me.Email,
 	}
 
-	log.Println("me", me)
-
 	return &me, nil
 }
 
-func (m Model) GuildChannels(guildID string) ([]Channel, error) {
+func (m *Model) GuildChannels(guildID string) ([]Channel, error) {
 	discord, err := discordgo.New("Bot " + os.Getenv("BOT_TOKEN"))
 
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errors.ErrCreateDiscordSession, err)
+		return nil, fmt.Errorf("%w: %v", errors.ErrCreateDiscordGoSession, err)
 	}
 
 	defer discord.Close()
@@ -95,4 +95,41 @@ func (m Model) GuildChannels(guildID string) ([]Channel, error) {
 	}
 
 	return response, nil
+}
+
+func (m *Model) AddSession(session *AddDiscordSession) error {
+	ctx := context.TODO()
+	newSync := DiscordSessionModel{
+		UserId:  session.UserId,
+		GuildId: session.GuildId,
+		Token:   os.Getenv("BOT_TOKEN"),
+		Running: false,
+		Stop:    true,
+	}
+
+	_, err := m.Collection.InsertOne(ctx, newSync)
+	if err != nil {
+		return errors.ErrAddDiscordSession
+	}
+
+	log.Printf("Discord session created for user %s...\n", session.UserId)
+
+	return nil
+}
+
+func (m *Model) UpdateSession(userId string, session *UpdateDiscordSession) error {
+	ctx := context.TODO()
+	filter := bson.M{"user_id": userId}
+	update := bson.M{"$set": bson.M{"running": session.Running, "stop": session.Stop}}
+
+	_, err := m.Collection.UpdateOne(
+		ctx,
+		filter,
+		update,
+	)
+	if err != nil {
+		return errors.ErrUpdateDiscordSession
+	}
+
+	return nil
 }

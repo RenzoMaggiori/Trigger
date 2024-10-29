@@ -1,11 +1,9 @@
 package trigger
 
 import (
-	// "context"
 	"sync"
 
 	"github.com/bwmarrin/discordgo"
-	"go.mongodb.org/mongo-driver/mongo"
 	// "trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/pkg/action"
 )
@@ -36,22 +34,26 @@ type Handler struct {
 // }
 
 type Model struct {
-    Collection *mongo.Collection
-    discord    *discordgo.Session
-    mutex      sync.Mutex
+	// Collection *mongo.Collection
+	discord    *discordgo.Session
+	mutex      sync.Mutex
 }
 
-
-type UserSession struct {
-    UserID   string `bson:"user_id"`
-    Token    string `bson:"token"`
-    Running  bool   `bson:"running"`
-    StopChan bool   `bson:"stop_chan"`
-}
-
+// type DiscordSessionModel struct {
+// 	UserID  string `json:"user_id" bson:"user_id"`
+// 	GuildId string `json:"guild_id" bson:"guild_id"`
+// 	Token   string `json:"token" bson:"token"`
+// 	Running bool   `json:"running" bson:"running"`
+// 	Stop    bool   `json:"stop" bson:"stop"`
+// }
 
 type StopModel struct {
 	Owner  string `json:"owner"`
 	Repo   string `json:"repo"`
 	HookId string `json:"hookId"`
+}
+
+type ActionBody struct {
+	Type string      `json:"type"`
+	Data interface{} `json:"data"`
 }

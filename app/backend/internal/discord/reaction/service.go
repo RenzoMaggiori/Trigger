@@ -14,10 +14,13 @@ import (
 	"trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/fetch"
+	"trigger.com/trigger/internal/discord"
 )
 
 func (m Model) MutlipleReactions(actionName string, ctx context.Context, action workspace.ActionNodeModel) error {
 	log.Println("actionName: ", actionName)
+	log.Println("ctx: ", ctx)
+
 	switch actionName {
 	case "send_message":
 		return m.sendMessage(ctx, action)
@@ -29,9 +32,9 @@ func (m Model) MutlipleReactions(actionName string, ctx context.Context, action 
 func (m Model) sendMessage(ctx context.Context, actionNode workspace.ActionNodeModel) error {
 	content := actionNode.Input["content"]
 	channel_id := actionNode.Input["channel_id"]
+
 	ttsStr := actionNode.Input["tts"]
     tts, err := strconv.ParseBool(ttsStr)
-
 	if err != nil {
 		return err
 	}
@@ -53,7 +56,7 @@ func manageNewMessage(channelID string, body []byte) error {
 		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodPost,
-			fmt.Sprintf("%s/channels/%s/messages", baseURL, channelID),
+			fmt.Sprintf("%s/channels/%s/messages", discord.BaseURL, channelID),
 			bytes.NewReader(body),
 			map[string]string{
 				"Authorization": "Bot " + os.Getenv("BOT_TOKEN"),
@@ -76,41 +79,12 @@ func manageNewMessage(channelID string, body []byte) error {
     return nil
 }
 
-
-func userInfo(accessToken string) (UserInfo, error) {
-	res, err := fetch.Fetch(
-		http.DefaultClient,
-		fetch.NewFetchRequest(
-			http.MethodGet,
-			userEndpoint,
-			nil,
-			map[string]string{
-				"Authorization": "Bearer " + accessToken,
-			},
-		),
-	)
-
-	if err != nil {
-		return UserInfo{}, err
-	}
-
-	defer res.Body.Close()
-
-	userInfo, err := decode.Json[UserInfo](res.Body)
-
-	if err != nil {
-		return UserInfo{}, err
-	}
-
-	return userInfo, nil
-}
-
 func guilds(accessToken string) (string, error) {
 	res, err := fetch.Fetch(
 		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodGet,
-			fmt.Sprintf("%s/guilds", userEndpoint),
+			fmt.Sprintf("%s/guilds", discord.UserEndpoint),
 			nil,
 			map[string]string{
 				"Authorization": "Bearer " + accessToken,
@@ -148,7 +122,7 @@ func createWebhook(accessToken string, channelId string, webhookName string) err
 		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodPost,
-			fmt.Sprintf("%s/channels/%s/webhooks", baseURL, channelId),
+			fmt.Sprintf("%s/channels/%s/webhooks", discord.BaseURL, channelId),
 			bytes.NewReader(body),
 			map[string]string{
 				"Authorization": "Bearer " + accessToken,
@@ -180,7 +154,7 @@ func deleteWebhook(accessToken string, webhookId string, webhookToken string) er
 		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodDelete,
-			fmt.Sprintf("%s/webhooks/%s/%s", baseURL, webhookId, webhookToken),
+			fmt.Sprintf("%s/webhooks/%s/%s", discord.BaseURL, webhookId, webhookToken),
 			nil,
 			map[string]string{
 				"Authorization": "Bearer " + accessToken,
@@ -207,7 +181,7 @@ func (m Model) RefreshToken(accessToken string, webhookId string, webhookToken s
 		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodGet,
-			tokenURL,
+			discord.TokenURL,
 			nil,
 			map[string]string{
 				"Content-Type": "application/x-www-form-urlencoded",
