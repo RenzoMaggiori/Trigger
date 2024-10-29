@@ -1,7 +1,7 @@
+import { Env } from '@/lib/env';
 import * as WebBrowser from 'expo-web-browser';
 
-const IP = process.env['IPv4'];
-const BASE_URL = `http://${IP}:8000`;
+const BASE_URL = `http://${Env.IPv4}:${Env.AUTH_PORT}`;
 const NGROK = process.env['ngrok'];
 
 export class ProvidersService {
