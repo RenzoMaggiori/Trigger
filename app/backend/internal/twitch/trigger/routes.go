@@ -20,7 +20,7 @@ func Router(ctx context.Context) (*router.Router, error) {
 
 	server.Handle("POST /watch", middlewares(http.HandlerFunc(handler.Watch)))
 	server.Handle("POST /webhook", http.HandlerFunc(handler.Webhook))
-	server.Handle("POST /stop", http.HandlerFunc(handler.Stop))
+	server.Handle("POST /stop", middlewares(http.HandlerFunc(handler.Stop)))
 
 	return router.NewRouter("/twitch/trigger", server), nil
 }

@@ -9,8 +9,6 @@ import (
 
 type WorkspaceCtx string
 
-const AccessTokenCtxKey WorkspaceCtx = WorkspaceCtx("AuthorizationCtxKey")
-
 const WorkspaceCtxKey WorkspaceCtx = WorkspaceCtx("WorkspaceCtxKey")
 
 const WebhookVerificationCtxKey WorkspaceCtx = WorkspaceCtx("WebhookVerificationCtxKey")

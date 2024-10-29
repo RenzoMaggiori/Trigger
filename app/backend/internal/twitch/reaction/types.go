@@ -4,10 +4,6 @@ import (
 	"trigger.com/trigger/pkg/action"
 )
 
-type GmailReactionCtx string
-
-const AccessTokenCtxKey GmailReactionCtx = GmailReactionCtx("AuthorizationCtxKey")
-
 type Service interface {
 	action.MultipleReactions
 }

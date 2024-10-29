@@ -62,10 +62,11 @@ var (
 	ErrInvalidGoogleToken error = errors.New("token provided is not valid")
 
 	// Twitch Errors
-	ErrTwitchUser           error = errors.New("error while fetching twitch user")
-	ErrTwitchUserFound      error = errors.New("twitch user found")
-	ErrTwitchAppAccessToken error = errors.New("error while fetching twitch app access token")
-	ErrTwitchSendMessage    error = errors.New("error while sending twitch channel message")
+	ErrTwitchUser             error = errors.New("error while fetching twitch user")
+	ErrTwitchUserFound        error = errors.New("twitch user found")
+	ErrTwitchAppAccessToken   error = errors.New("error while fetching twitch app access token")
+	ErrTwitchSendMessage      error = errors.New("error while sending twitch channel message")
+	ErrWebhookVerificationCtx error = errors.New("could not find webhook verification in ctx")
 
 	ErrCodes map[error]customerror.CustomError = map[error]customerror.CustomError{
 		ErrWorkspaceNotFound: {
@@ -222,6 +223,10 @@ var (
 		},
 		ErrTwitchSendMessage: {
 			Message: ErrTwitchSendMessage.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrWebhookVerificationCtx: {
+			Message: ErrWebhookVerificationCtx.Error(),
 			Code:    http.StatusInternalServerError,
 		},
 	}

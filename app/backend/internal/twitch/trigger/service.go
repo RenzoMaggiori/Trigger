@@ -5,8 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"log"
 	"net/http"
 	"os"
 
@@ -15,23 +13,21 @@ import (
 	"trigger.com/trigger/internal/twitch"
 	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
+	"trigger.com/trigger/pkg/middleware"
 )
 
 func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) error {
-	accessToken, ok := ctx.Value(AccessTokenCtxKey).(string)
-
+	accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
 	if !ok {
 		return errors.ErrAccessTokenCtx
 	}
 
 	userResponse, err := twitch.GetUserByAccessTokenRequest(accessToken)
-
 	if err != nil {
 		return err
 	}
 
 	appAccessToken, err := twitch.GetAppAccessTokenrRequest()
-
 	if err != nil {
 		return err
 	}
@@ -45,13 +41,11 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 		},
 		Transport: ChannelFollowTransport{
 			Method:   "webhook",
-			Callback: "https://7bea-163-5-23-104.ngrok-free.app/api/twitch/trigger/webhook",
+			Callback: fmt.Sprintf("%s/api/twitch/trigger/webhook", os.Getenv("TWITCH_BASE_URL")),
 			Secret:   os.Getenv("TWITCH_CLIENT_SECRET"),
 		},
 	}
-
 	body, err := json.Marshal(watchBody)
-
 	if err != nil {
 		return err
 	}
@@ -74,16 +68,10 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 	}
 	defer res.Body.Close()
 	if res.StatusCode >= 400 {
-		bodyBytes, err := io.ReadAll(res.Body)
-		if err != nil {
-			return err
-		}
-		log.Printf("Watch body: %s", bodyBytes)
 		return errors.ErrGmailWatch
 	}
 
 	session, _, err := session.GetSessionByAccessTokenRequest(accessToken)
-
 	if err != nil {
 		return err
 	}
@@ -92,22 +80,22 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 		ActionId: actionNode.ActionId,
 		UserId:   session.UserId,
 	}
-
 	_, _, err = workspace.WatchCompletedRequest(accessToken, watchCompleted)
-
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func (m Model) Webhook(ctx context.Context) error {
+	webhookVerfication, ok := ctx.Value(WebhookVerificationCtxKey).(WebhookVerificationRequest)
+	if !ok {
+		return errors.ErrWebhookVerificationCtx
 	}
 
 	return nil
 }
 
-func (m Model) Webhook(ctx context.Context) error {
-
-	return nil
-}
-
 func (m Model) Stop(ctx context.Context) error {
-
 	return nil
 }
