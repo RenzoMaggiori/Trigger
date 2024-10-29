@@ -36,7 +36,7 @@ var (
 
 func New(ctx context.Context) *cron.Cron {
 	c := cron.New()
-	err := c.AddFunc("*/5 * * * *", func() {
+	err := c.AddFunc("0 */5 * * * *", func() {
 		log.Println("job running...")
 		if err := changeInFollowers(ctx); err != nil {
 			log.Println(err)
