@@ -97,7 +97,7 @@ func (m *Model) GuildChannels(guildID string) ([]Channel, error) {
 	return response, nil
 }
 
-func (m *Model) AddSession(session *AddDiscordSession) error {
+func (m *Model) AddSession(session *AddDiscordSessionModel) error {
 	ctx := context.TODO()
 	newSync := DiscordSessionModel{
 		UserId:  session.UserId,
@@ -118,7 +118,7 @@ func (m *Model) AddSession(session *AddDiscordSession) error {
 	return nil
 }
 
-func (m *Model) UpdateSession(userId string, session *UpdateDiscordSession) error {
+func (m *Model) UpdateSession(userId string, session *UpdateDiscordSessionModel) error {
 	ctx := context.TODO()
 	filter := bson.M{"user_id": userId}
 	update := bson.M{"$set": bson.M{"running": session.Running, "stop": session.Stop}}

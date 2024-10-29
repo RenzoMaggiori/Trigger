@@ -50,7 +50,7 @@ func (h *Handler) GetGuildChannels(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) AddDiscordSession(w http.ResponseWriter, r *http.Request) {
-	session, err := decode.Json[AddDiscordSession](r.Body)
+	session, err := decode.Json[AddDiscordSessionModel](r.Body)
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
 		return
@@ -69,7 +69,7 @@ func (h *Handler) UpdateDiscordSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	session, err := decode.Json[UpdateDiscordSession](r.Body)
+	session, err := decode.Json[UpdateDiscordSessionModel](r.Body)
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
 		return
@@ -81,7 +81,7 @@ func (h *Handler) UpdateDiscordSession(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) GetDiscordSession(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetCurrentDiscordSession(w http.ResponseWriter, r *http.Request) {
 	accessToken, ok := r.Context().Value(middleware.TokenCtxKey).(string)
 	if !ok {
 		customerror.Send(w, errors.ErrAccessTokenCtx, errors.ErrCodes)

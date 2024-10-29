@@ -17,7 +17,7 @@ import (
 	"trigger.com/trigger/pkg/middleware"
 )
 
-func CreateDiscordSession() (*discordgo.Session, error) {
+func createDiscordSession() (*discordgo.Session, error) {
     discord, err := discordgo.New("Bot " + os.Getenv("BOT_TOKEN"))
     if err != nil {
         return nil, errors.ErrCreateDiscordGoSession
@@ -76,16 +76,13 @@ func (m *Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel)
     m.mutex.Lock()
     defer m.mutex.Unlock()
 
-    user, err := user.GetCurrUserRequest(ctx)
+    user, err := user.GetCurrUserByCtxRequest(ctx)
     if err != nil {
         return err
     }
 
-    var discordSession worker.DiscordSessionModel
-    // err = m.Collection.FindOne(ctx, bson.M{"user_id": user.Id}).Decode(&discordSession)
-    // if err != nil && err != mongo.ErrNoDocuments {
-    //     return errors.ErrDiscordUserSessionNotFound
-    // }
+    // var discordSession worker.DiscordSessionModel
+    discordSession worker.Get
 
     if discordSession.Running {
         return errors.ErrBotAlreadyRunning
@@ -161,7 +158,7 @@ func (m *Model) Webhook(ctx context.Context) error {
     m.mutex.Lock()
     defer m.mutex.Unlock()
 
-    user, err := user.GetCurrUserRequest(ctx)
+    user, err := user.GetCurrUserByCtxRequest(ctx)
     if err != nil {
         return err
     }
@@ -218,7 +215,7 @@ func (m *Model) Stop(ctx context.Context) error {
     m.mutex.Lock()
     defer m.mutex.Unlock()
 
-    user, err := user.GetCurrUserRequest(ctx)
+    user, err := user.GetCurrUserByCtxRequest(ctx)
     if err != nil {
         return err
     }

@@ -114,7 +114,7 @@ func GetUserByAccesstokenRequest(accessToken string) (*UserModel, int, error) {
 	return user, status, nil
 }
 
-func GetCurrUserRequest(ctx context.Context) (*UserModel, error) {
+func GetCurrUserByCtxRequest(ctx context.Context) (*UserModel, error) {
     accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
     if !ok {
         return nil, errors.ErrAccessTokenCtx

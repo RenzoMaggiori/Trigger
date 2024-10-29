@@ -9,13 +9,15 @@ const (
 	tokenURL     string = "https://discord.com/api/v10/oauth2/token"
 	userEndpoint string = "https://discord.com/api/v10/users/@me"
 	baseURL      string = "https://discord.com/api/v10"
+
+	workerBaseURL string = "http://localhost:8010/api/discord/worker"
 )
 
 type Service interface {
 	Me(token string) (*Me, error)
 	GuildChannels(guildID string) ([]Channel, error)
-	AddSession(session *AddDiscordSession) error
-	UpdateSession(userId string, session *UpdateDiscordSession) error
+	AddSession(session *AddDiscordSessionModel) error
+	UpdateSession(userId string, session *UpdateDiscordSessionModel) error
 	GetSession(token string) (*DiscordSessionModel, error)
 	DeleteSession(userId string) error
 }
@@ -39,13 +41,13 @@ type DiscordSessionModel struct {
 	Stop    bool   `json:"stop" bson:"stop"`
 }
 
-type AddDiscordSession struct {
+type AddDiscordSessionModel struct {
 	UserId  string `json:"user_id" bson:"user_id"`
 	DiscordId string `json:"discord_id" bson:"discord_id"`
 	GuildId string `json:"guild_id" bson:"guild_id"`
 }
 
-type UpdateDiscordSession struct {
+type UpdateDiscordSessionModel struct {
 	Running bool   `json:"running" bson:"running"`
 	Stop    bool   `json:"stop" bson:"stop"`
 }
