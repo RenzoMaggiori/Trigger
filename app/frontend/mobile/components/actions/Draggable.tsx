@@ -9,7 +9,7 @@ export default function Draggable({children}:  any) {
     const translationX = useSharedValue(0);
     const translationY = useSharedValue(0);
 
-    const panGesture = useAnimatedGestureHandler<PanGestureHandlerGestureEvent>({
+    const panGesture = useAnimatedGestureHandler<PanGestureHandlerGestureEvent, { x: number, y: number }>({
         onStart: (event, ctx) => {
             ctx.x = translationX.value;
             ctx.y = translationY.value;
