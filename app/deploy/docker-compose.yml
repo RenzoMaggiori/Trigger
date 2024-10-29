@@ -262,6 +262,8 @@ services:
       ADMIN_TOKEN: ${ADMIN_TOKEN}
 
       SPOTIFY_PORT: ${SPOTIFY_PORT}
+      SPOTIFY_KEY: ${SPOTIFY_KEY}
+      SPOTIFY_SECRET: ${SPOTIFY_SECRET}
     ports:
       - "${SPOTIFY_PORT}:${SPOTIFY_PORT}"
 

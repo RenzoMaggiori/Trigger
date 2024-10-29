@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
+	"golang.org/x/oauth2"
 	"trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/internal/session"
 	"trigger.com/trigger/internal/spotify"
@@ -47,15 +49,26 @@ func (m Model) PlayMusic(ctx context.Context, accessToken string, actionNode wor
 		return err
 	}
 
+	refreshToken := ""
+	if syncModel.RefreshToken != nil {
+		refreshToken = *syncModel.RefreshToken
+	}
+	client := spotify.Config().Client(ctx, &oauth2.Token{
+		AccessToken:  syncModel.AccessToken,
+		TokenType:    "Bearer",
+		RefreshToken: refreshToken,
+		Expiry:       syncModel.Expiry,
+		ExpiresIn:    syncModel.Expiry.Unix() - time.Now().Unix(),
+	})
+
 	res, err := fetch.Fetch(
-		http.DefaultClient,
+		client,
 		fetch.NewFetchRequest(
 			http.MethodPut,
 			fmt.Sprintf("%s/me/player/play", spotify.BaseUrl),
 			bytes.NewReader(body),
 			map[string]string{
-				"Authorization": fmt.Sprintf("Bearer %s", syncModel.AccessToken),
-				"Content-Type":  "application/json",
+				"Content-Type": "application/json",
 			},
 		),
 	)
