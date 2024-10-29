@@ -44,7 +44,7 @@ func (h *Handler) GetMyWorkspaces(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	workspaces, err := h.Service.GetByUserId(context.TODO(), s.UserId)
+	workspaces, err := h.Service.GetByUserId(r.Context(), s.UserId)
 	if err != nil {
 		log.Print(err)
 		customerror.Send(w, err, errors.ErrCodes)
