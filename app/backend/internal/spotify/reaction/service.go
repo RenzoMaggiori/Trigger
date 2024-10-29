@@ -62,7 +62,7 @@ func (m Model) PlayMusic(ctx context.Context, accessToken string, actionNode wor
 		return err
 	}
 	defer res.Body.Close()
-	if err != nil {
+	if res.StatusCode >= 400 {
 		return errors.ErrSpotifyBadStatus
 	}
 	return nil
