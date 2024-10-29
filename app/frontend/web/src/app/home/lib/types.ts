@@ -15,3 +15,9 @@ export const triggerSchema = z.object({
     }),
   ),
 });
+
+export const workspaces = z.array(triggerSchema.pick({
+  id: true
+}))
+
+export type Workspaces = z.infer<typeof workspaces>
