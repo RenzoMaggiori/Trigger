@@ -3,6 +3,7 @@
 import React from "react";
 import { IoLogoGithub } from "react-icons/io";
 import { FaDiscord } from "react-icons/fa";
+import { FaSpotify } from "react-icons/fa";
 import { type Edge } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { ConfigMenu } from "@/app/trigger/components/config-menu";
@@ -36,6 +37,11 @@ const services: Service[] = [
     icon: <PiMicrosoftOutlookLogo className="w-5 h-5 mr-2 text-sky-500" />,
     name: "Outlook",
     settings: "email",
+  },
+  {
+    icon: <FaSpotify className="w-5 h-5 mr-2 text-green-500" />,
+    name: "Spotify",
+    settings: "spotify",
   },
 ];
 

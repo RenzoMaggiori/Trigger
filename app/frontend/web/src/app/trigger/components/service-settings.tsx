@@ -99,6 +99,24 @@ function EmailSettings({ node, type }: { node: NodeItem, type: string }) {
   );
 }
 
+function SpotifySettings({node, type}: {node: NodeItem, type: string}) {
+  if (!node) return <div>No node found</div>;
+
+  return (
+    <>
+      {type === "reaction" ? (
+        <div className="flex flex-col gap-y-4">
+          <p>Plays music on your device.</p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-y-4">
+          <p>Updates on followers count.</p>
+        </div>
+      )}
+    </>
+  );
+}
+
 
 function DiscordSettings({}: { node: NodeItem, type: string }) {
   const [messageType, setMessageType] = React.useState<Status | null>({ label: "Normal Message", value: "Normal" });
@@ -230,5 +248,5 @@ function DiscordSettings({}: { node: NodeItem, type: string }) {
   );
 }
 
-export { EmailSettings, DiscordSettings, GithubSettings };
+export { EmailSettings, DiscordSettings, GithubSettings, SpotifySettings };
 
