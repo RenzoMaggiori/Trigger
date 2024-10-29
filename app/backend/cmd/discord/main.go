@@ -8,6 +8,7 @@ import (
 	"trigger.com/trigger/internal/discord"
 	"trigger.com/trigger/internal/discord/reaction"
 	"trigger.com/trigger/internal/discord/trigger"
+	"trigger.com/trigger/internal/discord/worker"
 	"trigger.com/trigger/pkg/arguments"
 	"trigger.com/trigger/pkg/middleware"
 	"trigger.com/trigger/pkg/mongodb"
@@ -44,6 +45,7 @@ func main() {
 		ctx,
 		trigger.Router,
 		reaction.Router,
+		worker.Router,
 	)
 	if err != nil {
 		log.Fatal(err)

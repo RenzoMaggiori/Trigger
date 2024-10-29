@@ -58,6 +58,9 @@ func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO: Implement this FOR DISCORD ONLY
+	// guildID := r.URL.Query().Get("guild_id")
+
 	err = h.Service.Callback(user, access_token)
 	if err != nil {
 		log.Println(err)

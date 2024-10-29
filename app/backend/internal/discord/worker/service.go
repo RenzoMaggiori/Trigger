@@ -1,72 +1,71 @@
 package worker
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
 	"net/http"
 	"os"
 
 	"github.com/bwmarrin/discordgo"
+	"trigger.com/trigger/internal/sync"
 	"trigger.com/trigger/internal/user"
+	"trigger.com/trigger/pkg/decode"
+	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
 )
 
-func (m Model) Me(token string) error {
-	user, status, err := user.GetUserByAccesstokenRequest(token)
+func (m Model) Me(token string) (*Me, error) {
+	user, _, err := user.GetUserByAccesstokenRequest(token)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	fmt.Printf("mail: %s, ID: %s\n", user.Email, user.Id)
+	sync, _, err := sync.GetSyncAccessTokenRequest(token, user.Id.Hex(), "discord")
+	if err != nil {
+		return nil, err
+	}
+
 	res, err := fetch.Fetch(
 		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodGet,
-			fmt.Sprintf(userEndpoint),
+			userEndpoint,
 			nil,
 			map[string]string{
-				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
+				"Authorization": fmt.Sprintf("Bearer %s", sync.AccessToken),
 			},
 		),
 	)
+
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", errors.ErrDiscordMe, err)
+	}
+
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%w: %v", errors.ErrDiscordMe, res.StatusCode)
+	}
+
+	discord_me, err := decode.Json[DiscordMe](res.Body)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", errors.ErrDecodeData, err)
+	}
+
+	me := Me{
+		DiscordId:       discord_me.Id,
+		Username: discord_me.Username,
+		Email:    discord_me.Email,
+		Avatar:   *discord_me.AvatarDecorationData,
+	}
+
+	return &me, nil
 }
 
-func (m Model) Guilds() error {
+func (m Model) GuildChannels(guildID string) ([]Channel, error) {
 	discord, err := discordgo.New("Bot " + os.Getenv("BOT_TOKEN"))
 
 	if err != nil {
-		return errors.New("error creating Discord session")
-	}
-
-	err = dg.Open()
-	if err != nil {
-		log.Fatalf("Error opening connection: %v", err)
-	}
-	defer dg.Close()
-
-
-	// Fetch the guilds the bot is in.
-	guilds, err := dg.Guilds()
-	if err != nil {
-		log.Fatalf("Error fetching guilds: %v", err)
-	}
-
-	// Print out each guild's name and ID.
-	// guilds := discord.Guilds()
-	fmt.Println("Guilds the bot is in:")
-	for _, guild := range guilds {
-		fmt.Printf("Name: %s, ID: %s\n", guild.Name, guild.ID)
-	}
-
-	return nil
-}
-
-func (m Model) GuildChannels(guildID string) error {
-	discord, err := discordgo.New("Bot " + os.Getenv("BOT_TOKEN"))
-
-	if err != nil {
-		return errors.New("error creating Discord session")
+		return nil, fmt.Errorf("%w: %v", errors.ErrCreateDiscordSession, err)
 	}
 
 	defer discord.Close()
@@ -74,16 +73,19 @@ func (m Model) GuildChannels(guildID string) error {
 	channels, err := discord.GuildChannels(guildID)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	for _, channel := range channels {
-		if channel.Type != discordgo.ChannelTypeGuildText {
+	var response []Channel
+	for _, ch := range channels {
+		if ch.Type != discordgo.ChannelTypeGuildText {
 			continue
 		}
-		fmt.Printf("Channel ID: %s, Name: %s\n", channel.ID, channel.Name)
+		response = append(response, Channel{
+			Id:   ch.ID,
+			Name: ch.Name,
+		})
 	}
 
-	return nil
-
+	return response, nil
 }

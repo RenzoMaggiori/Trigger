@@ -13,7 +13,7 @@ type Service interface {
 	GrantAccess(w http.ResponseWriter, r *http.Request) error
 	SyncWith(gothUser goth.User, access_token string) (error)
 	Callback(gothUser goth.User, access_token string) (error)
-	ByUserId(userId primitive.ObjectID, provider string) (SyncModel, error)
+	ByUserId(userId primitive.ObjectID, provider string) (*SyncModel, error)
 }
 
 type Handler struct {
