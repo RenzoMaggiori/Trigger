@@ -237,6 +237,7 @@ var (
 		ErrWebhookVerificationCtx: {
 			Message: ErrWebhookVerificationCtx.Error(),
 			Code:    http.StatusInternalServerError,
+		},
 		ErrSyncAccessTokenNotFound: {
 			Message: ErrUpdatingWorkspace.Error(),
 			Code:    http.StatusNotFound,
@@ -247,11 +248,11 @@ var (
 		},
 		ErrSpotifyBadStatus: {
 			Message: ErrSpotifyBadStatus.Error(),
-			Code: http.StatusBadRequest,
+			Code:    http.StatusBadRequest,
 		},
 		ErrBadWebhookData: {
 			Message: ErrBadWebhookData.Error(),
-			Code: http.StatusUnprocessableEntity,
+			Code:    http.StatusUnprocessableEntity,
 		},
 	}
 )
