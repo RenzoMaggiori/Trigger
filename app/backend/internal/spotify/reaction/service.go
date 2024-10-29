@@ -12,6 +12,7 @@ import (
 	"trigger.com/trigger/internal/session"
 	"trigger.com/trigger/internal/spotify"
 	"trigger.com/trigger/internal/sync"
+	"trigger.com/trigger/pkg/auth/oaclient"
 	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
 	"trigger.com/trigger/pkg/middleware"
@@ -47,15 +48,19 @@ func (m Model) PlayMusic(ctx context.Context, accessToken string, actionNode wor
 		return err
 	}
 
+	client, err := oaclient.New(ctx, spotify.Config(), syncModel)
+	if err != nil {
+		return err
+	}
+
 	res, err := fetch.Fetch(
-		http.DefaultClient,
+		client,
 		fetch.NewFetchRequest(
 			http.MethodPut,
 			fmt.Sprintf("%s/me/player/play", spotify.BaseUrl),
 			bytes.NewReader(body),
 			map[string]string{
-				"Authorization": fmt.Sprintf("Bearer %s", syncModel.AccessToken),
-				"Content-Type":  "application/json",
+				"Content-Type": "application/json",
 			},
 		),
 	)

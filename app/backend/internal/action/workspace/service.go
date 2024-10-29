@@ -62,7 +62,7 @@ func (m Model) GetByUserId(ctx context.Context, userId primitive.ObjectID) ([]Wo
 	return workspaces, nil
 }
 
-func (m Model) updateNodesStatus(actionId string, userId string, status string) error {
+func (m Model) updateNodesStatus(userId primitive.ObjectID, actionId primitive.ObjectID, status string) error {
 	filter := bson.M{
 		"user_id": userId,
 		"nodes": bson.M{
@@ -72,7 +72,6 @@ func (m Model) updateNodesStatus(actionId string, userId string, status string) 
 		},
 	}
 
-	// Define the update: set the output field for the matching nodes
 	update := bson.M{
 		"$set": bson.M{
 			"nodes.$.status": status,
@@ -144,7 +143,10 @@ func (m Model) initWorkspace(workspace *WorkspaceModel, accessToken string, isNo
 			if err != nil {
 				return err
 			}
-			m.updateNodesStatus(node.ActionId.Hex(), workspace.UserId.Hex(), "active")
+			err = m.updateNodesStatus(workspace.UserId, node.ActionId, "active")
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -298,8 +300,13 @@ func (m Model) processWorkspace(
 	}
 
 	result, err := m.Collection.UpdateMany(context.TODO(), filter, update)
-	if err != nil || result.MatchedCount == 0 {
-		return errors.ErrUpdatingWorkspace
+	if err != nil {
+		fmt.Printf("Matched count: %d", result.MatchedCount)
+		return fmt.Errorf("%w: %v ", errors.ErrUpdatingWorkspace, err)
+	}
+
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("%w: %s ", errors.ErrUpdatingWorkspace, "matched count is 0")
 	}
 
 	updatedResult, err := m.GetById(context.TODO(), workspace.Id)
@@ -410,7 +417,6 @@ func (m Model) WatchCompleted(ctx context.Context, watchCompleted WatchCompleted
 		},
 	}
 
-	// Define the update: set the output field for the matching nodes
 	update := bson.M{
 		"$set": bson.M{
 			"nodes.$.output": watchCompleted.Output,

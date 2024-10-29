@@ -2,6 +2,7 @@ package trigger
 
 import (
 	"context"
+	"log"
 	"net/http"
 
 	"trigger.com/trigger/internal/action/workspace"
@@ -46,7 +47,7 @@ func (h *Handler) WebhookGmail(w http.ResponseWriter, r *http.Request) {
 	err = h.Service.Webhook(context.WithValue(context.TODO(), GmailEventCtxKey, event))
 
 	if err != nil {
-		customerror.Send(w, err, errors.ErrCodes)
+		log.Println(err)
 		return
 	}
 }

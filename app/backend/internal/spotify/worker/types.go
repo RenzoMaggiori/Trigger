@@ -1,8 +1,13 @@
 package worker
 
+import (
+	"trigger.com/trigger/internal/session"
+	"trigger.com/trigger/internal/sync"
+)
+
 type UserTokens struct {
-	Auth string
-	Sync string
+	session session.SessionModel
+	sync    sync.SyncModel
 }
 
 type SpotifyFollowerHistory struct {

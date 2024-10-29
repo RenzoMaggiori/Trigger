@@ -1,4 +1,4 @@
-package sync
+package gmail
 
 import (
 	"fmt"
@@ -8,33 +8,32 @@ import (
 )
 
 /*
-** This defines the expected enviroment variables for the Google Service
+** This defines the expected enviroment variables for the Gmail Service
  */
 
 var (
 	errEnvNotFound      string     = "Enviroment argument %s not found"
-	enviromentArguments [21]string = [...]string{
-		"TOKEN_SECRET",
-		"ADMIN_TOKEN",
-		"USER_SERVICE_BASE_URL",
+	enviromentArguments [17]string = [...]string{
+		"MONGO_INITDB_ROOT_USERNAME",
+		"MONGO_INITDB_ROOT_PASSWORD",
+		"MONGO_PORT",
+		"MONGO_HOST",
+		"MONGO_DB",
+
 		"AUTH_SERVICE_BASE_URL",
-		"AUTH_PORT",
+		"USER_SERVICE_BASE_URL",
 		"SESSION_SERVICE_BASE_URL",
+		"SYNC_SERVICE_BASE_URL",
+		"ACTION_SERVICE_BASE_URL",
+		"GMAIL_SERVICE_BASE_URL",
+		"SETTINGS_SERVICE_BASE_URL",
+
+		"ADMIN_TOKEN",
+
+		"GMAIL_PORT",
+		"AUTH_PORT",
 		"GOOGLE_CLIENT_ID",
 		"GOOGLE_CLIENT_SECRET",
-		"TWITCH_CLIENT_ID",
-		"TWITCH_CLIENT_SECRET",
-		"GITHUB_KEY",
-		"GITHUB_SECRET",
-		"AUTH_KEY",
-		"AUTH_MAX_AGES",
-		"AUTH_IS_PROD",
-		"WEB_BASE_URL",
-		"WEB_PORT",
-		"DISCORD_KEY",
-		"DISCORD_SECRET",
-		"SPOTIFY_KEY",
-		"SPOTIFY_SECRET",
 	}
 )
 

@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 
 	"trigger.com/trigger/internal/action/workspace"
+	"trigger.com/trigger/internal/session"
+	"trigger.com/trigger/internal/sync"
 	"trigger.com/trigger/internal/twitch"
+	"trigger.com/trigger/pkg/auth/oaclient"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
@@ -30,7 +32,22 @@ func (m Model) SendChannelMessage(ctx context.Context, actionNode workspace.Acti
 		return errors.ErrAccessTokenCtx
 	}
 
-	user, err := twitch.GetUserByAccessTokenRequest(accessToken)
+	triggerUser, _, err := session.GetSessionByAccessTokenRequest(accessToken)
+	if err != nil {
+		return err
+	}
+
+	syncModel, _, err := sync.GetSyncAccessTokenRequest(accessToken, triggerUser.Id.Hex(), "twitch")
+	if err != nil {
+		return err
+	}
+
+	user, err := twitch.GetUserByAccessTokenRequest(*syncModel)
+	if err != nil {
+		return err
+	}
+
+	client, err := oaclient.New(context.TODO(), twitch.Config(), syncModel)
 	if err != nil {
 		return err
 	}
@@ -46,15 +63,14 @@ func (m Model) SendChannelMessage(ctx context.Context, actionNode workspace.Acti
 	}
 
 	res, err := fetch.Fetch(
-		http.DefaultClient,
+		client,
 		fetch.NewFetchRequest(
 			http.MethodPost,
 			"https://api.twitch.tv/helix/chat/messages",
 			bytes.NewReader(body),
 			map[string]string{
-				"Authorization": fmt.Sprintf("Bearer %s", accessToken),
-				"Client-Id":     os.Getenv("TWITCH_CLIENT_ID"),
-				"Content-Type":  "application/json",
+				"Client-Id":    os.Getenv("TWITCH_CLIENT_ID"),
+				"Content-Type": "application/json",
 			},
 		),
 	)

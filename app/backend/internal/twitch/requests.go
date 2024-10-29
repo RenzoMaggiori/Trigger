@@ -2,29 +2,35 @@ package twitch
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
 
+	"trigger.com/trigger/internal/sync"
+	"trigger.com/trigger/pkg/auth/oaclient"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
 )
 
-func GetUserByAccessTokenRequest(accessToken string) (*UserData, error) {
+func GetUserByAccessTokenRequest(syncModel sync.SyncModel) (*UserData, error) {
+	client, err := oaclient.New(context.TODO(), Config(), &syncModel)
+	if err != nil {
+		return nil, err
+	}
+
 	res, err := fetch.Fetch(
-		http.DefaultClient,
+		client,
 		fetch.NewFetchRequest(
 			http.MethodGet,
 			"https://api.twitch.tv/helix/users",
 			nil,
 			map[string]string{
-				"Authorization": fmt.Sprintf("Bearer %s", accessToken),
-				"Client-Id":     os.Getenv("TWITCH_CLIENT_ID"),
-				"Content-Type":  "application/json",
+				"Client-Id":    os.Getenv("TWITCH_CLIENT_ID"),
+				"Content-Type": "application/json",
 			},
 		),
 	)
@@ -32,15 +38,12 @@ func GetUserByAccessTokenRequest(accessToken string) (*UserData, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	defer res.Body.Close()
-
 	if res.StatusCode != http.StatusOK {
 		return nil, errors.ErrTwitchUser
 	}
 
 	userResponse, err := decode.Json[UserData](res.Body)
-
 	if err != nil {
 		return nil, err
 	}
@@ -51,15 +54,13 @@ func GetUserByAccessTokenRequest(accessToken string) (*UserData, error) {
 	return &userResponse, nil
 }
 
-func GetAppAccessTokenrRequest() (*AppAccessTokenResponse, error) {
+func GetAppAccessTokenRequest() (*AppAccessTokenResponse, error) {
 	appAccessTokenBody := AppAccessTokenBody{
 		ClientID:     os.Getenv("TWITCH_CLIENT_ID"),
 		ClientSecret: os.Getenv("TWITCH_CLIENT_SECRET"),
 		GrantType:    "client_credentials",
 	}
-
 	body, err := json.Marshal(appAccessTokenBody)
-
 	if err != nil {
 		return nil, err
 	}
@@ -79,9 +80,7 @@ func GetAppAccessTokenrRequest() (*AppAccessTokenResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	defer res.Body.Close()
-
 	if res.StatusCode != http.StatusOK {
 		bodyBytes, err := io.ReadAll(res.Body)
 		if err != nil {
@@ -92,10 +91,8 @@ func GetAppAccessTokenrRequest() (*AppAccessTokenResponse, error) {
 	}
 
 	appAccessTokenResponse, err := decode.Json[AppAccessTokenResponse](res.Body)
-
 	if err != nil {
 		return nil, err
 	}
-
 	return &appAccessTokenResponse, nil
 }
