@@ -17,7 +17,7 @@ import (
 type fnIsNodeReady func(ActionNodeModel) bool
 
 func (m Model) Get(ctx context.Context) ([]WorkspaceModel, error) {
-	var workspaces []WorkspaceModel
+	workspaces := make([]WorkspaceModel, 0)
 	filter := bson.M{}
 	cursor, err := m.Collection.Find(ctx, filter)
 
@@ -34,6 +34,7 @@ func (m Model) Get(ctx context.Context) ([]WorkspaceModel, error) {
 
 func (m Model) GetById(ctx context.Context, id primitive.ObjectID) (*WorkspaceModel, error) {
 	var workspace WorkspaceModel
+	workspace.Nodes = make([]ActionNodeModel, 0)
 	filter := bson.M{"_id": id}
 	err := m.Collection.FindOne(ctx, filter).Decode(&workspace)
 
@@ -44,7 +45,7 @@ func (m Model) GetById(ctx context.Context, id primitive.ObjectID) (*WorkspaceMo
 }
 
 func (m Model) GetByUserId(ctx context.Context, userId primitive.ObjectID) ([]WorkspaceModel, error) {
-	var workspaces []WorkspaceModel
+	workspaces := make([]WorkspaceModel, 0)
 
 	filter := bson.M{"user_id": userId}
 	cursor, err := m.Collection.Find(ctx, filter)
@@ -64,14 +65,14 @@ func (m Model) GetByUserId(ctx context.Context, userId primitive.ObjectID) ([]Wo
 func (m Model) updateNodesStatus(actionId string, userId string, status string) error {
 	filter := bson.M{
 		"user_id": userId,
-		"nodes": bson.M{
-			"$elemMatch": bson.M{
-				"action_id": actionId,
-			},
+    "nodes": bson.M{
+      "$elemMatch": bson.M{
+          "action_id": actionId,
+			 },
 		},
 	}
-
-	// Define the update: set the output field for the matching nodes
+  
+  	// Define the update: set the output field for the matching nodes
 	update := bson.M{
 		"$set": bson.M{
 			"nodes.$.status": status,
@@ -88,6 +89,24 @@ func (m Model) updateNodesStatus(actionId string, userId string, status string) 
 	}
 
 	return nil
+}
+ 
+func (m Model) GetByActionId(ctx context.Context, actionId primitive.ObjectID) ([]WorkspaceModel, error) {
+	workspaces := make([]WorkspaceModel, 0)
+
+	filter := bson.M{
+	cursor, err := m.Collection.Find(ctx, filter)
+
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", errors.ErrWorkspaceNotFound, err)
+	}
+	defer cursor.Close(ctx)
+
+	if err = cursor.All(ctx, &workspaces); err != nil {
+		return nil, err
+	}
+
+	return workspaces, nil
 }
 
 func initAction(actionNode ActionNodeModel, accessToken string) error {
@@ -150,7 +169,7 @@ func (m Model) Add(ctx context.Context, add *AddWorkspaceModel) (*WorkspaceModel
 	newWorkspace := WorkspaceModel{
 		Id:     primitive.NewObjectID(),
 		UserId: session.UserId,
-		Nodes:  []ActionNodeModel{},
+		Nodes:  make([]ActionNodeModel, 0),
 	}
 
 	for _, node := range add.Nodes {
@@ -212,7 +231,7 @@ func (m Model) processUserWorkspaces(workspaces []WorkspaceModel, actionComplete
 	var (
 		wg                sync.WaitGroup
 		mu                sync.Mutex
-		updatedWorkspaces []WorkspaceModel
+		updatedWorkspaces = make([]WorkspaceModel, 0)
 		errChan           = make(chan error, len(workspaces))
 	)
 
@@ -333,6 +352,7 @@ func (m Model) UpdateById(ctx context.Context, id primitive.ObjectID, update *Up
 	}
 
 	var updatedUserAction WorkspaceModel
+	updatedUserAction.Nodes = make([]ActionNodeModel, 0)
 	err = m.Collection.FindOne(ctx, filter).Decode(&updatedUserAction)
 
 	if err != nil {
@@ -372,7 +392,7 @@ func (m Model) WatchCompleted(ctx context.Context, watchCompleted WatchCompleted
 	}
 	defer cursor.Close(ctx)
 
-	var workspaces []WorkspaceModel
+	workspaces := make([]WorkspaceModel, 0)
 	if err = cursor.All(ctx, &workspaces); err != nil {
 		return nil, err
 	}

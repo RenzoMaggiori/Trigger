@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"trigger.com/trigger/internal/session"
 	customerror "trigger.com/trigger/pkg/custom-error"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/encode"
@@ -18,6 +19,32 @@ import (
 func (h *Handler) GetWorkspace(w http.ResponseWriter, r *http.Request) {
 	workspaces, err := h.Service.Get(context.TODO())
 
+	if err != nil {
+		log.Print(err)
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+	if err = encode.Json(w, workspaces); err != nil {
+		log.Print(err)
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+}
+
+func (h *Handler) GetMyWorkspaces(w http.ResponseWriter, r *http.Request) {
+	token, ok := r.Context().Value(middleware.TokenCtxKey).(string)
+	if !ok {
+		customerror.Send(w, errors.ErrAccessTokenCtx, errors.ErrCodes)
+		return
+	}
+
+	s, _, err := session.GetSessionByAccessTokenRequest(token)
+	if err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+
+	workspaces, err := h.Service.GetByUserId(r.Context(), s.UserId)
 	if err != nil {
 		log.Print(err)
 		customerror.Send(w, err, errors.ErrCodes)
@@ -62,6 +89,28 @@ func (h *Handler) GetWorkspacesByUserId(w http.ResponseWriter, r *http.Request) 
 	}
 
 	workspaces, err := h.Service.GetByUserId(context.TODO(), id)
+	if err != nil {
+		log.Print(err)
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+	if err = encode.Json(w, workspaces); err != nil {
+		log.Print(err)
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+}
+
+func (h *Handler) GetWorkspacesByActionId(w http.ResponseWriter, r *http.Request) {
+	id, err := primitive.ObjectIDFromHex(r.PathValue("action_id"))
+
+	if err != nil {
+		error := fmt.Errorf("%w: %v", errors.ErrBadActionId, err)
+		customerror.Send(w, error, errors.ErrCodes)
+		return
+	}
+
+	workspaces, err := h.Service.GetByActionId(context.TODO(), id)
 	if err != nil {
 		log.Print(err)
 		customerror.Send(w, err, errors.ErrCodes)

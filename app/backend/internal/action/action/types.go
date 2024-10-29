@@ -36,9 +36,9 @@ type ActionModel struct {
 }
 
 type AddActionModel struct {
-	Input    []string `json:"input" bson:"input"`
-	Output   []string `json:"output" bson:"output"`
 	Provider string   `json:"provider" bson:"provider"`
 	Type     string   `json:"type" bson:"type"`
 	Action   string   `json:"action" bson:"action"`
+	Input    []string `json:"input" bson:"input"`
+	Output   []string `json:"output" bson:"output"`
 }

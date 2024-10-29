@@ -2,9 +2,12 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { TriggerDraggable } from "@/app/trigger/components/trigger-draggable";
-import { Service } from "@/app/trigger/lib/types";
+import { NodeItem, Service } from "@/app/trigger/lib/types";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { useMenu } from "@/app/trigger/components/MenuProvider";
+import { useMutation } from "@tanstack/react-query";
+import { send_workspace } from "@/app/trigger/lib/send-workspace";
 
 interface ServicesProps {
   services: Service[];
@@ -12,16 +15,39 @@ interface ServicesProps {
     e: React.DragEvent<HTMLDivElement>,
     service: Service,
   ) => void;
-  handleOnClick: () => void;
 }
 
 export const ServicesComponent: React.FC<ServicesProps> = ({
   services,
   handleDragStart,
-  handleOnClick,
 }) => {
   const [loading, setLoading] = React.useState<boolean>(false);
+  const {triggerWorkspace, setTriggerWorkspace} = useMenu();
 
+  const mutation = useMutation({
+    mutationFn: send_workspace,
+    onSuccess: (data) => {
+      const nodes: Record<string, NodeItem> = {};
+      for (const n of data.nodes) {
+        nodes[n.node_id] = {
+          id: n.node_id,
+          type: n.action_id,
+          fields: n.input || {},
+          parent_ids: n.parents,
+          child_ids: n.children,
+          x_pos: n.x_pos,
+          y_pos: n.y_pos,
+        };
+      }
+      setTriggerWorkspace({ id: data.id, nodes });
+      setLoading(false);
+    },
+  });
+
+  const handleOnClick = () => {
+    if (!triggerWorkspace) return;
+    mutation.mutate(triggerWorkspace);
+  };
   return (
     <div className="w-auto p-5">
       <Card className="h-full">

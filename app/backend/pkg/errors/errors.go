@@ -67,6 +67,15 @@ var (
 	ErrTwitchAppAccessToken   error = errors.New("error while fetching twitch app access token")
 	ErrTwitchSendMessage      error = errors.New("error while sending twitch channel message")
 	ErrWebhookVerificationCtx error = errors.New("could not find webhook verification in ctx")
+	// Sync Errors
+	ErrSyncAccessTokenNotFound error = errors.New("error could not find sync access token")
+	ErrSyncModelTypeNone       error = errors.New("error could not decode sync model")
+
+	// Spotify Errors
+	ErrSpotifyBadStatus error = errors.New("invalid response status from spotify")
+
+	// Webhook
+	ErrBadWebhookData error = errors.New("could not parse the webhook data")
 
 	ErrCodes map[error]customerror.CustomError = map[error]customerror.CustomError{
 		ErrWorkspaceNotFound: {
@@ -228,6 +237,21 @@ var (
 		ErrWebhookVerificationCtx: {
 			Message: ErrWebhookVerificationCtx.Error(),
 			Code:    http.StatusInternalServerError,
+		ErrSyncAccessTokenNotFound: {
+			Message: ErrUpdatingWorkspace.Error(),
+			Code:    http.StatusNotFound,
+		},
+		ErrSyncModelTypeNone: {
+			Message: ErrSyncModelTypeNone.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrSpotifyBadStatus: {
+			Message: ErrSpotifyBadStatus.Error(),
+			Code: http.StatusBadRequest,
+		},
+		ErrBadWebhookData: {
+			Message: ErrBadWebhookData.Error(),
+			Code: http.StatusUnprocessableEntity,
 		},
 	}
 )

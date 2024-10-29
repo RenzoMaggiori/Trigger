@@ -33,7 +33,7 @@ func StartActionRequest(accessToken string, actionCompletedNode ActionNodeModel,
 		),
 	)
 
-  if err != nil {
+	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 	defer res.Body.Close()
@@ -113,7 +113,7 @@ func GetByUserId(accessToken string, userId string) ([]WorkspaceModel, int, erro
 	)
 
 	if err != nil {
-		return nil, res.StatusCode, err
+		return nil, http.StatusInternalServerError, err
 	}
 
 	defer res.Body.Close()
@@ -126,6 +126,34 @@ func GetByUserId(accessToken string, userId string) ([]WorkspaceModel, int, erro
 		return nil, res.StatusCode, err
 	}
 
+	return workspaces, res.StatusCode, nil
+}
+
+func GetByActionIdRequest(accessToken string, actionId string) ([]WorkspaceModel, int, error) {
+	res, err := fetch.Fetch(
+		http.DefaultClient,
+		fetch.NewFetchRequest(
+			http.MethodGet,
+			fmt.Sprintf("%s/api/workspace/action_id/%s", os.Getenv("ACTION_SERVICE_BASE_URL"), actionId),
+			nil,
+			map[string]string{
+				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
+				"Content-Type":  "application/json",
+			},
+		),
+	)
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return nil, res.StatusCode, errors.ErrCompletingAction
+	}
+
+	workspaces, err := decode.Json[[]WorkspaceModel](res.Body)
+	if err != nil {
+		return nil, res.StatusCode, err
+	}
 	return workspaces, res.StatusCode, nil
 }
 
@@ -150,9 +178,8 @@ func WatchCompletedRequest(accessToken string, watchCompleted WatchCompletedMode
 	)
 
 	if err != nil {
-		return nil, res.StatusCode, err
+		return nil, http.StatusInternalServerError, err
 	}
-
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
 		return nil, res.StatusCode, errors.ErrCompletingAction

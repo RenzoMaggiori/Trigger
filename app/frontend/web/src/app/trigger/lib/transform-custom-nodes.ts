@@ -1,10 +1,7 @@
 import { type Edge } from "@xyflow/react";
 import { CustomNode, NodeItem } from "@/app/trigger/lib/types";
 
-export const transformCustomNodes = (
-  customNodes: CustomNode[],
-  edges: Edge[],
-): Record<string, NodeItem> => {
+export function transformCustomNodes(customNodes: CustomNode[], edges: Edge[]): Record<string, NodeItem> {
   const nodes: Record<string, NodeItem> = {};
 
   for (const node of customNodes) {

@@ -9,7 +9,6 @@ import (
 )
 
 func Router(ctx context.Context) (*router.Router, error) {
-
 	server := http.NewServeMux()
 	middlewares := middleware.Create(
 		middleware.Auth,

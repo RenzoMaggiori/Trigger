@@ -11,11 +11,11 @@ interface ActionBox {
     icon: React.ReactElement;
 }
 
-interface TechBoxProps extends ActionBox {
+interface ProviderBoxProps extends ActionBox {
     onDelete: (id: number) => void;
 }
 
-export default function TechBox({ index, id, name, icon, initialState, onDelete }: TechBoxProps) {
+export default function ProviderBox({ index, id, name, icon, initialState, onDelete }: ProviderBoxProps) {
 
     return (
     <Animated.View style={styles.boxContent} entering={initialState.current ? FadeIn.delay(100 * index) : FadeIn} exiting={FadeOut} layout={Layout.delay(50)}>

@@ -17,6 +17,7 @@ type Service interface {
 	Get(context.Context) ([]WorkspaceModel, error)
 	GetById(context.Context, primitive.ObjectID) (*WorkspaceModel, error)
 	GetByUserId(context.Context, primitive.ObjectID) ([]WorkspaceModel, error)
+	GetByActionId(context.Context, primitive.ObjectID) ([]WorkspaceModel, error)
 	Add(context.Context, *AddWorkspaceModel) (*WorkspaceModel, error)
 	ActionCompleted(context.Context, ActionCompletedModel) ([]WorkspaceModel, error)
 	UpdateById(context.Context, primitive.ObjectID, *UpdateWorkspaceModel) (*WorkspaceModel, error)
