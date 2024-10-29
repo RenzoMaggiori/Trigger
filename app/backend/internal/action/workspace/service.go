@@ -65,14 +65,14 @@ func (m Model) GetByUserId(ctx context.Context, userId primitive.ObjectID) ([]Wo
 func (m Model) updateNodesStatus(actionId string, userId string, status string) error {
 	filter := bson.M{
 		"user_id": userId,
-    "nodes": bson.M{
-      "$elemMatch": bson.M{
-          "action_id": actionId,
-			 },
+		"nodes": bson.M{
+			"$elemMatch": bson.M{
+				"action_id": actionId,
+			},
 		},
 	}
-  
-  	// Define the update: set the output field for the matching nodes
+
+	// Define the update: set the output field for the matching nodes
 	update := bson.M{
 		"$set": bson.M{
 			"nodes.$.status": status,
@@ -90,11 +90,18 @@ func (m Model) updateNodesStatus(actionId string, userId string, status string) 
 
 	return nil
 }
- 
+
 func (m Model) GetByActionId(ctx context.Context, actionId primitive.ObjectID) ([]WorkspaceModel, error) {
 	workspaces := make([]WorkspaceModel, 0)
 
 	filter := bson.M{
+		"nodes": bson.M{
+			"$elemMatch": bson.M{
+				"action_id": actionId,
+			},
+		},
+	}
+
 	cursor, err := m.Collection.Find(ctx, filter)
 
 	if err != nil {
