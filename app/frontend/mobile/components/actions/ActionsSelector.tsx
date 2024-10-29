@@ -1,39 +1,64 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScrollView, View, Text, StyleSheet } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import Button from '@/components/Button';
+import { TriggersService } from '@/api/triggers/service';
 
 interface ActionSelectorProps {
     provider: string | null;
     onActionSelect: (action: string) => void;
+    type: string;
 }
 
-const actions = [
-    { id: 1, input: [], output: [], provider:'google', type: 'trigger', action: 'new email_1'},
-    { id: 2, input: [], output: [], provider:'google', type: 'trigger', action: 'new email_2'},
-    { id: 3, input: [], output: [], provider:'google', type: 'trigger', action: 'new email_3'},
-    { id: 4, input: [], output: [], provider:'google', type: 'reaction', action: 'send email_1'},
-    { id: 5, input: [], output: [], provider:'google', type: 'reaction', action: 'send email_2'},
-    { id: 6, input: [], output: [], provider:'google', type: 'reaction', action: 'send email_3'},
-];
+export default function ActionSelector({ provider, onActionSelect, type }: ActionSelectorProps) {
+    const [actions, setActions] = useState<any[]>([]);
+    const [reactions, setReactions] = useState<any[]>([]);
 
-export default function ActionSelector({ provider, onActionSelect }: ActionSelectorProps) {
-    const filteredActions = actions.filter(action => action.provider === provider);
+    useEffect(() => {
+        async function fetchActions() {
+            const result = await TriggersService.getTriggersByProvider(provider ?? '');
+            setActions(result);
+        }
+        fetchActions();
+    }, [provider]);
+
+    useEffect(() => {
+        async function fetchReactions() {
+            const result = await TriggersService.getReactionsByProvider(provider ?? '');
+            setReactions(result);
+        }
+        fetchReactions();
+    }, [provider]);
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Select an Action</Text>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.actionsList}>
-                {filteredActions.map((action, index) => (
-                    <Button
-                        key={action.id}
-                        onPress={() => onActionSelect(action.action)}
-                        title={action.action}
-                        textColor={Colors.light.tint}
-                        backgroundColor='#fff'
-                        borderCol={Colors.light.tint}
-                        style={{ marginVertical: 5 }}
-                    />
-                ))}
+                {type === 'trigger' ? (
+                    actions.map((action, index) => (
+                        <Button
+                            key={action.id}
+                            onPress={() => onActionSelect(action.action)}
+                            title={action.action}
+                            textColor={Colors.light.tint}
+                            backgroundColor='#fff'
+                            borderCol={Colors.light.tint}
+                            style={{ marginVertical: 5 }}
+                        />
+                    ))
+                ) : (
+                    reactions.map((reaction, index) => (
+                        <Button
+                            key={reaction.id}
+                            onPress={() => onActionSelect(reaction.action)}
+                            title={reaction.action}
+                            textColor={Colors.light.tint}
+                            backgroundColor='#fff'
+                            borderCol={Colors.light.tint}
+                            style={{ marginVertical: 5 }}
+                        />
+                    ))
+                )}
             </ScrollView>
         </View>
     );

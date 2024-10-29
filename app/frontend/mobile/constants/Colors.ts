@@ -25,6 +25,8 @@ export const Colors = {
     github: '#24292E',
     slack: '#4A154B',
     outlook: '#0072C6',
+    spotify: '#1DB954',
+    twitch: '#6441A4',
     grey: '#d6dbdf',
   },
   dark: {

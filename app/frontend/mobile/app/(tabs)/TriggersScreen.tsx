@@ -101,6 +101,7 @@ export default function TriggerScreen() {
                             <ActionSelector
                                 provider={selectedProvider}
                                 onActionSelect={isAddingAction ? addAction : addReaction}
+                                type={isAddingAction ? 'trigger' : 'reaction'}
                             />
                         )}
                     </View>
