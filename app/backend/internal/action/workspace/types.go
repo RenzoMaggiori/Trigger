@@ -73,7 +73,7 @@ type AddActionNodeModel struct {
 
 type UpdateActionNodeModel struct {
 	NodeId   string            `json:"node_id" bson:"node_id"`
-	Input    map[string]string `json:"fields" bson:"fields"`
+	Input    map[string]string `json:"input" bson:"input"`
 	Output   map[string]string `json:"output" bson:"input"`
 	Parents  []string          `json:"parents" bson:"parents"`
 	Children []string          `json:"children" bson:"children"`
