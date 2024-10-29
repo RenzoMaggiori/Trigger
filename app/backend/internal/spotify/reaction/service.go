@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	"trigger.com/trigger/internal/action/workspace"
@@ -36,7 +37,7 @@ func (m Model) PlayMusic(ctx context.Context, accessToken string, actionNode wor
 		return err
 	}
 
-	syncModel, _, err := sync.GetSyncAccessTokenRequest(accessToken, session.UserId.String(), "spotify")
+	syncModel, _, err := sync.GetSyncAccessTokenRequest(accessToken, session.UserId.Hex(), "spotify")
 	if err != nil {
 		return err
 	}
@@ -63,7 +64,11 @@ func (m Model) PlayMusic(ctx context.Context, accessToken string, actionNode wor
 	}
 	defer res.Body.Close()
 	if res.StatusCode >= 400 {
-		return errors.ErrSpotifyBadStatus
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			return errors.ErrSpotifyBadStatus
+		}
+		return fmt.Errorf("%w: %s", errors.ErrSpotifyBadStatus, body)
 	}
 	return nil
 }

@@ -77,6 +77,9 @@ var (
 	// Webhook
 	ErrBadWebhookData error = errors.New("could not parse the webhook data")
 
+	// State
+	ErrMalformedState error = errors.New("malformed state")
+
 	ErrCodes map[error]customerror.CustomError = map[error]customerror.CustomError{
 		ErrWorkspaceNotFound: {
 			Message: ErrWorkspaceNotFound.Error(),
@@ -252,6 +255,10 @@ var (
 		},
 		ErrBadWebhookData: {
 			Message: ErrBadWebhookData.Error(),
+			Code:    http.StatusUnprocessableEntity,
+		},
+		ErrMalformedState: {
+			Message: ErrMalformedState.Error(),
 			Code:    http.StatusUnprocessableEntity,
 		},
 	}

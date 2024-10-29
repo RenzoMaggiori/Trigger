@@ -39,7 +39,15 @@ func (m Model) AccessToken(gothUser goth.User) (string, error) {
 		}
 	}
 	if providerSession == nil {
-		return "", errProviderSessionNotFound
+		session.AddSessionRequest(os.Getenv("ADMIN_TOKEN"), session.AddSessionModel{
+			UserId:       user.Id,
+			ProviderName: &gothUser.Provider,
+			AccessToken:  gothUser.AccessToken,
+			RefreshToken: &gothUser.AccessToken,
+			Expiry:       gothUser.ExpiresAt,
+			IdToken:      &gothUser.IDToken,
+		})
+		return gothUser.AccessToken, nil
 	}
 
 	patchSession := session.UpdateSessionModel{
