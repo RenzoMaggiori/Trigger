@@ -27,6 +27,10 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 
 	triggerUser, _, err := user.GetUserByAccesstokenRequest(accessToken)
 
+	if err != nil {
+		return err
+	}
+
 	userResponse, err := twitch.GetUserByAccessTokenRequest(accessToken)
 	if err != nil {
 		return err
@@ -98,16 +102,16 @@ func (m Model) Webhook(ctx context.Context) error {
 		return errors.ErrBadUserId
 	}
 
-	webhookVerfication, ok := ctx.Value(WebhookVerificationCtxKey).(WebhookVerificationRequest)
-	if !ok {
-		return errors.ErrWebhookVerificationCtx
-	}
+	// webhookVerfication, ok := ctx.Value(WebhookVerificationCtxKey).(WebhookVerificationRequest)
+	// if !ok {
+	// 	return errors.ErrWebhookVerificationCtx
+	// }
 
 	userSesssion, _, err := session.GetSessionByUserIdRequest(os.Getenv("ADMIN_TOKEN"), userId)
 	if err != nil {
 		return err
 	}
-	if userSesssion == nil || len(userSesssion) == 0 {
+	if len(userSesssion) == 0 {
 		return errors.ErrSessionNotFound
 	}
 

@@ -15,6 +15,8 @@ const WebhookVerificationCtxKey WorkspaceCtx = WorkspaceCtx("WebhookVerification
 
 const WebhookUserIdCtxKey WorkspaceCtx = WorkspaceCtx("WebhookUserIdCtxKey")
 
+const VerificationMessageType = "webhook_callback_verification"
+
 type Service interface {
 	action.Trigger
 }
