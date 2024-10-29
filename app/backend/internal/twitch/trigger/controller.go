@@ -24,6 +24,7 @@ func (h *Handler) Watch(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Webhook(w http.ResponseWriter, r *http.Request) {
+	userId := r.URL.Query().Get("userId")
 	// Decode the incoming JSON body into the WebhookVerificationRequest struct
 	webhookVerification, err := decode.Json[WebhookVerificationRequest](r.Body)
 	if err != nil {
@@ -32,7 +33,15 @@ func (h *Handler) Webhook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Call the service's Webhook method
-	err = h.Service.Webhook(context.WithValue(r.Context(), WebhookVerificationCtxKey, webhookVerification))
+	err = h.Service.Webhook(context.WithValue(
+		context.WithValue(
+			r.Context(),
+			WebhookUserIdCtxKey,
+			userId,
+		),
+		WebhookVerificationCtxKey,
+		webhookVerification),
+	)
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
 		return

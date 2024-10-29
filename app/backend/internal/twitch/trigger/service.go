@@ -8,9 +8,12 @@ import (
 	"net/http"
 	"os"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"trigger.com/trigger/internal/action/action"
 	"trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/internal/session"
 	"trigger.com/trigger/internal/twitch"
+	"trigger.com/trigger/internal/user"
 	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
 	"trigger.com/trigger/pkg/middleware"
@@ -21,6 +24,8 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 	if !ok {
 		return errors.ErrAccessTokenCtx
 	}
+
+	triggerUser, _, err := user.GetUserByAccesstokenRequest(accessToken)
 
 	userResponse, err := twitch.GetUserByAccessTokenRequest(accessToken)
 	if err != nil {
@@ -41,7 +46,7 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 		},
 		Transport: ChannelFollowTransport{
 			Method:   "webhook",
-			Callback: fmt.Sprintf("%s/api/twitch/trigger/webhook", os.Getenv("TWITCH_BASE_URL")),
+			Callback: fmt.Sprintf("%s/api/twitch/trigger/webhook?userId=%s", os.Getenv("TWITCH_BASE_URL"), triggerUser.Id.String()),
 			Secret:   os.Getenv("TWITCH_CLIENT_SECRET"),
 		},
 	}
@@ -88,11 +93,44 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 }
 
 func (m Model) Webhook(ctx context.Context) error {
+	userId, ok := ctx.Value(WebhookUserIdCtxKey).(string)
+	if !ok {
+		return errors.ErrBadUserId
+	}
+
 	webhookVerfication, ok := ctx.Value(WebhookVerificationCtxKey).(WebhookVerificationRequest)
 	if !ok {
 		return errors.ErrWebhookVerificationCtx
 	}
 
+	userSesssion, _, err := session.GetSessionByUserIdRequest(os.Getenv("ADMIN_TOKEN"), userId)
+	if err != nil {
+		return err
+	}
+	if userSesssion == nil || len(userSesssion) == 0 {
+		return errors.ErrSessionNotFound
+	}
+
+	accessToken := userSesssion[0].AccessToken
+	action, _, err := action.GetByActionNameRequest(accessToken, "actionName")
+	if err != nil {
+		return err
+	}
+
+	userUUID, err := primitive.ObjectIDFromHex(userId)
+	if err != nil {
+		return err
+	}
+
+	update := workspace.ActionCompletedModel{
+		ActionId: action.Id,
+		UserId:   userUUID,
+		Output:   map[string]string{},
+	}
+	_, err = workspace.ActionCompletedRequest(accessToken, update)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

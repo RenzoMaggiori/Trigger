@@ -13,6 +13,8 @@ const WorkspaceCtxKey WorkspaceCtx = WorkspaceCtx("WorkspaceCtxKey")
 
 const WebhookVerificationCtxKey WorkspaceCtx = WorkspaceCtx("WebhookVerificationCtxKey")
 
+const WebhookUserIdCtxKey WorkspaceCtx = WorkspaceCtx("WebhookUserIdCtxKey")
+
 type Service interface {
 	action.Trigger
 }
