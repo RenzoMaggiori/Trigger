@@ -89,6 +89,7 @@ var (
 	ErrGuildIdNotFound error = errors.New("guild id not found")
 	ErrAddDiscordSession error = errors.New("error storing discord session in db")
 	ErrUpdateDiscordSession error = errors.New("error updating discord session in db")
+	ErrDeleteDiscordSession error = errors.New("error deleting discord session in db")
 
 	ErrCodes map[error]customerror.CustomError = map[error]customerror.CustomError{
 		ErrWorkspaceNotFound: {
@@ -313,6 +314,10 @@ var (
 		},
 		ErrUpdateDiscordSession: {
 			Message: ErrUpdateDiscordSession.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrDeleteDiscordSession: {
+			Message: ErrDeleteDiscordSession.Error(),
 			Code:    http.StatusInternalServerError,
 		},
 	}

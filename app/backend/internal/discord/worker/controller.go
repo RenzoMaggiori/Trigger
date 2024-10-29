@@ -47,8 +47,6 @@ func (h *Handler) GetGuildChannels(w http.ResponseWriter, r *http.Request) {
 		customerror.Send(w, err, errors.ErrCodes)
 		return
 	}
-
-
 }
 
 func (h *Handler) AddDiscordSession(w http.ResponseWriter, r *http.Request) {
@@ -61,19 +59,6 @@ func (h *Handler) AddDiscordSession(w http.ResponseWriter, r *http.Request) {
 	err = h.Service.AddSession(&session)
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
-	}
-}
-
-func (h *Handler) GetDiscordSession(w http.ResponseWriter, r *http.Request) {
-	sessions, err := h.Service.GetSession()
-	if err != nil {
-		customerror.Send(w, err, errors.ErrCodes)
-		return
-	}
-
-	if err = encode.Json(w, sessions); err != nil {
-		customerror.Send(w, err, errors.ErrCodes)
-		return
 	}
 }
 
@@ -90,7 +75,39 @@ func (h *Handler) UpdateDiscordSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.Service.UpdateSession(id, &session)
+	err = h.Service.UpdateSession(id.Hex(), &session)
+	if err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+	}
+}
+
+func (h *Handler) GetDiscordSession(w http.ResponseWriter, r *http.Request) {
+	accessToken, ok := r.Context().Value(middleware.TokenCtxKey).(string)
+	if !ok {
+		customerror.Send(w, errors.ErrAccessTokenCtx, errors.ErrCodes)
+		return
+	}
+
+	session, err := h.Service.GetSession(accessToken)
+	if err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+
+	if err = encode.Json(w, session); err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+}
+
+func (h *Handler) DeleteDiscordSession(w http.ResponseWriter, r *http.Request) {
+	id, err := primitive.ObjectIDFromHex(r.PathValue("id"))
+	if err != nil {
+		customerror.Send(w, errors.ErrBadUserId, errors.ErrCodes)
+		return
+	}
+
+	err = h.Service.DeleteSession(id.Hex())
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
 	}

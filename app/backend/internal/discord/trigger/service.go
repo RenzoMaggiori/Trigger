@@ -17,7 +17,7 @@ import (
 	"trigger.com/trigger/pkg/middleware"
 )
 
-func createDiscordSession() (*discordgo.Session, error) {
+func CreateDiscordSession() (*discordgo.Session, error) {
     discord, err := discordgo.New("Bot " + os.Getenv("BOT_TOKEN"))
     if err != nil {
         return nil, errors.ErrCreateDiscordGoSession
@@ -72,34 +72,20 @@ func watchSession(ctx context.Context, discord *discordgo.Session, stop chan str
 //     return nil
 // }
 
-func getCurrUser(ctx context.Context) (*user.UserModel, error) {
-    accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
-    if !ok {
-        return nil, errors.ErrAccessTokenCtx
-    }
-
-    user, _, err := user.GetUserByAccesstokenRequest(accessToken)
-    if err != nil {
-        return nil, errors.ErrUserNotFound
-    }
-
-    return user, nil
-}
-
 func (m *Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) error {
     m.mutex.Lock()
     defer m.mutex.Unlock()
 
-    user, err := getCurrUser(ctx)
+    user, err := user.GetCurrUserRequest(ctx)
     if err != nil {
         return err
     }
 
     var discordSession worker.DiscordSessionModel
-    err = m.Collection.FindOne(ctx, bson.M{"user_id": user.Id}).Decode(&discordSession)
-    if err != nil && err != mongo.ErrNoDocuments {
-        return errors.ErrDiscordUserSessionNotFound
-    }
+    // err = m.Collection.FindOne(ctx, bson.M{"user_id": user.Id}).Decode(&discordSession)
+    // if err != nil && err != mongo.ErrNoDocuments {
+    //     return errors.ErrDiscordUserSessionNotFound
+    // }
 
     if discordSession.Running {
         return errors.ErrBotAlreadyRunning
@@ -145,6 +131,7 @@ func (m *Model) runDiscordSession(discord *discordgo.Session, stop chan struct{}
 
 func newMessage(s *discordgo.Session, m *discordgo.MessageCreate, stop chan struct{}) {
 
+
 	log.Printf("Message received in GuildID: %s, ChannelID: %s\n", m.GuildID, m.ChannelID)
 	log.Printf("Message from %s: %s\n", m.Author.Username, m.Content)
     select {
@@ -174,7 +161,7 @@ func (m *Model) Webhook(ctx context.Context) error {
     m.mutex.Lock()
     defer m.mutex.Unlock()
 
-    user, err := getCurrUser(ctx)
+    user, err := user.GetCurrUserRequest(ctx)
     if err != nil {
         return err
     }
@@ -231,7 +218,7 @@ func (m *Model) Stop(ctx context.Context) error {
     m.mutex.Lock()
     defer m.mutex.Unlock()
 
-    user, err := getCurrUser(ctx)
+    user, err := user.GetCurrUserRequest(ctx)
     if err != nil {
         return err
     }

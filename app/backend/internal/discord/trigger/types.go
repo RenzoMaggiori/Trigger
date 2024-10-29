@@ -47,6 +47,11 @@ type Model struct {
 // 	Stop    bool   `json:"stop" bson:"stop"`
 // }
 
+type WatchModel struct {
+	Owner string `json:"owner"`
+	Repo  string `json:"repo"`
+}
+
 type StopModel struct {
 	Owner  string `json:"owner"`
 	Repo   string `json:"repo"`

@@ -101,6 +101,7 @@ func (m *Model) AddSession(session *AddDiscordSession) error {
 	ctx := context.TODO()
 	newSync := DiscordSessionModel{
 		UserId:  session.UserId,
+		DiscordId: session.DiscordId,
 		GuildId: session.GuildId,
 		Token:   os.Getenv("BOT_TOKEN"),
 		Running: false,
@@ -133,3 +134,72 @@ func (m *Model) UpdateSession(userId string, session *UpdateDiscordSession) erro
 
 	return nil
 }
+
+func  (m *Model) GetSession(token string) (*DiscordSessionModel, error) {
+	user, _, err := user.GetUserByAccesstokenRequest(token)
+	if err != nil {
+		return nil, err
+	}
+
+	var discordSession DiscordSessionModel
+	err = m.Collection.FindOne(context.TODO(), bson.M{"user_id": user.Id.Hex()}).Decode(&discordSession)
+	if err != nil {
+		return nil, errors.ErrDiscordUserSessionNotFound
+	}
+
+	return &discordSession, nil
+}
+
+func (m *Model) DeleteSession(userId string) error {
+	ctx := context.TODO()
+	filter := bson.M{"user_id": userId}
+
+	_, err := m.Collection.DeleteOne(ctx, filter)
+	if err != nil {
+		return errors.ErrDeleteDiscordSession
+	}
+
+	log.Printf("Discord session deleted for user %s...\n", userId)
+
+	return nil
+}
+
+// func (m *Model) Watch(ctx context.Context, actionNode sync.ActionNodeModel) error {
+// 	m.mutex.Lock()
+// 	defer m.mutex.Unlock()
+
+// 	user, err := getCurrUser(ctx)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	discordSession, err := m.getSession(user.AccessToken)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	if discordSession.Running {
+// 		return errors.ErrBotAlreadyRunning
+// 	}
+
+// 	discord, err := trigger.CreateDiscordSession()
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	stop := make(chan struct{})
+// 	go m.runDiscordSession(discord, stop)
+
+// 	_, err = m.Collection.UpdateOne(
+// 		ctx,
+// 		bson.M{"user_id": user.Id},
+// 		bson.M{"$set": DiscordSessionModel{UserId: user.Id.Hex(), Token: os.Getenv("BOT_TOKEN"), Running: true, Stop: true}},
+// 	)
+// 	if err != nil {
+// 		return fmt.Errorf("error storing user session: %v", err)
+// 	}
+
+// 	log.Printf("Bot started and running for user %s...\n", user.Id.Hex())
+
+// 	return nil
+// }

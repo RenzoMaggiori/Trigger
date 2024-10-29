@@ -1,9 +1,6 @@
 package worker
 
 import (
-	"sync"
-
-	"github.com/bwmarrin/discordgo"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -19,6 +16,8 @@ type Service interface {
 	GuildChannels(guildID string) ([]Channel, error)
 	AddSession(session *AddDiscordSession) error
 	UpdateSession(userId string, session *UpdateDiscordSession) error
+	GetSession(token string) (*DiscordSessionModel, error)
+	DeleteSession(userId string) error
 }
 
 type Handler struct {
@@ -27,12 +26,13 @@ type Handler struct {
 
 type Model struct {
 	Collection *mongo.Collection
-	discord    *discordgo.Session
-	mutex      sync.Mutex
+	// discord    *discordgo.Session
+	// mutex      sync.Mutex
 }
 
 type DiscordSessionModel struct {
 	UserId  string `json:"user_id" bson:"user_id"`
+	DiscordId string `json:"discord_id" bson:"discord_id"`
 	GuildId string `json:"guild_id" bson:"guild_id"`
 	Token   string `json:"token" bson:"token"`
 	Running bool   `json:"running" bson:"running"`
@@ -41,6 +41,7 @@ type DiscordSessionModel struct {
 
 type AddDiscordSession struct {
 	UserId  string `json:"user_id" bson:"user_id"`
+	DiscordId string `json:"discord_id" bson:"discord_id"`
 	GuildId string `json:"guild_id" bson:"guild_id"`
 }
 
