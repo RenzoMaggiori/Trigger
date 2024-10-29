@@ -1,17 +1,19 @@
-"use server";
+"use server"
 
-import { cookies } from "next/headers";
 import { env } from "@/lib/env";
-import { triggerSchema } from "@/app/home/lib/types";
+import { workspaces } from "@/app/home/lib/types";
+import { z } from "zod";
+import { cookies } from 'next/headers';
 
-export async function getWorkspaces() {
+export async function getWorkspaces(): Promise<z.infer<typeof workspaces>> {
   const accessToken = cookies().get("Authorization")?.value;
+
   if (!accessToken) {
     throw new Error("could not get access token");
   }
 
   const res = await fetch(
-    `${env.NEXT_PUBLIC_ACTION_SERVICE_URL}/api/workspace`,
+    `${env.NEXT_PUBLIC_ACTION_SERVICE_URL}/api/workspace/me`,
     {
       method: "GET",
       headers: {
@@ -20,10 +22,13 @@ export async function getWorkspaces() {
       },
     },
   );
-  if (!res.ok)
+  if (!res.ok) {
+    console.error("Invalid response status, received: ", res.status);
     throw new Error(`invalid status code: ${res.status}`);
+  }
 
-  const { data, error } = triggerSchema.safeParse(await res.json());
+  const body = await res.json();
+  const { data, error } = workspaces.safeParse(body);
   if (error) {
     console.error(error);
     throw new Error("could not parse api response");

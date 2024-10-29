@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"trigger.com/trigger/internal/session"
 	customerror "trigger.com/trigger/pkg/custom-error"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/encode"
@@ -18,6 +19,32 @@ import (
 func (h *Handler) GetWorkspace(w http.ResponseWriter, r *http.Request) {
 	workspaces, err := h.Service.Get(context.TODO())
 
+	if err != nil {
+		log.Print(err)
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+	if err = encode.Json(w, workspaces); err != nil {
+		log.Print(err)
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+}
+
+func (h *Handler) GetMyWorkspaces(w http.ResponseWriter, r *http.Request) {
+	token, ok := r.Context().Value(middleware.TokenCtxKey).(string)
+	if !ok {
+		customerror.Send(w, errors.ErrAccessTokenCtx, errors.ErrCodes)
+		return
+	}
+
+	s, _, err := session.GetSessionByAccessTokenRequest(token)
+	if err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+
+	workspaces, err := h.Service.GetByUserId(context.TODO(), s.UserId)
 	if err != nil {
 		log.Print(err)
 		customerror.Send(w, err, errors.ErrCodes)
