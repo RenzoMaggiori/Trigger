@@ -33,16 +33,16 @@ type Me struct {
 type DiscordMe struct {
 	Id                    string      `json:"id"`
 	Username              string      `json:"username"`
-	Avatar                *string     `json:"avatar"` // Pointer to handle null
+	Avatar                *string     `json:"avatar"
 	Discriminator         string      `json:"discriminator"`
 	PublicFlags           int         `json:"public_flags"`
 	Flags                 int         `json:"flags"`
-	Banner                *string     `json:"banner"` // Pointer to handle null
-	AccentColor           *string     `json:"accent_color"` // Pointer to handle null
+	Banner                *string     `json:"banner"
+	AccentColor           *string     `json:"accent_color"
 	GlobalName            string      `json:"global_name"`
-	AvatarDecorationData  *string     `json:"avatar_decoration_data"` // Pointer to handle null
-	BannerColor           *string     `json:"banner_color"` // Pointer to handle null
-	Clan                  *string     `json:"clan"` // Pointer to handle null
+	AvatarDecorationData  *string     `json:"avatar_decoration_data"
+	BannerColor           *string     `json:"banner_color"
+	Clan                  *string     `json:"clan"
 	MFAEnabled            bool        `json:"mfa_enabled"`
 	Locale                string      `json:"locale"`
 	PremiumType           int         `json:"premium_type"`
