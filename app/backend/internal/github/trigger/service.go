@@ -10,6 +10,9 @@ import (
 
 	"trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/internal/github"
+	"trigger.com/trigger/internal/session"
+	"trigger.com/trigger/internal/sync"
+	"trigger.com/trigger/pkg/auth/oaclient"
 	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
 	"trigger.com/trigger/pkg/middleware"
@@ -25,6 +28,21 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 		return errors.ErrAccessTokenCtx
 	}
 
+	session, _, err := session.GetSessionByAccessTokenRequest(accessToken)
+	if err != nil {
+		return err
+	}
+
+	syncModel, _, err := sync.GetSyncAccessTokenRequest(accessToken, session.UserId.Hex(), "github")
+	if err != nil {
+		return err
+	}
+
+	client, err := oaclient.New(ctx, github.Config(), syncModel)
+	if err != nil {
+		return err
+	}
+
 	body, err := json.Marshal(map[string]any{
 		"name":   "web",
 		"active": true,
@@ -38,22 +56,19 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 	if err != nil {
 		return err
 	}
-
 	if len(actionNode.Input) != 2 {
 		return errors.ErrInvalidReactionInput
 	}
 
-	// TODO: get correct access token from sync service
 	owner := actionNode.Input["owner"]
 	repo := actionNode.Input["repo"]
 	res, err := fetch.Fetch(
-		&http.Client{},
+		client,
 		fetch.NewFetchRequest(
 			http.MethodPost,
 			fmt.Sprintf("%s/repos/%s/%s/hooks", githuBaseUrl, owner, repo),
 			bytes.NewReader(body),
 			map[string]string{
-				"Authorization":        fmt.Sprintf("Bearer %s", accessToken),
 				"Accept":               "application/vnd.github+json",
 				"X-GitHub-Api-Version": "2022-11-28",
 			},
@@ -75,19 +90,33 @@ func (m Model) Stop(ctx context.Context) error {
 		return errors.ErrAccessTokenCtx
 	}
 
+	session, _, err := session.GetSessionByAccessTokenRequest(accessToken)
+	if err != nil {
+		return err
+	}
+
+	syncModel, _, err := sync.GetSyncAccessTokenRequest(accessToken, session.UserId.Hex(), "github")
+	if err != nil {
+		return err
+	}
+
+	client, err := oaclient.New(ctx, github.Config(), syncModel)
+	if err != nil {
+		return err
+	}
+
 	body, ok := ctx.Value(github.StopCtxKey).(StopModel)
 	if !ok {
 		return errors.ErrGithubStopModelNotFound
 	}
 
 	res, err := fetch.Fetch(
-		&http.Client{},
+		client,
 		fetch.NewFetchRequest(
 			http.MethodDelete,
 			fmt.Sprintf("%s/repos/%s/%s/hooks/%s", githuBaseUrl, body.Owner, body.Repo, body.HookId),
 			nil,
 			map[string]string{
-				"Authorization":        fmt.Sprintf("Bearer %s", accessToken),
 				"Accept":               "application/vnd.github+json",
 				"X-GitHub-Api-Version": "2022-11-28",
 			},
