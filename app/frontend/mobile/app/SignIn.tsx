@@ -6,6 +6,9 @@ import Button from '@/components/Button';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import ButtonIcon from '@/components/ButtonIcon';
 import { CredentialsService } from '@/api/auth/credentials/service';
+import { ProvidersService } from '@/api/auth/providers/service';
+import { UserService } from '@/api/user/service';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function SignIn() {
     const [email, setEmail] = useState('');
@@ -16,12 +19,16 @@ export default function SignIn() {
     const router = useRouter();
 
     const handleSignIn = async () => {
-        await CredentialsService.login(email, password)
-            .then(() => router.push('/(tabs)/HomeScreen'))
-            .catch((error) => {
-                setErrorMessage(error.message + "\nPlease try again.");
-                setModalVisible(true);
-            });
+        try {
+            await CredentialsService.login(email, password);
+            let user = await UserService.getUser(email);
+            console.log('--[sign in] user: ', user);
+            await AsyncStorage.setItem('user', JSON.stringify(user));
+            router.push('/(tabs)/HomeScreen');
+        } catch (error) {
+            setErrorMessage((error as Error).message + "\nPlease try again.");
+            setModalVisible(true);
+        }
     };
 
     const handleDismissError = () => {
@@ -29,19 +36,24 @@ export default function SignIn() {
         setErrorMessage("");
     };
 
-    const handleSocialSignIn = (service: string) => {
-        router.push('/(tabs)/HomeScreen');
-        console.log(`Signing up with ${service}`);
+    const handleSocialSignIn = async (providerName: string) => {
+        try {
+            await ProvidersService.handleOAuth(providerName);
+            router.push('/(tabs)/HomeScreen');
+        } catch (error) {
+            setErrorMessage((error as Error).message + "\nPlease try again.");
+            setModalVisible(true);
+        }
     };
 
     const technologies = [
-        { name: 'Google', icon: <Ionicons name="logo-google" size={30} color={Colors.light.google} />},
-        { name: 'Github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
-        { name: 'Outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.outlook} /> },
+        { name: 'google', icon: <Ionicons name="logo-google" size={30} color={Colors.light.google} />},
+        { name: 'github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
+        { name: 'outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.outlook} /> },
     ];
 
     const data = {
-        logo: require('../assets/images/react-logo.png'),
+        logo: require('../assets/images/logo.png'),
     };
 
     return (
@@ -64,6 +76,7 @@ export default function SignIn() {
                     onChangeText={setPassword}
                 />
                 <Button
+                    backgroundColor={Colors.light.tint}
                     onPress={handleSignIn}
                     title="SIGN IN"
                 />
@@ -117,10 +130,12 @@ const styles = StyleSheet.create({
     },
     navbar: {
         alignItems: 'center',
+        margin: 10,
+        marginBottom: 20,
     },
     logo: {
-        width: 80,
-        height: 80,
+        resizeMode: 'contain',
+        height: 30,
     },
     scrollContainer: {
         flexGrow: 1,
