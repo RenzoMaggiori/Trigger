@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Modal, TouchableNativeFeedback } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
@@ -8,11 +8,22 @@ import { Video, ResizeMode } from 'expo-av';
 import ButtonIcon from '@/components/ButtonIcon';
 import Button from '@/components/Button';
 import { ProvidersService } from '@/api/auth/providers/service';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LandingPage() {
     const router = useRouter();
     const [errorMessage, setErrorMessage] = useState("");
     const [modalVisible, setModalVisible] = useState(false);
+
+    useEffect(() => {
+        const checkUserLoggedIn = async () => {
+            const user = await AsyncStorage.getItem('user');
+            if (user) {
+                router.push('/(tabs)/HomeScreen');
+            }
+        };
+        checkUserLoggedIn();
+    }, []);
 
     const handleSignIn = () => {
         router.push('/SignIn');
@@ -60,7 +71,6 @@ export default function LandingPage() {
     return (
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.navbar}>
-                {/* <Logo width={80} height={80} /> */}
                 <Image source={data.logo} style={styles.logo} />
             </View>
 

@@ -8,6 +8,7 @@ import CommunityScreen from './CommunityScreen';
 import { Menu, Divider, Provider } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/Colors';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Tab = createBottomTabNavigator();
 
@@ -20,7 +21,8 @@ export default function TabLayout() {
 
   const router = useRouter();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('user');
     router.push('/LandingPage' as const);
   };
 

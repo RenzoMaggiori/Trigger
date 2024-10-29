@@ -20,15 +20,9 @@ export default function SignIn() {
 
     const handleSignIn = async () => {
         try {
-            // await CredentialsService.login(email, password)
-            //     .then(() => router.push('/(tabs)/HomeScreen'))
-            //     .catch((error) => {
-            //         setErrorMessage(error.message + "\nPlease try again.");
-            //         setModalVisible(true);
-            //     });
             await CredentialsService.login(email, password);
             let user = await UserService.getUser(email);
-            console.log('--user: ', user);
+            console.log('--[sign in] user: ', user);
             await AsyncStorage.setItem('user', JSON.stringify(user));
             router.push('/(tabs)/HomeScreen');
         } catch (error) {

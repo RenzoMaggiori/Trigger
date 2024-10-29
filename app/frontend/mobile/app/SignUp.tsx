@@ -9,6 +9,8 @@ import { CredentialsService } from '@/api/auth/credentials/service';
 import * as WebBrowser from 'expo-web-browser';
 import { WebView } from 'react-native-webview';
 import { ProvidersService } from '@/api/auth/providers/service';
+import { UserService } from '@/api/user/service';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface ProvidersProps {
     providers: {
@@ -32,12 +34,16 @@ export default function SignUp() {
     const router = useRouter();
 
     const handleSignUp = async () => {
-        await CredentialsService.register(email, password)
-            .then(() => router.push('/(tabs)/HomeScreen'))
-            .catch((error) => {
-                setErrorMessage((error as Error).message + "\nPlease try again.");
-                setModalVisible(true);
-            });
+        try {
+            await CredentialsService.register(email, password);
+            let user = await UserService.getUser(email);
+            console.log('--[sign up] user: ', user);
+            await AsyncStorage.setItem('user', JSON.stringify(user));
+            router.push('/(tabs)/HomeScreen');
+        } catch (error) {
+            setErrorMessage((error as Error).message + "\nPlease try again.");
+            setModalVisible(true);
+        }
     };
 
     const handleDismissError = () => {
