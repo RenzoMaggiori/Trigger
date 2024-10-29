@@ -184,7 +184,7 @@ func (m Model) Add(ctx context.Context, add *AddWorkspaceModel) (*WorkspaceModel
 			NodeId:   node.NodeId,
 			ActionId: node.ActionId,
 			Input:    node.Input,
-			Output:   nil,
+			Output:   make(map[string]string),
 			Parents:  node.Parents,
 			Status:   "inactive",
 			Children: node.Children,
@@ -282,19 +282,17 @@ func (m Model) processWorkspace(
 		},
 	}
 
-	// Construct the update for each key in the Output map
 	outputUpdate := bson.M{}
 	for key, value := range actionCompleted.Output {
 		outputUpdate[fmt.Sprintf("nodes.$.output.%s", key)] = value
 	}
 
-	// Use $set to apply the updated Output fields without overwriting the entire map
 	update := bson.M{
 		"$set": bson.M{
 			"nodes.$.status": "completed",
 		},
 	}
-	// Merge the outputUpdate into the main $set update
+
 	for k, v := range outputUpdate {
 		update["$set"].(bson.M)[k] = v
 	}
@@ -348,44 +346,54 @@ func isNodeReady(child ActionNodeModel, workspace WorkspaceModel) bool {
 	}
 	return true
 }
-
 func (m Model) UpdateById(ctx context.Context, id primitive.ObjectID, update *UpdateWorkspaceModel) (*WorkspaceModel, error) {
-	// Create filter to find document by ID
+	// Define filter to find the workspace document by ID
 	filter := bson.M{"_id": id}
 
-	// Iterate over each node to build individual update operations
+	// Iterate over each node to process updates individually
 	for _, node := range update.Nodes {
-		// Filter to match specific node within nodes array by node_id
-		nodeFilter := bson.M{
-			"_id":           id,
-			"nodes.node_id": node.NodeId,
+		// Define a filter to match the specific node by node_id within the workspace nodes array
+		filter := bson.M{
+			"_id": id,
+			"nodes": bson.M{
+				"$elemMatch": bson.M{
+					"node_id": node.NodeId,
+				},
+			},
 		}
 
-		// Build update for the specific node fields
 		nodeUpdate := bson.M{
 			"$set": bson.M{
-				"nodes.$.input":    node.Input,
-				"nodes.$.output":   node.Output,
 				"nodes.$.parents":  node.Parents,
 				"nodes.$.children": node.Children,
 				"nodes.$.x_pos":    node.XPos,
 				"nodes.$.y_pos":    node.YPos,
-				"nodes.$.status":   "completed", // Example: setting a status on each node
 			},
 		}
 
-		// Execute update for the current node
-		_, err := m.Collection.UpdateOne(ctx, nodeFilter, nodeUpdate)
+		for k, v := range node.Input {
+			nodeUpdate["$set"].(bson.M)[fmt.Sprintf("nodes.$.input.%s", k)] = v
+		}
+
+		for k, v := range node.Output {
+			nodeUpdate["$set"].(bson.M)[fmt.Sprintf("nodes.$.output.%s", k)] = v
+		}
+
+		// Execute the update operation for the current node
+		res, err := m.Collection.UpdateOne(ctx, filter, nodeUpdate)
 		if err != nil {
-			return nil, fmt.Errorf("%w: %v", errors.ErrWorkspaceNotFound, err)
+			return nil, fmt.Errorf("error updating workspace node: %w", err)
+		}
+		if res.MatchedCount == 0 {
+			return nil, errors.ErrWorkspaceNotFound
 		}
 	}
 
-	// Retrieve the updated document
+	// Retrieve the updated workspace document
 	var updatedWorkspace WorkspaceModel
 	err := m.Collection.FindOne(ctx, filter).Decode(&updatedWorkspace)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error retrieving updated workspace: %w", err)
 	}
 
 	return &updatedWorkspace, nil
