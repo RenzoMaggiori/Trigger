@@ -148,7 +148,7 @@ func (m Model) Add(ctx context.Context, add *AddWorkspaceModel) (*WorkspaceModel
 			NodeId:   node.NodeId,
 			ActionId: node.ActionId,
 			Input:    node.Input,
-			Output:   nil,
+			Output:   map[string]string{},
 			Parents:  node.Parents,
 			Status:   "inactive",
 			Children: node.Children,

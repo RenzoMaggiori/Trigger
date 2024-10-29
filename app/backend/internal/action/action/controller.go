@@ -15,12 +15,10 @@ func (h *Handler) GetActions(w http.ResponseWriter, r *http.Request) {
 	users, err := h.Service.Get()
 
 	if err != nil {
-		log.Print(err)
 		customerror.Send(w, err, errors.ErrCodes)
 		return
 	}
 	if err = encode.Json(w, users); err != nil {
-		log.Print(err)
 		customerror.Send(w, err, errors.ErrCodes)
 		return
 	}
@@ -36,12 +34,10 @@ func (h *Handler) GetActionById(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.Service.GetById(id)
 	if err != nil {
-		log.Print(err)
 		customerror.Send(w, err, errors.ErrCodes)
 		return
 	}
 	if err = encode.Json(w, user); err != nil {
-		log.Print(err)
 		customerror.Send(w, err, errors.ErrCodes)
 		return
 	}
@@ -67,12 +63,10 @@ func (h *Handler) GetActionByAction(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.Service.GetByActionName(action)
 	if err != nil {
-		log.Print(err)
 		customerror.Send(w, err, errors.ErrCodes)
 		return
 	}
 	if err = encode.Json(w, user); err != nil {
-		log.Print(err)
 		customerror.Send(w, err, errors.ErrCodes)
 		return
 	}

@@ -1,5 +1,8 @@
 FROM golang:1.23-alpine
 
+# Install MongoDB client (for Alpine-based image)
+RUN apk --no-cache add mongodb-tools
+
 WORKDIR /app
 
 COPY ./backend ./
@@ -11,9 +14,6 @@ RUN go build -o action cmd/action/main.go
 ENV ACTION_PORT=${ACTION_PORT}
 
 EXPOSE ${ACTION_PORT}
-
-# Install MongoDB client (for Alpine-based image)
-RUN apk --no-cache add mongodb-tools
 
 # Define environment variables for MongoDB connection
 ENV MONGO_HOST=${MONGO_HOST}

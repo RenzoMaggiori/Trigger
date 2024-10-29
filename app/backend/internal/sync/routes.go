@@ -66,6 +66,8 @@ func Router(ctx context.Context) (*router.Router, error) {
 			callback,
 			spotify.ScopeUserReadEmail,
 			spotify.ScopeUserReadPrivate,
+			spotify.ScopeUserReadPlaybackState,
+			spotify.ScopeUserModifyPlaybackState,
 		),
 	)
 

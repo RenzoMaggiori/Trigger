@@ -40,7 +40,7 @@ var (
 		},
 		{
 			Provider: "spotify",
-			Type:     "action",
+			Type:     "trigger",
 			Action:   "watch_followers",
 			Input:    []string{},
 			Output:   []string{"followers", "increased"},
@@ -70,6 +70,9 @@ func Run(collection *mongo.Collection) error {
 		}
 
 		newActions = append(newActions, a)
+	}
+	if len(newActions) == 0 {
+		return nil
 	}
 
 	_, err := collection.InsertMany(ctx, newActions)
