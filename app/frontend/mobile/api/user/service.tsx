@@ -1,4 +1,5 @@
 import { Env } from "@/lib/env";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const BASE_URL = `http://${Env.IPV4}:${Env.USER_PORT}`;
 
@@ -13,7 +14,7 @@ export class UserService {
             const response = await fetch (`${baseUrl}/email/${email}`, {
                 method: 'GET',
                 headers: {
-                    'Authorization': `Bearer ${Env.BEARER}`,
+                    'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
                     'Content-Type': 'application/json'
                 }
             });

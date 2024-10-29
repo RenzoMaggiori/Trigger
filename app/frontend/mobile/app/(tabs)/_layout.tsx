@@ -23,6 +23,7 @@ export default function TabLayout() {
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem('user');
+    await AsyncStorage.removeItem('token');
     router.push('/LandingPage' as const);
   };
 

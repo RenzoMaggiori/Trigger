@@ -10,7 +10,6 @@ const envSchema = z.object({
     NGROK: z.string().url(),
     AUTH_PORT: z.string(),
     USER_PORT: z.string(),
-    BEARER: z.string(),
 });
 
 function getEnv() {
@@ -19,7 +18,6 @@ function getEnv() {
         NGROK: process.env['NGROK'],
         AUTH_PORT: process.env['AUTH_PORT'],
         USER_PORT: process.env['USER_PORT'],
-        BEARER: process.env['BEARER'],
     });
 
     if (!success) {
