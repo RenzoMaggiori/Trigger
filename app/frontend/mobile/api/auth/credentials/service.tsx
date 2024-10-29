@@ -1,7 +1,7 @@
 import { Env } from '@/lib/env';
 import { NetworkInfo } from 'react-native-network-info';
 
-const BASE_URL = `http://${Env.IPv4}:${Env.AUTH_PORT}`;
+const BASE_URL = `http://${Env.IPV4}:${Env.AUTH_PORT}`;
 
 export class CredentialsService {
     static async getBaseUrl() {

@@ -6,18 +6,20 @@ export const withDevDefault = <T extends z.ZodTypeAny>(
 ) => (process.env["NODE_ENV"] !== "production" ? schema.default(val) : schema);
 
 const envSchema = z.object({
-    IPv4: z.string().url(),
-    ngrok: z.string().url(),
-    AUTH_PORT: z.string().url(),
-    USER_PORT: z.string().url(),
+    IPV4: z.string(),
+    NGROK: z.string().url(),
+    AUTH_PORT: z.string(),
+    USER_PORT: z.string(),
+    BEARER: z.string(),
 });
 
 function getEnv() {
     const { success, data, error } = envSchema.safeParse({
-        IPV4: process.env['IPv4'],
-        NGROK: process.env['ngrok'],
+        IPV4: process.env['IPV4'],
+        NGROK: process.env['NGROK'],
         AUTH_PORT: process.env['AUTH_PORT'],
         USER_PORT: process.env['USER_PORT'],
+        BEARER: process.env['BEARER'],
     });
 
     if (!success) {

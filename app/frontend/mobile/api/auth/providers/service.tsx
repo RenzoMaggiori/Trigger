@@ -1,13 +1,12 @@
 import { Env } from '@/lib/env';
 import * as WebBrowser from 'expo-web-browser';
 
-const BASE_URL = `http://${Env.IPv4}:${Env.AUTH_PORT}`;
-const NGROK = process.env['ngrok'];
+const BASE_URL = `http://${Env.IPV4}:${Env.AUTH_PORT}`;
 
 export class ProvidersService {
     //? OAUTH
     static async handleOAuth(provider: string) {
-        const url = `${NGROK}/api/oauth2/login?provider=${provider}&redirect=${BASE_URL}/api/oauth2/callback`;
+        const url = `${Env.NGROK}/api/oauth2/login?provider=${provider}&redirect=${Env.NGROK}/api/oauth2/callback`;
 
         try {
             const result = await WebBrowser.openAuthSessionAsync(
