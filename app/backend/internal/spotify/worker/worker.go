@@ -21,6 +21,7 @@ import (
 	"trigger.com/trigger/internal/spotify"
 	"trigger.com/trigger/internal/spotify/trigger"
 	userSync "trigger.com/trigger/internal/sync"
+	"trigger.com/trigger/pkg/auth/oaclient"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/fetch"
 	"trigger.com/trigger/pkg/mongodb"
@@ -92,7 +93,7 @@ func userChangeInFollowers(ctx context.Context, collection *mongo.Collection, wo
 		return err
 	}
 
-	spotifyUser, err := getSpotifyUser(userTokens.Sync)
+	spotifyUser, err := getSpotifyUser(userTokens.sync)
 	if err != nil {
 		return err
 	}
@@ -116,7 +117,7 @@ func userChangeInFollowers(ctx context.Context, collection *mongo.Collection, wo
 	}
 
 	if spotifyUser.Followers.Total != userHistory.Total {
-		err := fetchSpotifyWebhook(userTokens.Auth, trigger.ActionBody{
+		err := fetchSpotifyWebhook(userTokens.session.AccessToken, trigger.ActionBody{
 			Type: action.Action,
 			Data: trigger.FollowerChange{
 				Followers: spotifyUser.Followers.Total,
@@ -170,31 +171,33 @@ func getUserAccessToken(userId string) (*UserTokens, error) {
 	}
 
 	userTokens := UserTokens{
-		Auth: session[0].AccessToken,
-		Sync: "",
+		session: session[0],
 	}
-	user, _, err := userSync.GetSyncAccessTokenRequest(userTokens.Auth, userId, "spotify")
+	syncModel, _, err := userSync.GetSyncAccessTokenRequest(userTokens.session.AccessToken, userId, "spotify")
 	if err != nil {
 		return nil, err
 	}
-	if user == nil {
+	if syncModel == nil {
 		return nil, errSyncModelNull
 	}
 
-	userTokens.Sync = user.AccessToken
+	userTokens.sync = *syncModel
 	return &userTokens, nil
 }
 
-func getSpotifyUser(accessToken string) (*SpotifyUser, error) {
+func getSpotifyUser(syncModel userSync.SyncModel) (*SpotifyUser, error) {
+	client, err := oaclient.New(context.TODO(), spotify.Config(), &syncModel)
+	if err != nil {
+		return nil, err
+	}
+
 	res, err := fetch.Fetch(
-		http.DefaultClient,
+		client,
 		fetch.NewFetchRequest(
 			http.MethodGet,
 			fmt.Sprintf("%s/me", spotify.BaseUrl),
 			nil,
-			map[string]string{
-				"Authorization": fmt.Sprintf("Bearer %s", accessToken),
-			},
+			nil,
 		),
 	)
 	if err != nil {

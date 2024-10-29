@@ -12,6 +12,7 @@ import (
 	"trigger.com/trigger/internal/action/action"
 	"trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/internal/session"
+	"trigger.com/trigger/internal/sync"
 	"trigger.com/trigger/internal/twitch"
 	"trigger.com/trigger/internal/user"
 	"trigger.com/trigger/pkg/errors"
@@ -26,17 +27,21 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 	}
 
 	triggerUser, _, err := user.GetUserByAccesstokenRequest(accessToken)
-
 	if err != nil {
 		return err
 	}
 
-	userResponse, err := twitch.GetUserByAccessTokenRequest(accessToken)
+	syncModel, _, err := sync.GetSyncAccessTokenRequest(accessToken, triggerUser.Id.Hex(), "twitch")
 	if err != nil {
 		return err
 	}
 
-	appAccessToken, err := twitch.GetAppAccessTokenrRequest()
+	userResponse, err := twitch.GetUserByAccessTokenRequest(*syncModel)
+	if err != nil {
+		return err
+	}
+
+	appAccessToken, err := twitch.GetAppAccessTokenRequest()
 	if err != nil {
 		return err
 	}

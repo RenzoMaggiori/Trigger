@@ -7,13 +7,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"time"
 
-	"golang.org/x/oauth2"
 	"trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/internal/session"
 	"trigger.com/trigger/internal/spotify"
 	"trigger.com/trigger/internal/sync"
+	"trigger.com/trigger/pkg/auth/oaclient"
 	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
 	"trigger.com/trigger/pkg/middleware"
@@ -49,17 +48,10 @@ func (m Model) PlayMusic(ctx context.Context, accessToken string, actionNode wor
 		return err
 	}
 
-	refreshToken := ""
-	if syncModel.RefreshToken != nil {
-		refreshToken = *syncModel.RefreshToken
+	client, err := oaclient.New(ctx, spotify.Config(), syncModel)
+	if err != nil {
+		return err
 	}
-	client := spotify.Config().Client(ctx, &oauth2.Token{
-		AccessToken:  syncModel.AccessToken,
-		TokenType:    "Bearer",
-		RefreshToken: refreshToken,
-		Expiry:       syncModel.Expiry,
-		ExpiresIn:    syncModel.Expiry.Unix() - time.Now().Unix(),
-	})
 
 	res, err := fetch.Fetch(
 		client,

@@ -1,4 +1,4 @@
-package spotify
+package gmail
 
 import (
 	"fmt"
@@ -8,27 +8,32 @@ import (
 )
 
 /*
-** This defines the expected enviroment variables for the Spotify Service
+** This defines the expected enviroment variables for the Gmail Service
  */
 
 var (
 	errEnvNotFound      string     = "Enviroment argument %s not found"
-	enviromentArguments [15]string = [...]string{
+	enviromentArguments [17]string = [...]string{
 		"MONGO_INITDB_ROOT_USERNAME",
 		"MONGO_INITDB_ROOT_PASSWORD",
 		"MONGO_PORT",
 		"MONGO_HOST",
 		"MONGO_DB",
-		"SESSION_SERVICE_BASE_URL",
-		"SPOTIFY_SERVICE_BASE_URL",
+
 		"AUTH_SERVICE_BASE_URL",
-		"SYNC_SERVICE_BASE_URL",
 		"USER_SERVICE_BASE_URL",
+		"SESSION_SERVICE_BASE_URL",
 		"ACTION_SERVICE_BASE_URL",
+		"GMAIL_SERVICE_BASE_URL",
+		"SYNC_SERVICE_BASE_URL",
+		"SETTINGS_SERVICE_BASE_URL",
+
 		"ADMIN_TOKEN",
+
+		"GMAIL_PORT",
 		"AUTH_PORT",
-		"SPOTIFY_KEY",
-		"SPOTIFY_SECRET",
+		"GOOGLE_CLIENT_ID",
+		"GOOGLE_CLIENT_SECRET",
 	}
 )
 

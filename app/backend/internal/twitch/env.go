@@ -12,8 +12,8 @@ import (
  */
 
 var (
-	errEnvNotFound      string    = "Enviroment argument %s not found"
-	enviromentArguments [8]string = [...]string{
+	errEnvNotFound      string     = "Enviroment argument %s not found"
+	enviromentArguments [11]string = [...]string{
 		"TWITCH_CLIENT_ID",
 		"TWITCH_CLIENT_SECRET",
 		"TWITCH_BASE_URL",
@@ -22,6 +22,9 @@ var (
 		"SESSION_SERVICE_BASE_URL",
 		"ACTION_SERVICE_BASE_URL",
 		"ADMIN_TOKEN",
+		"AUTH_PORT",
+		"TWITCH_CLIENT_ID",
+		"TWITCH_CLIENT_SECRET",
 	}
 )
 
