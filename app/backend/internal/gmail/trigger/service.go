@@ -81,7 +81,6 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 	watchCompleted := workspace.WatchCompletedModel{
 		ActionId: actionNode.ActionId,
 		UserId:   session.UserId,
-		Status:   "active",
 		Output: map[string]string{
 			"historyId":  watchResponse.HistoryId,
 			"expiration": watchResponse.Expiration,
@@ -260,4 +259,3 @@ func (m Model) Stop(ctx context.Context) error {
 	log.Println(accessToken)
 	return nil
 }
-

@@ -94,6 +94,5 @@ type ActionCompletedModel struct {
 type WatchCompletedModel struct {
 	UserId   primitive.ObjectID `json:"user_id"`
 	ActionId primitive.ObjectID `json:"action_id"`
-	Status   string             `json:"status"`
 	Output   map[string]string  `json:"output"`
 }
