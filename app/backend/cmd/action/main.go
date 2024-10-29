@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"trigger.com/trigger/internal/action/action"
+	"trigger.com/trigger/internal/action/worker"
 	"trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/internal/user"
 	"trigger.com/trigger/pkg/arguments"
@@ -71,5 +72,8 @@ func main() {
 	}
 
 	go server.Start()
+	if err := worker.Run(actionCollection); err != nil {
+		log.Println(err)
+	}
 	server.Stop()
 }
