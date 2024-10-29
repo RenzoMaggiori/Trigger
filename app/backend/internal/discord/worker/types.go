@@ -33,16 +33,16 @@ type Me struct {
 type DiscordMe struct {
 	Id                    string      `json:"id"`
 	Username              string      `json:"username"`
-	Avatar                *string     `json:"avatar"
+	Avatar                *string     `json:"avatar"` 
 	Discriminator         string      `json:"discriminator"`
 	PublicFlags           int         `json:"public_flags"`
 	Flags                 int         `json:"flags"`
-	Banner                *string     `json:"banner"
-	AccentColor           *string     `json:"accent_color"
+	Banner                *string     `json:"banner"` 
+	AccentColor           *string     `json:"accent_color"` 
 	GlobalName            string      `json:"global_name"`
-	AvatarDecorationData  *string     `json:"avatar_decoration_data"
-	BannerColor           *string     `json:"banner_color"
-	Clan                  *string     `json:"clan"
+	AvatarDecorationData  *string     `json:"avatar_decoration_data"` 
+	BannerColor           *string     `json:"banner_color"` 
+	Clan                  *string     `json:"clan"` 
 	MFAEnabled            bool        `json:"mfa_enabled"`
 	Locale                string      `json:"locale"`
 	PremiumType           int         `json:"premium_type"`
