@@ -84,6 +84,30 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 	return nil
 }
 
+func (m Model) Webhook(ctx context.Context) error {
+	_, ok := ctx.Value(middleware.TokenCtxKey).(string)
+	if !ok {
+		return errors.ErrAccessTokenCtx
+	}
+
+	// TODO: get data
+
+	/* update := workspace.ActionCompletedModel{
+		ActionId: action.Id,
+		UserId:   user.Id,
+		Output:   map[string]any{"hello": "world"},
+	}
+
+	_, err = workspace.ActionCompletedRequest(googleSession.AccessToken, update)
+
+	if err != nil {
+		return err
+	}
+
+	return nil */
+	return nil
+}
+
 func (m Model) Stop(ctx context.Context) error {
 	accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
 	if !ok {
@@ -129,22 +153,5 @@ func (m Model) Stop(ctx context.Context) error {
 	if res.StatusCode >= 400 {
 		return fmt.Errorf("%w: received %s", errors.ErrInvalidGithubStatus, res.Status)
 	}
-	return nil
-}
-
-func (m Model) Webhook(ctx context.Context) error {
-	/* update := workspace.ActionCompletedModel{
-		ActionId: action.Id,
-		UserId:   user.Id,
-		Output:   map[string]any{"hello": "world"},
-	}
-
-	_, err = workspace.ActionCompletedRequest(googleSession.AccessToken, update)
-
-	if err != nil {
-		return err
-	}
-
-	return nil */
 	return nil
 }
