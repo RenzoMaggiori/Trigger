@@ -16,6 +16,7 @@ var (
 	ErrGithubStopModelNotFound     error = errors.New("github stop model not found")
 	ErrNodeNotFound                error = errors.New("action node not found")
 	ErrAuthorizationHeaderNotFound error = errors.New("authorization header not found")
+	ErrSyncNotFound             error = errors.New("sync not found")
 	// Bad Request Errors
 	ErrBadWorkspaceId        error = errors.New("bad workspace id")
 	ErrBadUserId             error = errors.New("bad user id")
@@ -39,6 +40,8 @@ var (
 	ErrCreatingWorkspace error = errors.New("error while creating workspace")
 	ErrCreatingSession   error = errors.New("error while creating session")
 	ErrCreatingEmail     error = errors.New("failed to create raw email")
+	ErrCreatingSync     error = errors.New("failed to create a new sync")
+	ErrCreatingSetting     error = errors.New("failed to create a new setting")
 
 	// Updating Errors
 	ErrUpdatingWorkspace error = errors.New("error while updating workspace")
@@ -51,6 +54,7 @@ var (
 	// Retrieval/Fetching Errors
 	ErrFetchingSession error = errors.New("error while retrieving session")
 	ErrFetchingActions error = errors.New("error while retrieving actions")
+	ErrFetchingSync error = errors.New("error while retrieving sync")
 
 	// Email Errors
 	ErrFailedToSendEmail  error = errors.New("failed to send email")
@@ -69,6 +73,15 @@ var (
 
 	// Webhook
 	ErrBadWebhookData error = errors.New("could not parse the webhook data")
+
+	// DATA
+	ErrMarshalData error = errors.New("could not marshal data")
+	ErrDecodeData  error = errors.New("could not decode data")
+
+	// Discord
+	ErrDiscordGuilds error = errors.New("could not retrieve guilds")
+	ErrDiscordMe	 error = errors.New("could not retrieve user/@me data")
+	ErrCreateDiscordSession error = errors.New("could not create discord session")
 
 	ErrCodes map[error]customerror.CustomError = map[error]customerror.CustomError{
 		ErrWorkspaceNotFound: {
@@ -226,6 +239,42 @@ var (
 		ErrBadWebhookData: {
 			Message: ErrBadWebhookData.Error(),
 			Code: http.StatusUnprocessableEntity,
+		},
+		ErrSyncNotFound: {
+			Message: ErrSyncNotFound.Error(),
+			Code:    http.StatusNotFound,
+		},
+		ErrCreatingSync: {
+			Message: ErrCreatingSync.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrFetchingSync: {
+			Message: ErrFetchingSync.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrMarshalData: {
+			Message: ErrMarshalData.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrCreatingSetting: {
+			Message: ErrCreatingSetting.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrMarshalData: {
+			Message: ErrMarshalData.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrDecodeData: {
+			Message: ErrDecodeData.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrDiscordGuilds: {
+			Message: ErrDiscordGuilds.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrDiscordMe: {
+			Message: ErrDiscordMe.Error(),
+			Code:    http.StatusInternalServerError,
 		},
 	}
 )

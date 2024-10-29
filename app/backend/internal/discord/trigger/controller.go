@@ -10,6 +10,7 @@ import (
 	"trigger.com/trigger/internal/discord"
 	customerror "trigger.com/trigger/pkg/custom-error"
 	"trigger.com/trigger/pkg/errors"
+	// "trigger.com/trigger/pkg/middleware"
 
 	"trigger.com/trigger/pkg/decode"
 )
@@ -32,7 +33,12 @@ func (h *Handler) WatchDiscord(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) WebhookDiscord(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Webhook discord")
+	// token, ok := r.Context().Value(middleware.TokenCtxKey).(string)
+	// if !ok {
+	// 	customerror.Send(w, errors.ErrAccessTokenCtx, errors.ErrCodes)
+	// 	return
+	// }
+
 	// event, err := decode.Json[discord.Event](r.Body)
 
 	// if err != nil {
@@ -53,29 +59,6 @@ func (h *Handler) StopDiscord(w http.ResponseWriter, r *http.Request) {
 	accessToken := r.Header.Get("Authorization")
 
 	err := h.Service.Stop(context.WithValue(context.TODO(), discord.AccessTokenCtxKey, accessToken), "671ae002aab977500dfaff21")
-
-	if err != nil {
-		customerror.Send(w, err, errors.ErrCodes)
-	}
-}
-
-func (h *Handler) GetGuilds(w http.ResponseWriter, r *http.Request) {
-	err := h.Service.Guilds()
-
-	if err != nil {
-		customerror.Send(w, err, errors.ErrCodes)
-	}
-}
-
-func (h *Handler) GetGuildChannels(w http.ResponseWriter, r *http.Request) {
-	guildID := r.PathValue("guild_id")
-
-	if guildID == "" {
-		customerror.Send(w, errors.ErrUserTypeNone, errors.ErrCodes)
-		return
-	}
-
-	err := h.Service.GuildChannels(guildID)
 
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)

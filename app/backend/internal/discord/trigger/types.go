@@ -12,10 +12,7 @@ import (
 
 type Service interface {
 	// action.Trigger
-	// Guilds() error
-	// GuildChannels(guildID string) error
-	GuildChannels(guildID string) error
-	Guilds() error
+
 	Stop(ctx context.Context, userID string) error
 	Watch(ctx context.Context, userID string, actionNode workspace.ActionNodeModel) error
 	Webhook(ctx context.Context, userID string) error
