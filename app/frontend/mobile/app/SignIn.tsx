@@ -7,6 +7,8 @@ import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import ButtonIcon from '@/components/ButtonIcon';
 import { CredentialsService } from '@/api/auth/credentials/service';
 import { ProvidersService } from '@/api/auth/providers/service';
+import { UserService } from '@/api/user/service';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function SignIn() {
     const [email, setEmail] = useState('');
@@ -17,12 +19,22 @@ export default function SignIn() {
     const router = useRouter();
 
     const handleSignIn = async () => {
-        await CredentialsService.login(email, password)
-            .then(() => router.push('/(tabs)/HomeScreen'))
-            .catch((error) => {
-                setErrorMessage(error.message + "\nPlease try again.");
-                setModalVisible(true);
-            });
+        try {
+            // await CredentialsService.login(email, password)
+            //     .then(() => router.push('/(tabs)/HomeScreen'))
+            //     .catch((error) => {
+            //         setErrorMessage(error.message + "\nPlease try again.");
+            //         setModalVisible(true);
+            //     });
+            await CredentialsService.login(email, password);
+            let user = await UserService.getUser(email);
+            console.log('--user: ', user);
+            await AsyncStorage.setItem('user', JSON.stringify(user));
+            router.push('/(tabs)/HomeScreen');
+        } catch (error) {
+            setErrorMessage((error as Error).message + "\nPlease try again.");
+            setModalVisible(true);
+        }
     };
 
     const handleDismissError = () => {

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, Switch, ScrollView, Modal, TouchableOpacity, TouchableNativeFeedback } from 'react-native';
 import { FontAwesome5, Ionicons, FontAwesome } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import Button from '@/components/Button';
 import { ProvidersService } from '@/api/auth/providers/service';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const providers = [
     { name: 'google', icon: <Ionicons name="logo-google" size={30} color={Colors.light.google} /> },
@@ -17,11 +18,36 @@ export default function Settings() {
     return (
         <SafeAreaView style={styles.safeArea}>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
+                <UserInfoCard/>
                 {providers.map((tech, index) => (
                     <ProviderItem key={index} provider={tech} />
                 ))}
             </ScrollView>
         </SafeAreaView>
+    );
+}
+
+function UserInfoCard() {
+    const [user, setUser] = useState<{ email: string; role: string } | null>(null);
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const userData = await AsyncStorage.getItem('user');
+                if (userData) {
+                    setUser(JSON.parse(userData));
+                }
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+            }
+        };
+        fetchUserData();
+    }, []);
+
+    return (
+        <View style={styles.userInfoCard}>
+            <Text style={styles.userInfoText}>{user ? `User Email: ${user.email}` : 'Loading...'}</Text>
+        </View>
     );
 }
 
@@ -38,40 +64,6 @@ function ProviderItem({ provider }: { provider: Provider }) {
     const [confirmActionType, setConfirmActionType] = useState<'connect' | 'disconnect' | null>(null);
     const [modalErrVisible, setErrModalVisible] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
-
-    // const handleSignIn = async () => {
-    //     try {
-    //         await ProvidersService.handleOAuth(provider.name);
-    //         setIsConnected(true);
-    //     } catch (error) {
-    //         setErrorMessage((error as Error).message + "\nPlease try again.");
-    //         setErrModalVisible(true);
-    //     }
-    // }
-
-    // const handleSignOut = async () => {
-    //     console.log(`Signing out of ${provider.name}`);
-    //     setIsConnected(false);
-    // }
-
-    // const handleConnectDisconnect = () => {
-    //     setModalVisible(true);
-    //     if (isConnected) {
-    //         handleSignOut();
-    //     } else {
-    //         handleSignIn();
-    //     }
-    // };
-
-    // const handleDismissError = () => {
-    //     setErrModalVisible(false);
-    //     setErrorMessage("");
-    // };
-
-    // const confirmAction = () => {
-    //     setIsConnected(!isConnected);
-    //     setModalVisible(false);
-    // };
 
     const handleSignIn = async () => {
         try {
@@ -205,6 +197,22 @@ const styles = StyleSheet.create({
         flexGrow: 1,
         paddingHorizontal: 16,
         justifyContent: 'flex-start',
+    },
+    userInfoCard: {
+        backgroundColor: Colors.light.background,
+        borderRadius: 10,
+        padding: 20,
+        marginVertical: 10,
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+        shadowOffset: { width: 0, height: 3 },
+        elevation: 3,
+    },
+    userInfoText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: Colors.light.tintDark,
     },
     card: {
         backgroundColor: Colors.light.background,
