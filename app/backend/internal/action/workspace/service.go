@@ -302,8 +302,13 @@ func (m Model) processWorkspace(
 	}
 
 	result, err := m.Collection.UpdateMany(context.TODO(), filter, update)
-	if err != nil || result.MatchedCount == 0 {
-		return errors.ErrUpdatingWorkspace
+	if err != nil {
+		fmt.Printf("Matched count: %d", result.MatchedCount)
+		return fmt.Errorf("%w: %v ", errors.ErrUpdatingWorkspace, err)
+	}
+
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("%w: %s ", errors.ErrUpdatingWorkspace, "matched count is 0")
 	}
 
 	updatedResult, err := m.GetById(context.TODO(), workspace.Id)
