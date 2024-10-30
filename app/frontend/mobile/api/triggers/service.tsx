@@ -61,4 +61,29 @@ export class TriggersService {
             throw error;
         }
     }
+
+    static async addTrigger(trigger: any) {
+        try {
+            const baseUrl = await this.getBaseUrl();
+            const response = await fetch(`${baseUrl}/create`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(trigger),
+            });
+
+            if (response.status !== 201) {
+                console.log('add trigger failed', response.status);
+                throw new Error('Failed to add trigger');
+            }
+            const data = await response.json();
+            console.log('[add trigger] success:', data);
+            return data;
+        } catch (error) {
+            console.error("Catched Add Trigger Error:", error);
+            throw error;
+        }
+    }
 }

@@ -6,7 +6,7 @@ import { TriggersService } from '@/api/triggers/service';
 
 interface ActionSelectorProps {
     provider: string | null;
-    onActionSelect: (action: string) => void;
+    onActionSelect: (action: { id: string; name: string }) => void;
     type: string;
 }
 
@@ -35,10 +35,10 @@ export default function ActionSelector({ provider, onActionSelect, type }: Actio
             <Text style={styles.title}>Select an Action</Text>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.actionsList}>
                 {type === 'trigger' ? (
-                    actions.map((action, index) => (
+                    actions.map((action) => (
                         <Button
                             key={action.id}
-                            onPress={() => onActionSelect(action.action)}
+                            onPress={() => onActionSelect({ id: action.id, name: action.action })}
                             title={action.action}
                             textColor={Colors.light.tint}
                             backgroundColor='#fff'
@@ -47,10 +47,10 @@ export default function ActionSelector({ provider, onActionSelect, type }: Actio
                         />
                     ))
                 ) : (
-                    reactions.map((reaction, index) => (
+                    reactions.map((reaction) => (
                         <Button
                             key={reaction.id}
-                            onPress={() => onActionSelect(reaction.action)}
+                            onPress={() => onActionSelect({ id: reaction.id, name: reaction.action })}
                             title={reaction.action}
                             textColor={Colors.light.tint}
                             backgroundColor='#fff'

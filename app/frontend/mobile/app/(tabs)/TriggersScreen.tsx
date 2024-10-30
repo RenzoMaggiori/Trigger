@@ -6,27 +6,68 @@ import ProviderSelector from '@/components/actions/ProviderSelector';
 import ActionSelector from '@/components/actions/ActionsSelector';
 import ButtonIcon from '@/components/ButtonIcon';
 import { MaterialIcons } from '@expo/vector-icons';
+import { TriggersService } from '@/api/triggers/service';
+
+function transformFlowItemToApiFormat(flowItem: {
+    provider: string,
+    action: { id: string, name: string },
+    reactions: { id: string, provider: string, name: string }[]
+}) {
+    const nodes = [];
+
+    // trigger node
+    nodes.push({
+        node_id: "action1",
+        action_id: flowItem.action.id,
+        name: flowItem.action.name,
+        input: {},
+        output: {},
+        parents: [],
+        children: flowItem.reactions.length > 0 ? ["action2"] : [],
+        x_pos: 10,
+        y_pos: 10,
+    });
+
+    // reaction nodes
+    flowItem.reactions.forEach((reaction, index) => {
+        const nodeIndex = index + 2;
+
+        nodes.push({
+            node_id: `action${nodeIndex}`,
+            action_id: reaction.id,
+            name: reaction.name,
+            input: {},
+            output: {},
+            parents: [`action${nodeIndex - 1}`],
+            children: index < flowItem.reactions.length - 1 ? [`action${nodeIndex + 1}`] : [],
+            x_pos: 10,
+            y_pos: 10 * nodeIndex,
+        });
+    });
+
+    return { nodes };
+}
 
 export default function TriggerScreen() {
-    const [flow, setFlow] = useState<{ provider: string, action: string, reactions: { provider: string, reaction: string }[] }[]>([]);
+    const [flow, setFlow] = useState<{ provider: string, action: { id: string, name: string }, reactions: { id: string, provider: string, name: string }[] }[]>([]);
     const [modalVisible, setModalVisible] = useState<boolean>(false);
     const [selectedActionIndex, setSelectedActionIndex] = useState<number | null>(null);
     const [isAddingAction, setIsAddingAction] = useState<boolean>(false);
     const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
     const [showActionSelector, setShowActionSelector] = useState<boolean>(false);
 
-    const addAction = (action: string) => {
+    const addAction = (action: { id: string; name: string }) => {
         if (selectedProvider) {
             setFlow([...flow, { provider: selectedProvider, action, reactions: [] }]);
             closeModal();
         }
     };
 
-    const addReaction = (reaction: string) => {
+    const addReaction = (reaction: { id: string; name: string }) => {
         if (selectedActionIndex !== null && selectedProvider) {
             setFlow(prevFlow => {
                 const updatedFlow = [...prevFlow];
-                updatedFlow[selectedActionIndex].reactions.push({ provider: selectedProvider, reaction });
+                updatedFlow[selectedActionIndex].reactions.push({ provider: selectedProvider, ...reaction });
                 return updatedFlow;
             });
             closeModal();
@@ -55,9 +96,12 @@ export default function TriggerScreen() {
         setFlow(prevFlow => prevFlow.filter((_, index) => index !== actionIndex));
     };
 
-    const saveTrigger = (flowItem: { provider: string, action: string, reactions: { provider: string, reaction: string }[] }) => {
-        console.log("Saved Trigger:", flowItem);
-        removeAction(flow.indexOf(flowItem));
+    const saveTrigger = (actionIndex: number) => {
+        const flowItem = flow[actionIndex];
+        const formattedData = transformFlowItemToApiFormat(flowItem);
+        console.log("Trigger:", JSON.stringify(formattedData, null, 2));
+        TriggersService.addTrigger(formattedData);
+        removeAction(actionIndex);
     };
 
     const closeModal = () => {
