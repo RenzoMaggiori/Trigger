@@ -8,6 +8,8 @@ import (
 	"trigger.com/trigger/internal/action/action"
 )
 
+// WARNING: Action names must be unique
+
 var (
 	actions = [...]action.AddActionModel{
 		{
@@ -51,6 +53,27 @@ var (
 			Action:   "play_music",
 			Input:    []string{},
 			Output:   []string{},
+		},
+		{
+			Provider: "timer",
+			Type:     "trigger",
+			Action:   "watch_minute",
+			Input:    []string{},
+			Output:   []string{"datetime"},
+		},
+		{
+			Provider: "timer",
+			Type:     "trigger",
+			Action:   "watch_hour",
+			Input:    []string{},
+			Output:   []string{"datetime"},
+		},
+		{
+			Provider: "timer",
+			Type:     "trigger",
+			Action:   "watch_day",
+			Input:    []string{},
+			Output:   []string{"datetime"},
 		},
 	}
 )
