@@ -30,8 +30,8 @@ func Router(ctx context.Context) (*router.Router, error) {
 	server.Handle("GET /guilds/{guild_id}/channels", middlewares(http.HandlerFunc(handler.GetGuildChannels)))
 	server.Handle("GET /current", middlewares(http.HandlerFunc(handler.GetCurrentDiscordSession)))
 	server.Handle("POST /add", middlewares(http.HandlerFunc(handler.AddDiscordSession)))
-	server.Handle("POST /update", middlewares(http.HandlerFunc(handler.UpdateDiscordSession)))
-	server.Handle("POST /delete", middlewares(http.HandlerFunc(handler.DeleteDiscordSession)))
+	server.Handle("PUT /update/{user_id}", middlewares(http.HandlerFunc(handler.UpdateDiscordSession)))
+	server.Handle("POST /delete/{user_id}", middlewares(http.HandlerFunc(handler.DeleteDiscordSession)))
 
 	return router.NewRouter("/discord/worker", server), nil
 }

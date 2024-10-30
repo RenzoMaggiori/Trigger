@@ -103,9 +103,9 @@ func (m *Model) AddSession(session *AddDiscordSessionModel) error {
 		UserId:  session.UserId,
 		DiscordId: session.DiscordId,
 		GuildId: session.GuildId,
-		Token:   os.Getenv("BOT_TOKEN"),
+		// Token:   os.Getenv("BOT_TOKEN"),
 		Running: false,
-		Stop:    true,
+		Stop:    false,
 	}
 
 	_, err := m.Collection.InsertOne(ctx, newSync)

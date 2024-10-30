@@ -126,3 +126,34 @@ func DeleteDiscordSessionReq(accessToken string, id string) error {
 
 	return nil
 }
+
+func GetMeReq(token string) (*Me, error) {
+	res, err := fetch.Fetch(
+		http.DefaultClient,
+		fetch.NewFetchRequest(
+			http.MethodGet,
+			fmt.Sprintf("%s/me", workerBaseURL),
+			nil,
+			map[string]string{
+				"Authorization": fmt.Sprintf("Bearer %s", token),
+			},
+		),
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", errors.ErrDiscordMe, err)
+	}
+
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%w: %v", errors.ErrDiscordMe, res.StatusCode)
+	}
+
+	me, err := decode.Json[Me](res.Body)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", errors.ErrDecodeData, err)
+	}
+
+	return &me, nil
+}

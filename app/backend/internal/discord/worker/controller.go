@@ -63,7 +63,7 @@ func (h *Handler) AddDiscordSession(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) UpdateDiscordSession(w http.ResponseWriter, r *http.Request) {
-	id, err := primitive.ObjectIDFromHex(r.PathValue("id"))
+	id, err := primitive.ObjectIDFromHex(r.PathValue("user_id"))
 	if err != nil {
 		customerror.Send(w, errors.ErrBadUserId, errors.ErrCodes)
 		return
@@ -101,7 +101,7 @@ func (h *Handler) GetCurrentDiscordSession(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *Handler) DeleteDiscordSession(w http.ResponseWriter, r *http.Request) {
-	id, err := primitive.ObjectIDFromHex(r.PathValue("id"))
+	id, err := primitive.ObjectIDFromHex(r.PathValue("user_id"))
 	if err != nil {
 		customerror.Send(w, errors.ErrBadUserId, errors.ErrCodes)
 		return

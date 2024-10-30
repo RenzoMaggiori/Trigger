@@ -14,7 +14,6 @@ type Service interface {
 	// Stop(ctx context.Context, userID string) error
 	// Watch(ctx context.Context, userID string, actionNode workspace.ActionNodeModel) error
 	// Webhook(ctx context.Context, userID string) error
-	runDiscordSession(discord *discordgo.Session, stopChan chan struct{})
 }
 
 type Handler struct {
@@ -35,7 +34,7 @@ type Handler struct {
 
 type Model struct {
 	// Collection *mongo.Collection
-	discord    *discordgo.Session
+	bot    *discordgo.Session
 	mutex      sync.Mutex
 }
 
@@ -46,17 +45,6 @@ type Model struct {
 // 	Running bool   `json:"running" bson:"running"`
 // 	Stop    bool   `json:"stop" bson:"stop"`
 // }
-
-type WatchModel struct {
-	Owner string `json:"owner"`
-	Repo  string `json:"repo"`
-}
-
-type StopModel struct {
-	Owner  string `json:"owner"`
-	Repo   string `json:"repo"`
-	HookId string `json:"hookId"`
-}
 
 type ActionBody struct {
 	Type string      `json:"type"`

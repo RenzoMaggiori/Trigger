@@ -36,7 +36,7 @@ type DiscordSessionModel struct {
 	UserId  string `json:"user_id" bson:"user_id"`
 	DiscordId string `json:"discord_id" bson:"discord_id"`
 	GuildId string `json:"guild_id" bson:"guild_id"`
-	Token   string `json:"token" bson:"token"`
+	// Token   string `json:"token" bson:"token"`
 	Running bool   `json:"running" bson:"running"`
 	Stop    bool   `json:"stop" bson:"stop"`
 }

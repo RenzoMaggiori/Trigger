@@ -2,7 +2,6 @@ package user
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -12,7 +11,6 @@ import (
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
-	"trigger.com/trigger/pkg/middleware"
 )
 
 func GetUserByEmailRequest(accessToken string, email string) (*UserModel, int, error) {
@@ -112,18 +110,4 @@ func GetUserByAccesstokenRequest(accessToken string) (*UserModel, int, error) {
 	}
 
 	return user, status, nil
-}
-
-func GetCurrUserByCtxRequest(ctx context.Context) (*UserModel, error) {
-    accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
-    if !ok {
-        return nil, errors.ErrAccessTokenCtx
-    }
-
-    user, _, err := GetUserByAccesstokenRequest(accessToken)
-    if err != nil {
-        return nil, errors.ErrUserNotFound
-    }
-
-    return user, nil
 }

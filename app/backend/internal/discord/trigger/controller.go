@@ -1,11 +1,9 @@
 package trigger
 
 import (
-	"context"
 	"net/http"
 
 	"trigger.com/trigger/internal/action/workspace"
-	"trigger.com/trigger/internal/discord"
 	customerror "trigger.com/trigger/pkg/custom-error"
 	"trigger.com/trigger/pkg/errors"
 
@@ -26,12 +24,12 @@ func (h *Handler) WatchDiscord(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) WebhookDiscord(w http.ResponseWriter, r *http.Request) {
-	event, err := decode.Json[ActionBody](r.Body)
-	if err != nil {
-		customerror.Send(w, err, errors.ErrCodes)
-	}
+	// event, err := decode.Json[ActionBody](r.Body)
+	// if err != nil {
+	// 	customerror.Send(w, err, errors.ErrCodes)
+	// }
 
-	err = h.Service.Webhook(context.WithValue(r.Context(), discord.DiscordEventCtxKey, event))
+	err := h.Service.Webhook(r.Context())
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
 		return
