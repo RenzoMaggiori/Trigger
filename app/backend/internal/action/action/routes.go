@@ -34,5 +34,5 @@ func Router(ctx context.Context) (*router.Router, error) {
 	server.Handle("GET /provider/{provider}", http.HandlerFunc(handler.GetActionsByProvider))
 	server.Handle("GET /action/{action}", http.HandlerFunc(handler.GetActionByAction))
 	server.Handle("POST /add", http.HandlerFunc(handler.AddAction))
-	return router.NewRouter("/action", server), nil
+	return router.NewRouter("/api/action", server), nil
 }

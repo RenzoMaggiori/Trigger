@@ -20,5 +20,5 @@ func Router(ctx context.Context) (*router.Router, error) {
 
 	server.Handle("POST /create_issue", middlewares(http.HandlerFunc(handler.CreateIssue)))
 
-	return router.NewRouter("/github/reaction", server), nil
+	return router.NewRouter("/api/github/reaction", server), nil
 }

@@ -31,5 +31,5 @@ func Router(ctx context.Context) (*router.Router, error) {
 	server.Handle("POST /add", middlewares(http.HandlerFunc(handler.Add)))
 	server.Handle("GET /user_id/{id}", middlewares(http.HandlerFunc(handler.GetByUserId)))
 
-	return router.NewRouter("/settings", server), nil
+	return router.NewRouter("/api/settings", server), nil
 }

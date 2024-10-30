@@ -41,5 +41,5 @@ func Router(ctx context.Context) (*router.Router, error) {
 	server.Handle("PATCH /watch_completed", middlewares(http.HandlerFunc(handler.WatchCompleted)))
 	// server.Handle("DELETE /id/{id}", middlewares(http.HandlerFunc(handler.DeleteById)))
 
-	return router.NewRouter("/workspace", server), nil
+	return router.NewRouter("/api/workspace", server), nil
 }
