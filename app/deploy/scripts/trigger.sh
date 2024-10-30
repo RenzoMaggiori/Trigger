@@ -5,7 +5,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-services="web mobile"
+services="client_web client_mobile"
 
 docker compose build $services
 if [ $? -ne 0 ]; then
