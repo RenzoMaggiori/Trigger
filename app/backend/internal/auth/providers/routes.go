@@ -9,8 +9,8 @@ import (
 	"github.com/markbates/goth/providers/discord"
 	"github.com/markbates/goth/providers/github"
 	"github.com/markbates/goth/providers/google"
-	"github.com/markbates/goth/providers/twitch"
 	"github.com/markbates/goth/providers/spotify"
+	"github.com/markbates/goth/providers/twitch"
 	"trigger.com/trigger/pkg/router"
 )
 
@@ -50,7 +50,7 @@ func Router(ctx context.Context) (*router.Router, error) {
 			twitch.ScopeUserReadEmail,
 			twitch.ScopeModeratorReadFollowers,
 			"user:write:chat",
-    ),
+		),
 		spotify.New(
 			os.Getenv("SPOTIFY_KEY"),
 			os.Getenv("SPOTIFY_SECRET"),
@@ -65,5 +65,5 @@ func Router(ctx context.Context) (*router.Router, error) {
 	server.Handle("GET /login", http.HandlerFunc(handler.Login))
 	server.Handle("GET /callback", http.HandlerFunc(handler.Callback))
 	server.Handle("GET /logout", http.HandlerFunc(handler.Logout))
-	return router.NewRouter("/oauth2", server), nil
+	return router.NewRouter("/api/oauth2", server), nil
 }

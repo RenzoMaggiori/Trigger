@@ -11,6 +11,18 @@ import (
 	"trigger.com/trigger/pkg/errors"
 )
 
+func (h *Handler) About(w http.ResponseWriter, r *http.Request) {
+	about, err := h.Service.About(r.RemoteAddr)
+	if err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+	if err = encode.Json(w, about); err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+}
+
 func (h *Handler) GetActions(w http.ResponseWriter, r *http.Request) {
 	users, err := h.Service.Get()
 

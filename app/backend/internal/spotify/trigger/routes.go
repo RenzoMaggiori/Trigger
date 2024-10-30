@@ -26,5 +26,5 @@ func Router(ctx context.Context) (*router.Router, error) {
 	server.Handle("POST /webhook", middlewares(http.HandlerFunc(handler.WebhookSpotify)))
 	server.Handle("POST /stop", middlewares(http.HandlerFunc(handler.StopSpotify)))
 
-	return router.NewRouter("/spotify/trigger", server), nil
+	return router.NewRouter("/api/spotify/trigger", server), nil
 }

@@ -29,10 +29,11 @@ func Router(ctx context.Context) (*router.Router, error) {
 		},
 	}
 
-	server.Handle("GET /", http.HandlerFunc(handler.GetActions))
-	server.Handle("GET /id/{id}", http.HandlerFunc(handler.GetActionById))
-	server.Handle("GET /provider/{provider}", http.HandlerFunc(handler.GetActionsByProvider))
-	server.Handle("GET /action/{action}", http.HandlerFunc(handler.GetActionByAction))
-	server.Handle("POST /add", http.HandlerFunc(handler.AddAction))
-	return router.NewRouter("/action", server), nil
+	server.Handle("GET /about.json", http.HandlerFunc(handler.About))
+	server.Handle("GET /api/action/", http.HandlerFunc(handler.GetActions))
+	server.Handle("GET /api/action/id/{id}", http.HandlerFunc(handler.GetActionById))
+	server.Handle("GET /api/action/provider/{provider}", http.HandlerFunc(handler.GetActionsByProvider))
+	server.Handle("GET /api/action/action/{action}", http.HandlerFunc(handler.GetActionByAction))
+	server.Handle("POST /api/action/add", http.HandlerFunc(handler.AddAction))
+	return router.NewRouter("", server), nil
 }

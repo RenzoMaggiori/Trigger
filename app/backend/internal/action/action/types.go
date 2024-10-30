@@ -8,6 +8,7 @@ import (
 const ActionCtxKey string = "ActionCtxKey"
 
 type Service interface {
+	About(string) (AboutModel, error)
 	Get() ([]ActionModel, error)
 	GetById(primitive.ObjectID) (*ActionModel, error)
 	GetByProvider(string) ([]ActionModel, error)
@@ -21,6 +22,31 @@ type Handler struct {
 
 type Model struct {
 	Collection *mongo.Collection
+}
+
+type AboutModel struct {
+	Client ClientModel `json:"client"`
+	Server ServerModel `json:"server"`
+}
+
+type ClientModel struct {
+	Host string `json:"host"`
+}
+
+type ServerModel struct {
+	CurrentTime int64          `json:"current_time"`
+	Services    []ServiceModel `json:"services"`
+}
+
+type ServiceModel struct {
+	Name      string      `json:"name"`
+	Actions   []AreaModel `json:"actions"`
+	Reactions []AreaModel `json:"reactions"`
+}
+
+type AreaModel struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 type ActionModel struct {

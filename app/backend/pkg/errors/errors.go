@@ -50,8 +50,9 @@ var (
 	ErrCompletingWatchAction error = errors.New("error while completing watch action")
 
 	// Retrieval/Fetching Errors
-	ErrFetchingSession error = errors.New("error while retrieving session")
-	ErrFetchingActions error = errors.New("error while retrieving actions")
+	ErrFetchingSession        error = errors.New("error while retrieving session")
+	ErrFetchingActions        error = errors.New("error while retrieving actions")
+	ErrActionProviderNotFound error = errors.New("could not find action provider")
 
 	// Email Errors
 	ErrFailedToSendEmail  error = errors.New("failed to send email")
@@ -260,6 +261,10 @@ var (
 		ErrMalformedState: {
 			Message: ErrMalformedState.Error(),
 			Code:    http.StatusUnprocessableEntity,
+		},
+		ErrActionProviderNotFound: {
+			Message: ErrActionProviderNotFound.Error(),
+			Code:    http.StatusNotFound,
 		},
 	}
 )
