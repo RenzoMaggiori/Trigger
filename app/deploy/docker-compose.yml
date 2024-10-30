@@ -12,6 +12,38 @@ services:
     ports:
       - "${MONGO_PORT}:${MONGO_PORT}"
 
+  server:
+    container_name: trigger-server-instance
+    build:
+      context: ..
+      dockerfile: ./deploy/dockerfiles/backend/server.Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - auth
+      - user
+      - session
+      - sync
+      - settings
+      - action
+      - gmail
+      - github
+      - spotify
+      - twitch
+    networks:
+      - trigger
+    environment:
+      AUTH_SERVICE_BASE_URL: ${AUTH_SERVICE_BASE_URL}
+      USER_SERVICE_BASE_URL: ${USER_SERVICE_BASE_URL}
+      SESSION_SERVICE_BASE_URL: ${SESSION_SERVICE_BASE_URL}
+      SYNC_SERVICE_BASE_URL: ${SYNC_SERVICE_BASE_URL}
+      SETTINGS_SERVICE_BASE_URL: ${SETTINGS_SERVICE_BASE_URL}
+      ACTION_SERVICE_BASE_URL: ${ACTION_SERVICE_BASE_URL}
+      GMAIL_SERVICE_BASE_URL: ${GMAIL_SERVICE_BASE_URL}
+      GITHUB_SERVICE_BASE_URL: ${GITHUB_SERVICE_BASE_URL}
+      SPOTIFY_SERVICE_BASE_URL: ${SPOTIFY_SERVICE_BASE_URL}
+      TWITCH_SERVICE_BASE_URL: ${TWITCH_SERVICE_BASE_URL}
+
   auth:
     container_name: trigger-auth-instance
     build:
@@ -311,7 +343,7 @@ services:
     ports:
       - "${TWITCH_PORT}:${TWITCH_PORT}"
 
-  mobile:
+  client_mobile:
     container_name: trigger-mobile-instance
     build:
       context: ..
@@ -320,24 +352,30 @@ services:
       - trigger
     environment:
       MOBILE_PORT: ${MOBILE_PORT}
-    ports:
-      - "${MOBILE_PORT}:${MOBILE_PORT}"
+    volumes:
+      - shared_volume:/shared
 
-  web:
+  client_web:
     container_name: trigger-web-instance
     build:
       context: ..
       dockerfile: ./deploy/dockerfiles/frontend/web.Dockerfile
     networks:
       - trigger
+    depends_on:
+      - client_mobile
+      - server
     environment:
       WEB_PORT: ${WEB_PORT}
     ports:
-      - "${WEB_PORT}:${WEB_PORT}"
+      - "8081:${WEB_PORT}"
+    volumes:
+      - shared_volume:/shared
 
 volumes:
   mongo_data:
     driver: local
+  shared_volume:
 
 networks:
   trigger:
