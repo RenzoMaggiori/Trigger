@@ -10,7 +10,7 @@ import (
 	"trigger.com/trigger/pkg/errors"
 )
 
-func (h *Handler) Watch(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) WatchChannelFollow(w http.ResponseWriter, r *http.Request) {
 	actionNode, err := decode.Json[workspace.ActionNodeModel](r.Body)
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
@@ -23,7 +23,7 @@ func (h *Handler) Watch(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handler) Webhook(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) WebhookChannelFollow(w http.ResponseWriter, r *http.Request) {
 	userId := r.URL.Query().Get("userId")
 	eventType := r.Header.Get("Twitch-Eventsub-Message-Type")
 	webhookVerification, err := decode.Json[WebhookVerificationRequest](r.Body)
@@ -58,7 +58,7 @@ func (h *Handler) Webhook(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h *Handler) Stop(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) StopChannelFollow(w http.ResponseWriter, r *http.Request) {
 	if err := h.Service.Stop(r.Context()); err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
 	}

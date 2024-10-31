@@ -16,7 +16,7 @@ func (h *Handler) SendChannelMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.Service.MutlipleReactions("send_channel_message", r.Context(), actionNode)
+	err = h.Service.MutlipleReactions("send_chat_message", r.Context(), actionNode)
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
 		return
