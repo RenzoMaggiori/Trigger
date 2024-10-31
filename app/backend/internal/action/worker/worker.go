@@ -75,6 +75,20 @@ var (
 			Input:    []string{},
 			Output:   []string{"datetime"},
 		},
+		{
+			Provider: "discord",
+			Type:     "trigger",
+			Action:   "watch_message",
+			Input:    []string{},
+			Output:   []string{"followers", "increased"},
+		},
+		{
+			Provider: "discord",
+			Type:     "reaction",
+			Action:   "send_message",
+			Input:    []string{},
+			Output:   []string{},
+		},
 	}
 )
 

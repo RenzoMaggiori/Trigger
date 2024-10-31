@@ -80,6 +80,11 @@ func (m Model) Callback(gothUser goth.User, access_token string) error {
 		}
 	}
 
+	dd := &DiscordData{}
+	if gothUser.Provider == "discord" {
+		dd.GuildId = gothUser.RawData["guild_id"].(string)
+	}
+
 	newSync := SyncModel{
 		Id:           primitive.NewObjectID(),
 		UserId:       user.Id,
@@ -88,6 +93,7 @@ func (m Model) Callback(gothUser goth.User, access_token string) error {
 		RefreshToken: &gothUser.RefreshToken,
 		Expiry:       gothUser.ExpiresAt,
 		IdToken:      &gothUser.IDToken,
+		DiscordData:  dd,
 	}
 
 	ctx := context.TODO()

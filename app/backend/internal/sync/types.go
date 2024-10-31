@@ -16,12 +16,20 @@ type Service interface {
 	ByUserId(userId primitive.ObjectID, provider string) (*SyncModel, error)
 }
 
+type CtxKey string
+const DiscodGuildIdCtxKey CtxKey = CtxKey("DiscodGuildIdCtxKey")
+
+
 type Handler struct {
 	Service
 }
 
 type Model struct {
 	Collection *mongo.Collection
+}
+
+type DiscordData struct {
+	GuildId string `json:"guildId" bson:"guildId"`
 }
 
 type SyncModel struct {
@@ -32,6 +40,7 @@ type SyncModel struct {
 	RefreshToken *string            `json:"refreshToken,omitempty" bson:"refreshToken,omitempty"`
 	Expiry       time.Time          `json:"expiry" bson:"expiry"`
 	IdToken      *string            `json:"idToken,omitempty" bson:"idToken,omitempty"`
+	DiscordData *DiscordData       `json:"discordData,omitempty" bson:"discordData,omitempty"`
 }
 
 type AddSyncModel struct {
