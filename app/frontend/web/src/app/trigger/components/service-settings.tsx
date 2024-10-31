@@ -143,8 +143,8 @@ function EmailSettings({ node, type, actions }: { node: NodeItem, type: string, 
 
   const inputs = [
     { label: "Destination", json: "destination", placeholder: "example@example.com", type: "email" },
-    { label: "Title", json: "title", placeholder: "Example title..." },
-    { label: "Subject", json: "subject", placeholder: "Example subject..." },
+    { label: "Title", json: "title", placeholder: "Example title" },
+    { label: "Subject", json: "subject", placeholder: "This is an email subject" },
   ];
 
   if (!node) return <div>No node found</div>;
@@ -153,6 +153,7 @@ function EmailSettings({ node, type, actions }: { node: NodeItem, type: string, 
     <>
       {type === "reaction" ? (
         <div className="flex flex-col gap-y-4">
+          <p className="text-zinc-500">Sends an email to the desired destination.</p>
           {inputs.map((item, key) => (
             <div key={`${node.id}-${key}`}>
               <Label>{item.label}</Label>
@@ -169,7 +170,7 @@ function EmailSettings({ node, type, actions }: { node: NodeItem, type: string, 
           <div>
             <Label>Email body</Label>
             <Textarea
-              placeholder="Example body..."
+              placeholder="Hey there! Just wanted to check in and see how you’re doing..."
               className="resize-none h-[200px]"
               onChange={(e) => handleFieldChange(type, "body", e.target.value)}
               value={node.fields["type"] !== null
@@ -180,14 +181,7 @@ function EmailSettings({ node, type, actions }: { node: NodeItem, type: string, 
         </div>
       ) : (
         <div className="flex flex-col gap-y-4">
-          <Label>Source</Label>
-          <Input
-            placeholder="example@example.com"
-            onChange={(e) => handleFieldChange(type, "source", e.target.value)}
-            value={node.fields["type"] !== null
-              ? (node.fields["source"] as string | number | undefined) || ""
-              : ""}
-          />
+          <p className="text-zinc-500">Waits for a gmail action to happen {"(email arrived, sent, deleted, etc)"}.</p>
         </div>
       )}
     </>
@@ -219,11 +213,11 @@ function SpotifySettings({ node, type, actions }: { node: NodeItem, type: string
     <>
       {type === "reaction" ? (
         <div className="flex flex-col gap-y-4">
-          <p>Plays music on your device.</p>
+          <p className="text-zinc-500">Plays music on your device.</p>
         </div>
       ) : (
         <div className="flex flex-col gap-y-4">
-          <p>Updates on followers count.</p>
+          <p className="text-zinc-500">Waits for the follower count to change.</p>
         </div>
       )}
     </>
