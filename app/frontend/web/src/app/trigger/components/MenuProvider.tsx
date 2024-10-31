@@ -33,19 +33,24 @@ export function MenuProvider({
   const [triggerWorkspace, setTriggerWorkspace] =
     React.useState<TriggerWorkspace | null>(initialWorkspace);
 
-    const setNodes = React.useCallback((nodes: Record<string, NodeItem>) => {
-      setTriggerWorkspace((prev) => {
-        if (!prev) return prev;
+    const setNodes = React.useCallback(
+      (nodes: Record<string, NodeItem>) => {
+        setTriggerWorkspace((prev) => {
+          if (!prev) return prev;
 
-        const updates = { ...prev.nodes };
-        let hasChanges = false;
-        Object.entries(nodes).forEach(([id, newNode]) => {
-          const existingNode = updates[id];
-          if (existingNode) {
-            const updatedFields = { ...existingNode.fields, ...newNode.fields };
+          const updates = { ...prev.nodes };
+          let hasChanges = false;
+
+          Object.entries(nodes).forEach(([id, newNode]) => {
+            const existingNode = updates[id];
+            const updatedFields = { ...existingNode?.fields, ...newNode.fields };
+
             if (
+              !existingNode ||
               existingNode.action_id !== newNode.action_id ||
-              JSON.stringify(existingNode.fields) !== JSON.stringify(updatedFields)
+              JSON.stringify(existingNode.fields) !== JSON.stringify(updatedFields) ||
+              JSON.stringify(existingNode.parent_ids) !== JSON.stringify(newNode.parent_ids) ||
+              JSON.stringify(existingNode.child_ids) !== JSON.stringify(newNode.child_ids)
             ) {
               updates[id] = {
                 ...existingNode,
@@ -54,20 +59,14 @@ export function MenuProvider({
               };
               hasChanges = true;
             }
-          } else {
-            updates[id] = newNode;
-            hasChanges = true;
-          }
+          });
+
+          return hasChanges ? { ...prev, nodes: updates } : prev;
         });
-        if (hasChanges) {
-          return {
-            ...prev,
-            nodes: updates,
-          };
-        }
-        return prev;
-      });
-    }, [setTriggerWorkspace]);
+      },
+      [setTriggerWorkspace]
+    );
+
 
   const updateNodes = (nodes: Record<string, NodeItem>) => {
     setTriggerWorkspace((prev) => {

@@ -49,18 +49,15 @@ export default function Page({ params }: { params: { triggerID: string } }) {
 
   const { triggerWorkspace, setTriggerWorkspace, setNodes } = useMenu();
 
-  const memoizedSetNodes = React.useCallback(setNodes, []);
+  const transformedNodes = React.useMemo(() => {
+    return transformCustomNodes(customNodes, edges, triggerWorkspace?.nodes || {});
+  }, [customNodes, edges]);
 
   React.useEffect(() => {
     if (customNodes.length > 0 || edges.length > 0) {
-      const transformedNodes = transformCustomNodes(
-        customNodes,
-        edges,
-        triggerWorkspace ? triggerWorkspace.nodes : {}
-      );
-      memoizedSetNodes(transformedNodes);
+      setNodes(transformedNodes);
     }
-  }, [customNodes, edges, memoizedSetNodes]);
+  }, [customNodes, edges, transformedNodes]);
 
 
   const { data, isPending, error } = useQuery({
@@ -124,7 +121,7 @@ export default function Page({ params }: { params: { triggerID: string } }) {
 
     const newEdges = data.workspace.nodes.flatMap((n) =>
       (n.children || []).map((childId) => ({
-        id: `edge-${n.node_id}-${childId}`,
+        id: `${n.node_id}`,
         source: n.node_id,
         target: childId,
         style: { stroke: "#ddd", strokeWidth: 2 },
