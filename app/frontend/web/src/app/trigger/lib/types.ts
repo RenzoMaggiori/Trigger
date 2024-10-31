@@ -1,5 +1,6 @@
 import { type Node } from "@xyflow/react";
 import { ConfigMenuType } from "@/app/trigger/components/config-menu";
+import { z } from "zod";
 
 export interface Service {
   name: string;
@@ -21,10 +22,22 @@ export type TriggerWorkspace = {
 
 export type NodeItem = {
   id: string;
-  type: string;
+  action_id: string;
   fields: Record<string, unknown>;
   parent_ids: Array<string>;
   child_ids: Array<string>;
   x_pos: number;
   y_pos: number;
 };
+
+
+export const actionsSchema = z.array(z.object({
+  id: z.string(),
+  input: z.array(z.string()),
+  output: z.array(z.string()),
+  provider: z.string(),
+  type: z.string(),
+  action: z.string(),
+}));
+
+export type ActionType = z.infer<typeof actionsSchema>

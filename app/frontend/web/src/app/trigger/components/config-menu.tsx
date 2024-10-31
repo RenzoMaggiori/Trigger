@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Combox, Status } from "@/components/ui/combox";
 import { SiGooglegemini } from "react-icons/si";
 import { useMenu } from "@/app/trigger/components/MenuProvider";
-import { CustomNode } from "@/app/trigger/lib/types";
+import { ActionType, CustomNode } from "@/app/trigger/lib/types";
 import {
   DiscordSettings,
   EmailSettings,
@@ -21,6 +21,7 @@ export type ConfigMenuType = {
   menu: keyof typeof settingsComponentMap;
   parentNodes: CustomNode[];
   node: CustomNode | null;
+  actions: ActionType;
 };
 
 const settingsComponentMap = {
@@ -48,34 +49,52 @@ const configOptions = [
   },
 ];
 
-export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
+export function ConfigMenu({ menu, parentNodes, node, actions }: ConfigMenuType) {
   const { triggerWorkspace } = useMenu();
   const nodeItem = triggerWorkspace?.nodes[node?.id || ""];
-  const [configType, setConfigType] = React.useState("trigger");
-  const [configState, setConfigState] = React.useState<Record<string, unknown>>(
-    () => ({
-      [configType]: "Personalized",
-    })
-  );
+
+  const [nodeConfig, setNodeConfig] = React.useState(() => new Map<string, { configType: "trigger" | "reaction"; configState: Record<string, unknown> }>());
 
   if (!node) return <div>{"custom node doesn't exist"}</div>;
   if (!nodeItem) return <div>could not find node</div>;
 
+  // Initialize config for the node if not already set
+  if (!nodeConfig.has(node.id)) {
+    nodeConfig.set(node.id, { configType: "trigger", configState: { trigger: "Personalized" } });
+  }
+
+  const { configType, configState } = nodeConfig.get(node.id)!;
+
   const handleStatusChange = (
     status: Status | null,
-    configType: "trigger" | "reaction",
+    selectedConfigType: "trigger" | "reaction"
   ) => {
     const newStatus = status?.value || "Personalized";
-    setConfigState((prev) => ({
-      ...prev,
-      [configType]: newStatus,
-    }));
+    setNodeConfig((prevConfig) => {
+      const updatedConfig = new Map(prevConfig);
+      updatedConfig.set(node.id, {
+        ...updatedConfig.get(node.id)!,
+        configState: {
+          ...updatedConfig.get(node.id)!.configState,
+          [selectedConfigType]: newStatus,
+        },
+      });
+      return updatedConfig;
+    });
   };
 
   const handleConfigTypeChange = (selectedConfigType: "trigger" | "reaction") => {
-    setConfigType(selectedConfigType);
-    setConfigState({
-      [selectedConfigType]: configState[selectedConfigType] || "Personalized",
+    setNodeConfig((prevConfig) => {
+      const updatedConfig = new Map(prevConfig);
+      updatedConfig.set(node.id, {
+        ...updatedConfig.get(node.id)!,
+        configType: selectedConfigType,
+        configState: {
+          ...updatedConfig.get(node.id)!.configState,
+          [selectedConfigType]: updatedConfig.get(node.id)!.configState[selectedConfigType] || "Personalized",
+        },
+      });
+      return updatedConfig;
     });
   };
 
@@ -101,9 +120,7 @@ export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
         <CardTitle className="flex items-center text-xl font-bold">
           {node?.data?.label} Settings
         </CardTitle>
-        <CardDescription className="ml-2 text-md">
-          ID: {node?.id}
-        </CardDescription>
+        <CardDescription className="ml-2 text-md">ID: {node?.id}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex justify-between items-center">
@@ -116,8 +133,12 @@ export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
             </Label>
             <Combox
               statuses={configOptions}
-              setSelectedStatus={(selected) => handleConfigTypeChange(selected?.value === "trigger" ? "trigger" : "reaction")}
-              selectedStatus={configOptions.find((option) => option.value === configType) || null}
+              setSelectedStatus={(selected) =>
+                handleConfigTypeChange(selected?.value === "trigger" ? "trigger" : "reaction")
+              }
+              selectedStatus={
+                configOptions.find((option) => option.value === configType) || null
+              }
               label="info"
               icon={<SiGooglegemini className="mr-2" />}
             />
@@ -137,7 +158,7 @@ export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
               }
               selectedStatus={
                 combinedStatuses.find(
-                  (status) => status.value === configState[configType],
+                  (status) => status.value === configState[configType]
                 ) || combinedStatuses[0]
               }
               label="info"
@@ -151,7 +172,12 @@ export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
             <h4 className="text-lg font-bold mb-2">
               Personalized {configType === "trigger" ? "Trigger" : "Reaction"} Settings
             </h4>
-            <SettingsComponent key={configType} node={nodeItem} type={configType} />
+            <SettingsComponent
+              key={configType}
+              node={nodeItem}
+              type={configType}
+              actions={actions}
+            />
           </div>
         )}
 
@@ -162,9 +188,8 @@ export function ConfigMenu({ menu, parentNodes, node }: ConfigMenuType) {
             <h4 className="font-bold">Parent Node Label:</h4>
             <p>
               {
-                parentNodes.find(
-                  (node) => node.id === configState[configType],
-                )?.data.label
+                parentNodes.find((node) => node.id === configState[configType])
+                  ?.data.label
               }
             </p>
           </div>
