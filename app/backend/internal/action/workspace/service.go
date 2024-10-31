@@ -3,6 +3,8 @@ package workspace
 import (
 	"context"
 	"fmt"
+	"log"
+	"net/http"
 	"strings"
 	"sync"
 
@@ -61,6 +63,34 @@ func (m Model) GetByUserId(ctx context.Context, userId primitive.ObjectID) ([]Wo
 	return workspaces, nil
 }
 
+func (m Model) updateNodesStatus(userId primitive.ObjectID, actionId primitive.ObjectID, status string) error {
+	filter := bson.M{
+		"user_id": userId,
+		"nodes": bson.M{
+			"$elemMatch": bson.M{
+				"action_id": actionId,
+			},
+		},
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"nodes.$.status": status,
+		},
+	}
+
+	res, err := m.Collection.UpdateMany(context.TODO(), filter, update)
+	if err != nil {
+		return err
+	}
+
+	if res.MatchedCount == 0 {
+		return errors.ErrWorkspaceNotFound
+	}
+
+	return nil
+}
+
 func (m Model) GetByActionId(ctx context.Context, actionId primitive.ObjectID) ([]WorkspaceModel, error) {
 	workspaces := make([]WorkspaceModel, 0)
 
@@ -94,18 +124,27 @@ func initAction(actionNode ActionNodeModel, accessToken string) error {
 		return err
 	}
 
-	_, err = StartActionRequest(accessToken, actionNode, *action)
+	status, err := StartActionRequest(accessToken, actionNode, *action)
 	if err != nil {
 		return err
 	}
+
+	if status != http.StatusOK {
+		return errors.ErrSettingAction
+	}
+
 	return nil
 }
 
-func initWorkspace(workspace *WorkspaceModel, accessToken string, isNodeReady fnIsNodeReady) error {
+func (m Model) initWorkspace(workspace *WorkspaceModel, accessToken string, isNodeReady fnIsNodeReady) error {
 	for _, node := range workspace.Nodes {
 		if isNodeReady(node) {
 			assignInputToAction(&node, workspace.Nodes)
 			err := initAction(node, accessToken)
+			if err != nil {
+				return err
+			}
+			err = m.updateNodesStatus(workspace.UserId, node.ActionId, "active")
 			if err != nil {
 				return err
 			}
@@ -148,7 +187,7 @@ func (m Model) Add(ctx context.Context, add *AddWorkspaceModel) (*WorkspaceModel
 			NodeId:   node.NodeId,
 			ActionId: node.ActionId,
 			Input:    node.Input,
-			Output:   nil,
+			Output:   make(map[string]string),
 			Parents:  node.Parents,
 			Status:   "inactive",
 			Children: node.Children,
@@ -164,7 +203,7 @@ func (m Model) Add(ctx context.Context, add *AddWorkspaceModel) (*WorkspaceModel
 	}
 
 	// Initialize the workspace
-	err = initWorkspace(&newWorkspace, accessToken, func(node ActionNodeModel) bool { return len(node.Parents) == 0 })
+	err = m.initWorkspace(&newWorkspace, accessToken, func(node ActionNodeModel) bool { return len(node.Parents) == 0 })
 	if err != nil {
 		return nil, err
 	}
@@ -246,26 +285,29 @@ func (m Model) processWorkspace(
 		},
 	}
 
-	// Construct the update for each key in the Output map
 	outputUpdate := bson.M{}
 	for key, value := range actionCompleted.Output {
 		outputUpdate[fmt.Sprintf("nodes.$.output.%s", key)] = value
 	}
 
-	// Use $set to apply the updated Output fields without overwriting the entire map
 	update := bson.M{
 		"$set": bson.M{
 			"nodes.$.status": "completed",
 		},
 	}
-	// Merge the outputUpdate into the main $set update
+
 	for k, v := range outputUpdate {
 		update["$set"].(bson.M)[k] = v
 	}
 
 	result, err := m.Collection.UpdateMany(context.TODO(), filter, update)
-	if err != nil || result.MatchedCount == 0 {
-		return errors.ErrUpdatingWorkspace
+	if err != nil {
+		fmt.Printf("Matched count: %d", result.MatchedCount)
+		return fmt.Errorf("%w: %v ", errors.ErrUpdatingWorkspace, err)
+	}
+
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("%w: %s ", errors.ErrUpdatingWorkspace, "matched count is 0")
 	}
 
 	updatedResult, err := m.GetById(context.TODO(), workspace.Id)
@@ -274,7 +316,7 @@ func (m Model) processWorkspace(
 		return err
 	}
 
-	initWorkspace(
+	m.initWorkspace(
 		updatedResult,
 		accessToken,
 		func(node ActionNodeModel) bool {
@@ -313,23 +355,148 @@ func isNodeReady(child ActionNodeModel, workspace WorkspaceModel) bool {
 	return true
 }
 
-func (m Model) UpdateById(ctx context.Context, id primitive.ObjectID, update *UpdateWorkspaceModel) (*WorkspaceModel, error) {
-	filter := bson.M{"_id": id}
-	updateData := bson.M{"$set": update}
-
-	_, err := m.Collection.UpdateOne(ctx, filter, updateData)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errors.ErrWorkspaceNotFound, err)
+func (m Model) AddNode(ctx context.Context, workspaceId primitive.ObjectID, node UpdateActionNodeModel) (*WorkspaceModel, error) {
+	filter := bson.M{
+		"_id": workspaceId,
 	}
 
-	var updatedUserAction WorkspaceModel
-	updatedUserAction.Nodes = make([]ActionNodeModel, 0)
-	err = m.Collection.FindOne(ctx, filter).Decode(&updatedUserAction)
+	if node.ActionId == nil {
+		return nil, fmt.Errorf("cannot create node if actionId is nil")
+	}
+
+	addNode := ActionNodeModel{
+		NodeId:   node.NodeId,
+		Input:    node.Input,
+		Output:   make(map[string]string),
+		ActionId: *node.ActionId,
+		Parents:  node.Parents,
+		Children: node.Children,
+		Status:   "inactive",
+		XPos:     node.XPos,
+		YPos:     node.YPos,
+	}
+
+	nodeUpdate := bson.M{
+		"$push": bson.M{
+			"nodes": addNode,
+		},
+	}
+
+	res, err := m.Collection.UpdateOne(ctx, filter, nodeUpdate)
 
 	if err != nil {
 		return nil, err
 	}
-	return &updatedUserAction, nil
+
+	if res.MatchedCount == 0 {
+		return nil, errors.ErrCreatingNode
+	}
+
+	var workspace WorkspaceModel
+
+	err = m.Collection.FindOne(ctx, filter).Decode(&workspace)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &workspace, nil
+}
+
+func (m Model) UpdateNodeById(ctx context.Context, workspaceId primitive.ObjectID, node UpdateActionNodeModel) (*WorkspaceModel, error) {
+	filter := bson.M{
+		"_id": workspaceId,
+		"nodes": bson.M{
+			"$elemMatch": bson.M{
+				"node_id": node.NodeId,
+			},
+		},
+	}
+
+	nodeUpdate := bson.M{
+		"$set": bson.M{
+			"nodes.$.parents":  node.Parents,
+			"nodes.$.children": node.Children,
+			"nodes.$.x_pos":    node.XPos,
+			"nodes.$.y_pos":    node.YPos,
+		},
+	}
+
+	if node.ActionId != nil {
+		nodeUpdate["$set"] = bson.M{"nodes.$.action_id": node.ActionId}
+	}
+
+	for k, v := range node.Input {
+		nodeUpdate["$set"].(bson.M)[fmt.Sprintf("nodes.$.input.%s", k)] = v
+	}
+
+	// Execute the update operation for the current node
+	res, err := m.Collection.UpdateOne(ctx, filter, nodeUpdate)
+	if err != nil {
+		return nil, fmt.Errorf("error updating workspace node: %w", err)
+	}
+	if res.MatchedCount == 0 {
+		return nil, errors.ErrNodeNotFound
+	}
+
+	var workspace WorkspaceModel
+
+	err = m.Collection.FindOne(ctx, filter).Decode(&workspace)
+
+	if err != nil {
+		return nil, errors.ErrWorkspaceNotFound
+	}
+
+	return &workspace, nil
+}
+
+func (m Model) UpdateById(ctx context.Context, workspaceId primitive.ObjectID, update *UpdateWorkspaceModel) (*WorkspaceModel, error) {
+
+	for _, node := range update.Nodes {
+		nodeFilter := bson.M{
+			"_id": workspaceId,
+			"nodes": bson.M{
+				"$elemMatch": bson.M{
+					"node_id": node.NodeId,
+					"status":  "active",
+				},
+			},
+		}
+		count, err := m.Collection.CountDocuments(ctx, nodeFilter)
+
+		if err != nil {
+			continue
+		}
+
+		if count > 0 && node.ActionId != nil {
+			fmt.Printf("WARNING: Unable to update actionId for node: %s because it is currently active.\n", node.NodeId)
+			node.ActionId = nil
+		}
+		_, err = m.UpdateNodeById(ctx, workspaceId, node)
+
+		if err == nil {
+			continue
+		}
+		if err == errors.ErrNodeNotFound {
+			_, err := m.AddNode(ctx, workspaceId, node)
+
+			if err != nil {
+				log.Printf("Node could not be created: %s\n", err)
+				continue
+			}
+		}
+		// Something went wrong; node could not be updated nor created
+		log.Printf("Node could not be updated: %s\n", err)
+	}
+
+	var workspace WorkspaceModel
+	// Retrieve the updated workspace document
+	err := m.Collection.FindOne(ctx, bson.M{"_id": workspaceId}).Decode(&workspace)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving updated workspace: %w", err)
+	}
+
+	return &workspace, nil
 }
 
 func (m Model) WatchCompleted(ctx context.Context, watchCompleted WatchCompletedModel) ([]WorkspaceModel, error) {
@@ -343,10 +510,8 @@ func (m Model) WatchCompleted(ctx context.Context, watchCompleted WatchCompleted
 		},
 	}
 
-	// Define the update: set the output field for the matching nodes
 	update := bson.M{
 		"$set": bson.M{
-			"nodes.$.status": watchCompleted.Status,
 			"nodes.$.output": watchCompleted.Output,
 		},
 	}

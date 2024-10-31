@@ -1,10 +1,6 @@
 package trigger
 
 import (
-	"sync"
-
-	"github.com/bwmarrin/discordgo"
-	// "trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/pkg/action"
 )
 

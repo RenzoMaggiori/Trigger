@@ -59,9 +59,5 @@ RUN cp /app/android/app/build/outputs/apk/release/app-release.apk /app/dist/
 # Install a simple HTTP server to serve the APK
 RUN npm install -g http-server
 
-# Expose port
-ENV MOBILE_PORT=${MOBILE_PORT}
-EXPOSE ${MOBILE_PORT}
+CMD ["tail", "-f", "/dev/null"]
 
-# Start the HTTP server
-CMD ["http-server", "/app/dist", "-p", "$MOBILE_PORT"]

@@ -5,9 +5,10 @@ import (
 	"log"
 	"os"
 
-	"trigger.com/trigger/internal/action/action"
+	"trigger.com/trigger/internal/action"
+	actions "trigger.com/trigger/internal/action/action"
+	"trigger.com/trigger/internal/action/worker"
 	"trigger.com/trigger/internal/action/workspace"
-	"trigger.com/trigger/internal/user"
 	"trigger.com/trigger/pkg/arguments"
 	"trigger.com/trigger/pkg/middleware"
 	"trigger.com/trigger/pkg/mongodb"
@@ -21,7 +22,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = user.Env(*args.EnvPath)
+	err = action.Env(*args.EnvPath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -40,7 +41,7 @@ func main() {
 
 	ctx := context.WithValue(
 		context.TODO(),
-		action.ActionCtxKey,
+		actions.ActionCtxKey,
 		actionCollection,
 	)
 	ctx = context.WithValue(
@@ -51,7 +52,7 @@ func main() {
 
 	router, err := router.Create(
 		ctx,
-		action.Router,
+		actions.Router,
 		workspace.Router,
 	)
 	if err != nil {
@@ -71,5 +72,8 @@ func main() {
 	}
 
 	go server.Start()
+	if err := worker.Run(actionCollection); err != nil {
+		log.Println(err)
+	}
 	server.Stop()
 }

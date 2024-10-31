@@ -27,9 +27,16 @@ func (h *Handler) WebhookSpotify(w http.ResponseWriter, r *http.Request) {
 	event, err := decode.Json[ActionBody](r.Body)
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
+		return
 	}
 
-	err = h.Service.Webhook(context.WithValue(r.Context(), SpotifyEventCtxKey, event))
+	err = h.Service.Webhook(
+		context.WithValue(
+			r.Context(),
+			SpotifyEventCtxKey,
+			event,
+		),
+	)
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
 		return

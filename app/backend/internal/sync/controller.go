@@ -32,26 +32,28 @@ func (h *Handler) SyncWith(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
 	state := r.URL.Query().Get("state")
-	split := strings.Split(state, ":")
-	url := split[0]
-	token := split[1]
+	stateArr := strings.Split(state, ":")
+	if len(stateArr) != 2 {
+		customerror.Send(w, errors.ErrMalformedState, errors.ErrCodes)
+		return
+	}
 
+	url := stateArr[0]
+	token := stateArr[1]
 	urlDecodedBytes, err := base64.URLEncoding.DecodeString(url)
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
 		return
 	}
-	redirectUrl := string(urlDecodedBytes)
-	log.Println(redirectUrl)
 
+	redirectUrl := string(urlDecodedBytes)
 	tokenDecodedBytes, err := base64.URLEncoding.DecodeString(token)
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
 		return
 	}
-	access_token := string(tokenDecodedBytes)
-	log.Println(access_token)
 
+	access_token := string(tokenDecodedBytes)
 	user, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
@@ -67,7 +69,6 @@ func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
 		customerror.Send(w, err, errors.ErrCodes)
 		return
 	}
-
 	http.Redirect(w, r, redirectUrl, http.StatusPermanentRedirect)
 }
 

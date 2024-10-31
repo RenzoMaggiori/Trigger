@@ -10,14 +10,15 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"trigger.com/trigger/internal/action/action"
 	"trigger.com/trigger/internal/action/workspace"
+	"trigger.com/trigger/internal/gmail"
 	"trigger.com/trigger/internal/session"
+	"trigger.com/trigger/internal/sync"
 	"trigger.com/trigger/internal/user"
+	"trigger.com/trigger/pkg/auth/oaclient"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
@@ -25,31 +26,42 @@ import (
 
 func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) error {
 	accessToken, ok := ctx.Value(AccessTokenCtxKey).(string)
-
 	if !ok {
 		return errors.ErrAccessTokenCtx
+	}
+
+	session, _, err := session.GetSessionByAccessTokenRequest(accessToken)
+	if err != nil {
+		return err
+	}
+
+	syncModel, _, err := sync.GetSyncAccessTokenRequest(accessToken, session.UserId.Hex(), "google")
+	if err != nil {
+		return err
+	}
+
+	client, err := oaclient.New(ctx, gmail.Config(), syncModel)
+	if err != nil {
+		return err
 	}
 
 	watchBody := WatchBody{
 		LabelIds:  []string{"INBOX"},
 		TopicName: "projects/trigger-436310/topics/Trigger",
 	}
-
 	body, err := json.Marshal(watchBody)
-
 	if err != nil {
 		return err
 	}
 
 	res, err := fetch.Fetch(
-		http.DefaultClient,
+		client,
 		fetch.NewFetchRequest(
 			http.MethodPost,
 			"https://gmail.googleapis.com/gmail/v1/users/me/watch",
 			bytes.NewReader(body),
 			map[string]string{
-				"Authorization": fmt.Sprintf("Bearer %s", accessToken),
-				"Content-Type":  "application/json",
+				"Content-Type": "application/json",
 			},
 		),
 	)
@@ -67,13 +79,6 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 	}
 
 	watchResponse, err := decode.Json[WatchResponse](res.Body)
-
-	if err != nil {
-		return err
-	}
-
-	session, _, err := session.GetSessionByAccessTokenRequest(accessToken)
-
 	if err != nil {
 		return err
 	}
@@ -81,65 +86,16 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 	watchCompleted := workspace.WatchCompletedModel{
 		ActionId: actionNode.ActionId,
 		UserId:   session.UserId,
-		Status:   "active",
 		Output: map[string]string{
 			"historyId":  watchResponse.HistoryId,
 			"expiration": watchResponse.Expiration,
 		},
 	}
-
 	_, _, err = workspace.WatchCompletedRequest(accessToken, watchCompleted)
-
 	if err != nil {
 		return err
 	}
-
 	return nil
-}
-
-func fetchUserHistory(accessToken string, lastHistoryId int) (*HistoryList, error) {
-	res, err := fetch.Fetch(
-		http.DefaultClient,
-		fetch.NewFetchRequest(
-			http.MethodGet,
-			fmt.Sprintf("https://gmail.googleapis.com/gmail/v1/users/me/history?startHistoryId=%d", lastHistoryId),
-			nil,
-			map[string]string{
-				"Authorization": fmt.Sprintf("Bearer %s", accessToken),
-				"Content-Type":  "application/json",
-			},
-		))
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		bodyBytes, err := io.ReadAll(res.Body)
-		if err != nil {
-			return nil, err
-		}
-		log.Printf("Watch body: %s", bodyBytes)
-		return nil, errors.ErrGmailHistory
-	}
-
-	history, err := decode.Json[HistoryList](res.Body)
-	if err != nil {
-		return nil, errors.ErrGmailHistoryTypeNone
-	}
-	return &history, nil
-}
-
-func getActiveNodes(workspaces []workspace.WorkspaceModel, actionId primitive.ObjectID) []workspace.ActionNodeModel {
-	activeNodes := make([]workspace.ActionNodeModel, 0)
-
-	for _, workspace := range workspaces {
-		for _, node := range workspace.Nodes {
-			if node.ActionId == actionId && node.Status == "active" {
-				activeNodes = append(activeNodes, node)
-			}
-		}
-	}
-	return activeNodes
 }
 
 func (m Model) Webhook(ctx context.Context) error {
@@ -176,68 +132,56 @@ func (m Model) Webhook(ctx context.Context) error {
 			break
 		}
 	}
-
 	if googleSession == nil {
 		return errors.ErrSessionNotFound
 	}
 
 	action, _, err := action.GetByActionNameRequest(googleSession.AccessToken, googleWatchActionName)
-
 	if err != nil {
 		return err
 	}
 
-	workspaces, _, err := workspace.GetByUserId(googleSession.AccessToken, user.Id.Hex())
-
+	update := workspace.ActionCompletedModel{
+		ActionId: action.Id,
+		UserId:   user.Id,
+		Output:   map[string]string{"email": ""},
+	}
+	_, err = workspace.ActionCompletedRequest(googleSession.AccessToken, update)
 	if err != nil {
 		return err
 	}
-
-	activeNodes := getActiveNodes(workspaces, action.Id)
-
-	for _, activeNode := range activeNodes {
-
-		intHistoryId, err := strconv.Atoi(activeNode.Output["historyId"])
-		if err != nil {
-			return err
-		}
-
-		history, err := fetchUserHistory(googleSession.AccessToken, intHistoryId)
-
-		if err != nil {
-			return err
-		}
-		log.Printf("History: %+v", history)
-
-		update := workspace.ActionCompletedModel{
-			ActionId: action.Id,
-			UserId:   user.Id,
-			Output:   map[string]string{"email": ""},
-		}
-
-		_, err = workspace.ActionCompletedRequest(googleSession.AccessToken, update)
-
-		if err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
 func (m Model) Stop(ctx context.Context) error {
-	accessToken := ctx.Value(AccessTokenCtxKey)
+	accessToken, ok := ctx.Value(AccessTokenCtxKey).(string)
+	if !ok {
+		return errors.ErrAccessTokenCtx
+	}
 
-	fmt.Printf("Access token: %s", accessToken)
+	session, _, err := session.GetSessionByAccessTokenRequest(accessToken)
+	if err != nil {
+		return err
+	}
+
+	syncModel, _, err := sync.GetSyncAccessTokenRequest(accessToken, session.UserId.Hex(), "google")
+	if err != nil {
+		return err
+	}
+
+	client, err := oaclient.New(ctx, gmail.Config(), syncModel)
+	if err != nil {
+		return err
+	}
+
 	res, err := fetch.Fetch(
-		http.DefaultClient,
+		client,
 		fetch.NewFetchRequest(
 			http.MethodPost,
 			"https://gmail.googleapis.com/gmail/v1/users/me/stop",
 			nil,
 			map[string]string{
-				"Authorization": fmt.Sprintf("%s", accessToken),
-				"Content-Type":  "application/json",
+				"Content-Type": "application/json",
 			},
 		),
 	)
@@ -253,11 +197,7 @@ func (m Model) Stop(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		log.Printf("Stop body: %s", bodyBytes)
-		return errors.ErrGmailStop
+		return fmt.Errorf("%v: %s", errors.ErrGmailStop, bodyBytes)
 	}
-
-	log.Println(accessToken)
 	return nil
 }
-

@@ -4,13 +4,17 @@ import { MaterialIcons, Entypo } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 
 interface FlowChartAreaProps {
-    flow: { action: string, reactions: string[] }[];
+    flow: {
+        provider: string,
+        action: { id: string, name: string },
+        reactions: { id: string, provider: string, name: string }[]
+    }[];
     onAddReaction: (actionIndex: number) => void;
     onRemoveAction: (actionIndex: number) => void;
-    onSaveAction: (flowItem: { action: string, reactions: string[] }) => void;
+    onSaveTrigger: (actionIndex: number) => void;
 }
 
-export default function FlowChartArea({ flow, onAddReaction, onRemoveAction, onSaveAction }: FlowChartAreaProps) {
+export default function FlowChartArea({ flow, onAddReaction, onRemoveAction, onSaveTrigger }: FlowChartAreaProps) {
     const [selectedItem, setSelectedItem] = useState<{ type: 'action' | 'reaction', actionIndex: number | null, reactionIndex?: number | null }>({
         type: 'action',
         actionIndex: null,
@@ -37,32 +41,33 @@ export default function FlowChartArea({ flow, onAddReaction, onRemoveAction, onS
         <ScrollView style={styles.container}>
             {flow.map((flowItem, actionIndex) => (
                 <View key={actionIndex} style={styles.flowItem}>
-
                     <TouchableOpacity onPress={() => handleSelectAction(actionIndex)}>
                         <View style={styles.actionContainer}>
-                            <Text style={styles.actionText}>Action: {flowItem.action}</Text>
+                            <Text style={styles.actionText}>Provider: {flowItem.provider}</Text>
+                            <Text style={styles.actionText}>Action: {flowItem.action.name}</Text>
                         </View>
                     </TouchableOpacity>
 
                     {flowItem.reactions.map((reaction, reactionIndex) => (
                         <TouchableOpacity key={reactionIndex} onPress={() => handleSelectReaction(actionIndex, reactionIndex)}>
                             <View style={styles.reactionContainer}>
-                                <Text style={styles.reactionText}>Reaction: {reaction}</Text>
+                                <Text style={styles.reactionText}>Provider: {reaction.provider}</Text>
+                                <Text style={styles.reactionText}>Reaction: {reaction.name}</Text>
                             </View>
                         </TouchableOpacity>
                     ))}
 
                     {selectedItem.actionIndex === actionIndex && selectedItem.type === 'action' && (
                         <View style={styles.infoCard}>
-                            <Text style={styles.infoText}>Action: {flowItem.action}</Text>
-                            <Text>Here goes Action Data</Text>
+                            <Text style={styles.infoText}>Provider: {flowItem.provider}</Text>
+                            <Text style={styles.infoText}>Action: {flowItem.action.name}</Text>
                         </View>
                     )}
 
                     {selectedItem.actionIndex === actionIndex && selectedItem.type === 'reaction' && selectedItem.reactionIndex !== null && (
                         <View style={styles.infoCard}>
-                            <Text style={styles.infoText}>Reaction: {flowItem.reactions[selectedItem.reactionIndex ?? 0]}</Text>
-                            <Text>Here goes Reaction Data</Text>
+                            <Text style={styles.infoText}>Reaction Selected</Text>
+                            <Text>{flowItem.reactions[selectedItem.reactionIndex!].provider}: {flowItem.reactions[selectedItem.reactionIndex!].name}</Text>
                         </View>
                     )}
 
@@ -76,7 +81,7 @@ export default function FlowChartArea({ flow, onAddReaction, onRemoveAction, onS
                                 <Entypo name="cross" size={24} color="#fff" />
                                 <Text style={styles.actionButtonTxt}>Remove</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.actionButton} onPress={() => onSaveAction(flowItem)}>
+                            <TouchableOpacity style={styles.actionButton} onPress={() => onSaveTrigger(actionIndex)}>
                                 <MaterialIcons name="save-alt" size={24} color="#fff" />
                                 <Text style={styles.actionButtonTxt}>Save</Text>
                             </TouchableOpacity>
@@ -100,22 +105,24 @@ const styles = StyleSheet.create({
         elevation: 3,
     },
     actionContainer: {
-        backgroundColor: '#fff',
+        backgroundColor: Colors.light.tintDark,
         padding: 10,
         borderRadius: 5,
         marginBottom: 10,
     },
     actionText: {
         fontWeight: 'bold',
+        color: '#fff',
     },
     reactionContainer: {
-        backgroundColor: '#ffeaa7',
+        backgroundColor: '#fff',
         padding: 10,
         borderRadius: 5,
         marginTop: 5,
     },
     reactionText: {
         fontWeight: 'bold',
+        color: Colors.light.tintDark,
     },
     buttonsContainer: {
         flexDirection: 'column',

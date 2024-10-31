@@ -20,5 +20,5 @@ func Router(ctx context.Context) (*router.Router, error) {
 
 	server.Handle("POST /play_music", middlewares(http.HandlerFunc(handler.PlayMusic)))
 
-	return router.NewRouter("/gmail/reaction", server), nil
+	return router.NewRouter("/api/spotify/reaction", server), nil
 }

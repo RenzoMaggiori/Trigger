@@ -17,6 +17,7 @@ var (
 	ErrNodeNotFound                error = errors.New("action node not found")
 	ErrAuthorizationHeaderNotFound error = errors.New("authorization header not found")
 	ErrSyncNotFound             error = errors.New("sync not found")
+
 	// Bad Request Errors
 	ErrBadWorkspaceId        error = errors.New("bad workspace id")
 	ErrBadUserId             error = errors.New("bad user id")
@@ -42,6 +43,7 @@ var (
 	ErrCreatingEmail     error = errors.New("failed to create raw email")
 	ErrCreatingSync     error = errors.New("failed to create a new sync")
 	ErrCreatingSetting     error = errors.New("failed to create a new setting")
+	ErrCreatingNode      error = errors.New("failed to create workspace node")
 
 	// Updating Errors
 	ErrUpdatingWorkspace error = errors.New("error while updating workspace")
@@ -55,6 +57,7 @@ var (
 	ErrFetchingSession error = errors.New("error while retrieving session")
 	ErrFetchingActions error = errors.New("error while retrieving actions")
 	ErrFetchingSync error = errors.New("error while retrieving sync")
+	ErrActionProviderNotFound error = errors.New("could not find action provider")
 
 	// Email Errors
 	ErrFailedToSendEmail  error = errors.New("failed to send email")
@@ -64,6 +67,12 @@ var (
 	ErrGmailHistory       error = errors.New("error while fetching gmail history")
 	ErrInvalidGoogleToken error = errors.New("token provided is not valid")
 
+	// Twitch Errors
+	ErrTwitchUser             error = errors.New("error while fetching twitch user")
+	ErrTwitchUserFound        error = errors.New("twitch user found")
+	ErrTwitchAppAccessToken   error = errors.New("error while fetching twitch app access token")
+	ErrTwitchSendMessage      error = errors.New("error while sending twitch channel message")
+	ErrWebhookVerificationCtx error = errors.New("could not find webhook verification in ctx")
 	// Sync Errors
 	ErrSyncAccessTokenNotFound error = errors.New("error could not find sync access token")
 	ErrSyncModelTypeNone       error = errors.New("error could not decode sync model")
@@ -90,10 +99,16 @@ var (
 	ErrAddDiscordSession error = errors.New("error storing discord session in db")
 	ErrUpdateDiscordSession error = errors.New("error updating discord session in db")
 	ErrDeleteDiscordSession error = errors.New("error deleting discord session in db")
+	// State
+	ErrMalformedState error = errors.New("malformed state")
 
 	ErrCodes map[error]customerror.CustomError = map[error]customerror.CustomError{
 		ErrWorkspaceNotFound: {
 			Message: ErrWorkspaceNotFound.Error(),
+			Code:    http.StatusNotFound,
+		},
+		ErrNodeNotFound: {
+			Message: ErrNodeNotFound.Error(),
 			Code:    http.StatusNotFound,
 		},
 		ErrBadWorkspaceId: {
@@ -118,6 +133,10 @@ var (
 		},
 		ErrCreatingWorkspace: {
 			Message: ErrCreatingWorkspace.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrCreatingNode: {
+			Message: ErrCreatingNode.Error(),
 			Code:    http.StatusInternalServerError,
 		},
 		ErrFetchingActions: {
@@ -220,10 +239,6 @@ var (
 			Message: ErrInvalidGoogleToken.Error(),
 			Code:    http.StatusUnauthorized,
 		},
-		ErrNodeNotFound: {
-			Message: ErrNodeNotFound.Error(),
-			Code:    http.StatusInternalServerError,
-		},
 		ErrAuthorizationHeaderNotFound: {
 			Message: ErrAuthorizationHeaderNotFound.Error(),
 			Code:    http.StatusForbidden,
@@ -231,6 +246,26 @@ var (
 		ErrUpdatingWorkspace: {
 			Message: ErrUpdatingWorkspace.Error(),
 			Code:    http.StatusNotFound,
+		},
+		ErrTwitchUser: {
+			Message: ErrTwitchUser.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrTwitchUserFound: {
+			Message: ErrTwitchUserFound.Error(),
+			Code:    http.StatusOK,
+		},
+		ErrTwitchAppAccessToken: {
+			Message: ErrTwitchAppAccessToken.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrTwitchSendMessage: {
+			Message: ErrTwitchSendMessage.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrWebhookVerificationCtx: {
+			Message: ErrWebhookVerificationCtx.Error(),
+			Code:    http.StatusInternalServerError,
 		},
 		ErrSyncAccessTokenNotFound: {
 			Message: ErrUpdatingWorkspace.Error(),
@@ -242,11 +277,19 @@ var (
 		},
 		ErrSpotifyBadStatus: {
 			Message: ErrSpotifyBadStatus.Error(),
-			Code: http.StatusBadRequest,
+			Code:    http.StatusBadRequest,
 		},
 		ErrBadWebhookData: {
 			Message: ErrBadWebhookData.Error(),
-			Code: http.StatusUnprocessableEntity,
+			Code:    http.StatusUnprocessableEntity,
+		},
+		ErrMalformedState: {
+			Message: ErrMalformedState.Error(),
+			Code:    http.StatusUnprocessableEntity,
+		},
+		ErrActionProviderNotFound: {
+			Message: ErrActionProviderNotFound.Error(),
+			Code:    http.StatusNotFound,
 		},
 		ErrSyncNotFound: {
 			Message: ErrSyncNotFound.Error(),

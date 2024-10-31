@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"trigger.com/trigger/internal/settings"
-	"trigger.com/trigger/internal/user"
 	"trigger.com/trigger/pkg/arguments"
 	"trigger.com/trigger/pkg/middleware"
 	"trigger.com/trigger/pkg/mongodb"
@@ -20,7 +19,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = user.Env(*args.EnvPath)
+	err = settings.Env(*args.EnvPath)
 	if err != nil {
 		log.Fatal(err)
 	}

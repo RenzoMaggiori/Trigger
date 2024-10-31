@@ -40,5 +40,5 @@ func Router(ctx context.Context) (*router.Router, error) {
 	server.Handle("PATCH /id/{id}", middlewares(http.HandlerFunc(handler.UpdateSessionById)))
 	server.Handle("DELETE /id/{id}", middlewares(http.HandlerFunc(handler.DeleteSessionById)))
 
-	return router.NewRouter("/session", server), nil
+	return router.NewRouter("/api/session", server), nil
 }

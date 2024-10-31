@@ -2,11 +2,78 @@ package action
 
 import (
 	"context"
+	"net"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"trigger.com/trigger/pkg/errors"
 )
+
+func (m Model) About(remoteAddr string) (AboutModel, error) {
+	host, _, err := net.SplitHostPort(remoteAddr)
+	if err != nil {
+		return AboutModel{}, err
+	}
+
+	actions, err := m.Get()
+	if err != nil {
+		return AboutModel{}, err
+	}
+
+	areaServices := map[string]ServiceModel{}
+	for _, a := range actions {
+		service := areaServices[a.Provider]
+		if a.Type == "trigger" {
+			service.Actions = append(service.Actions, AreaModel{
+				Name:        a.Action,
+				Description: a.Action,
+			})
+		} else {
+			service.Reactions = append(service.Reactions, AreaModel{
+				Name:        a.Action,
+				Description: a.Action,
+			})
+		}
+		areaServices[a.Provider] = service
+	}
+
+	services := make([]ServiceModel, 0)
+	for k, v := range areaServices {
+		if v.Actions == nil {
+			v.Actions = make([]AreaModel, 0)
+		}
+		if v.Reactions == nil {
+			v.Reactions = make([]AreaModel, 0)
+		}
+		services = append(services, ServiceModel{
+			Name:      k,
+			Actions:   v.Actions,
+			Reactions: v.Reactions,
+		})
+	}
+
+	about := AboutModel{
+		Client: ClientModel{
+			Host: host,
+		},
+		Server: ServerModel{
+			CurrentTime: time.Now().Unix(),
+			Services:    services,
+		},
+	}
+	return about, nil
+}
+
+func getService(services []ServiceModel, name string) *ServiceModel {
+	for _, s := range services {
+		if s.Name != name {
+			continue
+		}
+		return &s
+	}
+	return nil
+}
 
 func (m Model) Get() ([]ActionModel, error) {
 	actions := make([]ActionModel, 0)

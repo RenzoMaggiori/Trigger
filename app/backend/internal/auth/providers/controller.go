@@ -2,7 +2,6 @@ package providers
 
 import (
 	"encoding/base64"
-	"log"
 	"net/http"
 	"time"
 
@@ -48,7 +47,6 @@ func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	redirectUrl := string(stateDecodedBytes)
-	log.Println(redirectUrl)
 	user, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
 		customerror.Send(w, err, errCodes)
