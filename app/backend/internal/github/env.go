@@ -13,8 +13,7 @@ import (
 
 var (
 	errEnvNotFound      string    = "Enviroment argument %s not found"
-	enviromentArguments [9]string = [...]string{
-		"GITHUB_WEBHOOK_URL",
+	enviromentArguments [8]string = [...]string{
 		"AUTH_PORT",
 		"GITHUB_KEY",
 		"GITHUB_SECRET",

@@ -5,8 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
-	"os"
 
 	"trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/internal/github"
@@ -48,7 +48,7 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 		"active": true,
 		"events": []string{"push"},
 		"config": map[string]any{
-			"url":          os.Getenv("GITHUB_WEBHOOK_URL"),
+			"url":          "https://d66e-95-19-19-190.ngrok-free.app/api/github/trigger/webhook",
 			"content_type": "json",
 			"insecure_ssl": "0",
 		},
@@ -79,6 +79,8 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 	}
 	defer res.Body.Close()
 	if res.StatusCode >= 400 {
+		b, _ := io.ReadAll(res.Body)
+		fmt.Printf("%s\n", b)
 		return fmt.Errorf("%w: received %s", errors.ErrInvalidGithubStatus, res.Status)
 	}
 	return nil

@@ -49,6 +49,8 @@ func Router(ctx context.Context) (*router.Router, error) {
 			os.Getenv("GITHUB_KEY"),
 			os.Getenv("GITHUB_SECRET"),
 			callback,
+			"repo",
+			"write:repo_hook",
 		),
 		discord.New(
 			os.Getenv("DISCORD_KEY"),
