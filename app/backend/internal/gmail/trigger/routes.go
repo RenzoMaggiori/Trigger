@@ -21,5 +21,5 @@ func Router(ctx context.Context) (*router.Router, error) {
 	server.Handle("POST /webhook", http.HandlerFunc(handler.WebhookGmail))
 	server.Handle("POST /stop", http.HandlerFunc(handler.StopGmail))
 
-	return router.NewRouter("/gmail/trigger", server), nil
+	return router.NewRouter("/api/gmail/trigger", server), nil
 }

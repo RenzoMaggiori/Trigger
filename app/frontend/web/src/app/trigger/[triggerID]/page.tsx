@@ -16,6 +16,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ServicesComponent } from "@/app/trigger/components/service-page";
 import { ReactFlowComponent } from "@/app/trigger/components/react-flow";
 import { getWorkspace } from "@/app/trigger/lib/get-workspace";
+import { getActions } from "../lib/get-actions";
 
 const services: Service[] = [
   {
@@ -52,30 +53,39 @@ export default function Page({ params }: { params: { triggerID: string } }) {
   const [parentNodes, setParentNodes] = React.useState<CustomNode[]>([]);
   const [selectedNode, setSelectedNode] = React.useState<CustomNode | null>(null);
 
-  const { setTriggerWorkspace, setNodes } = useMenu();
+  const { triggerWorkspace, setTriggerWorkspace, setNodes } = useMenu();
+
+  const transformedNodes = React.useMemo(() => {
+    return transformCustomNodes(customNodes, edges, triggerWorkspace?.nodes || {});
+  }, [customNodes, edges]);
 
   React.useEffect(() => {
     if (customNodes.length > 0 || edges.length > 0) {
-      const transformedNodes = transformCustomNodes(customNodes, edges);
       setNodes(transformedNodes);
     }
-  }, [customNodes, edges]);
+  }, [customNodes, edges, transformedNodes]);
 
 
   const { data, isPending, error } = useQuery({
-    queryKey: ["workspace", params.triggerID],
-    queryFn: () => getWorkspace({ id: params.triggerID }),
+    queryKey: ["workspaceAndActions", params.triggerID],
+    queryFn: async () => {
+      const [workspace, actions] = await Promise.all([
+        getWorkspace({ id: params.triggerID }),
+        getActions(),
+      ]);
+      return { workspace, actions };
+    },
   });
 
   React.useEffect(() => {
-    if (!data) return;
+    if (!data?.workspace) return;
 
     setTriggerWorkspace({
-      id: data.id,
-      nodes: data.nodes.reduce((acc, n) => {
+      id: data.workspace.id,
+      nodes: data.workspace.nodes.reduce((acc, n) => {
         acc[n.node_id] = {
           id: n.node_id,
-          type: n.action_id || "",
+          action_id: n.action_id || "",
           fields: n.input || {},
           parent_ids: n.parents || [],
           child_ids: n.children || [],
@@ -95,7 +105,7 @@ export default function Page({ params }: { params: { triggerID: string } }) {
   React.useEffect(() => {
     if (!data) return;
 
-    const nodes = data.nodes.map((n) => {
+    const nodes = data.workspace.nodes.map((n) => {
       const service = findService(n.node_id);
       return {
         id: n.node_id,
@@ -115,9 +125,9 @@ export default function Page({ params }: { params: { triggerID: string } }) {
       };
     });
 
-    const newEdges = data.nodes.flatMap((n) =>
+    const newEdges = data.workspace.nodes.flatMap((n) =>
       (n.children || []).map((childId) => ({
-        id: `edge-${n.node_id}-${childId}`,
+        id: `${n.node_id}`,
         source: n.node_id,
         target: childId,
         style: { stroke: "#ddd", strokeWidth: 2 },
@@ -208,6 +218,7 @@ export default function Page({ params }: { params: { triggerID: string } }) {
             menu={settings}
             parentNodes={parentNodes}
             node={selectedNode}
+            actions={data.actions}
           />
         )}
       </div>

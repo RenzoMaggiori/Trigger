@@ -8,6 +8,8 @@ import (
 	"trigger.com/trigger/internal/action/action"
 )
 
+// WARNING: Action names must be unique
+
 var (
 	actions = [...]action.AddActionModel{
 		{
@@ -40,7 +42,7 @@ var (
 		},
 		{
 			Provider: "spotify",
-			Type:     "action",
+			Type:     "trigger",
 			Action:   "watch_followers",
 			Input:    []string{},
 			Output:   []string{"followers", "increased"},
@@ -51,6 +53,27 @@ var (
 			Action:   "play_music",
 			Input:    []string{},
 			Output:   []string{},
+		},
+		{
+			Provider: "timer",
+			Type:     "trigger",
+			Action:   "watch_minute",
+			Input:    []string{},
+			Output:   []string{"datetime"},
+		},
+		{
+			Provider: "timer",
+			Type:     "trigger",
+			Action:   "watch_hour",
+			Input:    []string{},
+			Output:   []string{"datetime"},
+		},
+		{
+			Provider: "timer",
+			Type:     "trigger",
+			Action:   "watch_day",
+			Input:    []string{},
+			Output:   []string{"datetime"},
 		},
 	}
 )
@@ -70,6 +93,9 @@ func Run(collection *mongo.Collection) error {
 		}
 
 		newActions = append(newActions, a)
+	}
+	if len(newActions) == 0 {
+		return nil
 	}
 
 	_, err := collection.InsertMany(ctx, newActions)

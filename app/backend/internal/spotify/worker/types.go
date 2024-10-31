@@ -1,5 +1,15 @@
 package worker
 
+import (
+	"trigger.com/trigger/internal/session"
+	"trigger.com/trigger/internal/sync"
+)
+
+type UserTokens struct {
+	session session.SessionModel
+	sync    sync.SyncModel
+}
+
 type SpotifyFollowerHistory struct {
 	UserId string `bson:"user_id"`
 	Total  int    `bson:"total"`

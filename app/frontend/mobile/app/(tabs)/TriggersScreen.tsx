@@ -1,57 +1,120 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Modal } from 'react-native';
+import { View, StyleSheet, Modal, TouchableOpacity, Text } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import FlowChartArea from '@/components/actions/FlowChartArea';
-import TechnologySelector from '@/components/actions/TechnologySelector';
+import ProviderSelector from '@/components/actions/ProviderSelector';
+import ActionSelector from '@/components/actions/ActionsSelector';
 import ButtonIcon from '@/components/ButtonIcon';
 import { MaterialIcons } from '@expo/vector-icons';
+import { TriggersService } from '@/api/triggers/service';
+
+function transformFlowItemToApiFormat(flowItem: {
+    provider: string,
+    action: { id: string, name: string },
+    reactions: { id: string, provider: string, name: string }[]
+}) {
+    const nodes = [];
+
+    // trigger node
+    nodes.push({
+        node_id: "action1",
+        action_id: flowItem.action.id,
+        name: flowItem.action.name,
+        input: {},
+        output: {},
+        parents: [],
+        children: flowItem.reactions.length > 0 ? ["action2"] : [],
+        x_pos: 10,
+        y_pos: 10,
+    });
+
+    // reaction nodes
+    flowItem.reactions.forEach((reaction, index) => {
+        const nodeIndex = index + 2;
+
+        nodes.push({
+            node_id: `action${nodeIndex}`,
+            action_id: reaction.id,
+            name: reaction.name,
+            input: {},
+            output: {},
+            parents: [`action${nodeIndex - 1}`],
+            children: index < flowItem.reactions.length - 1 ? [`action${nodeIndex + 1}`] : [],
+            x_pos: 10,
+            y_pos: 10 * nodeIndex,
+        });
+    });
+
+    return { nodes };
+}
 
 export default function TriggerScreen() {
-    const [flow, setFlow] = useState<{ action: string, reactions: string[] }[]>([]);
+    const [flow, setFlow] = useState<{ provider: string, action: { id: string, name: string }, reactions: { id: string, provider: string, name: string }[] }[]>([]);
     const [modalVisible, setModalVisible] = useState<boolean>(false);
     const [selectedActionIndex, setSelectedActionIndex] = useState<number | null>(null);
     const [isAddingAction, setIsAddingAction] = useState<boolean>(false);
+    const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
+    const [showActionSelector, setShowActionSelector] = useState<boolean>(false);
 
-    const addAction = (tech: string) => {
-        setFlow([...flow, { action: tech, reactions: [] }]);
-        setModalVisible(false);
+    const addAction = (action: { id: string; name: string }) => {
+        if (selectedProvider) {
+            setFlow([...flow, { provider: selectedProvider, action, reactions: [] }]);
+            closeModal();
+        }
     };
 
-    const addReaction = (tech: string) => {
-        if (selectedActionIndex !== null) {
-            const newFlow = [...flow];
-            newFlow[selectedActionIndex].reactions.push(tech);
-            setFlow(newFlow);
-            setModalVisible(false);
+    const addReaction = (reaction: { id: string; name: string }) => {
+        if (selectedActionIndex !== null && selectedProvider) {
+            setFlow(prevFlow => {
+                const updatedFlow = [...prevFlow];
+                updatedFlow[selectedActionIndex].reactions.push({ provider: selectedProvider, ...reaction });
+                return updatedFlow;
+            });
+            closeModal();
         }
     };
 
     const openActionSelector = () => {
         setIsAddingAction(true);
+        setSelectedProvider(null);
         setModalVisible(true);
     };
 
     const openReactionSelector = (actionIndex: number) => {
         setIsAddingAction(false);
         setSelectedActionIndex(actionIndex);
+        setSelectedProvider(null);
         setModalVisible(true);
     };
 
-    const removeAction = (actionIndex: number) => {
-        const newFlow = flow.filter((_, index) => index !== actionIndex);
-        setFlow(newFlow);
+    const selectProvider = (provider: string) => {
+        setSelectedProvider(provider);
+        setShowActionSelector(true);
     };
 
-    const saveAction = (flowItem: { action: string, reactions: string[] }) => {
-        console.log("Saved action and reactions:", flowItem);
-        removeAction(flow.indexOf(flowItem));
+    const removeAction = (actionIndex: number) => {
+        setFlow(prevFlow => prevFlow.filter((_, index) => index !== actionIndex));
+    };
+
+    const saveTrigger = (actionIndex: number) => {
+        const flowItem = flow[actionIndex];
+        const formattedData = transformFlowItemToApiFormat(flowItem);
+        console.log("Trigger:", JSON.stringify(formattedData, null, 2));
+        TriggersService.addTrigger(formattedData);
+        removeAction(actionIndex);
+    };
+
+    const closeModal = () => {
+        setModalVisible(false);
+        setShowActionSelector(false);
+        setSelectedProvider(null);
     };
 
     return (
         <View style={styles.container}>
             <View style={styles.addActionContainer}>
                 <ButtonIcon
-                    title="Add Action"
+                    title="Add Trigger"
                     onPress={openActionSelector}
                     icon={<MaterialIcons name="add" size={24} color="#FFFFFF" />}
                     backgroundColor={Colors.light.tint}
@@ -63,16 +126,29 @@ export default function TriggerScreen() {
                 flow={flow}
                 onAddReaction={openReactionSelector}
                 onRemoveAction={removeAction}
-                onSaveAction={saveAction}
+                onSaveTrigger={saveTrigger}
             />
             <Modal
                 animationType="slide"
                 transparent={true}
                 visible={modalVisible}
-                onRequestClose={() => setModalVisible(false)}
+                onRequestClose={closeModal}
             >
                 <View style={styles.modalContainer}>
-                    <TechnologySelector onTechSelect={isAddingAction ? addAction : addReaction} />
+                    <View style={styles.modalContent}>
+                        <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
+                            <Text style={styles.closeButtonText}>×</Text>
+                        </TouchableOpacity>
+                        {!showActionSelector ? (
+                            <ProviderSelector onProviderSelect={selectProvider} />
+                        ) : (
+                            <ActionSelector
+                                provider={selectedProvider}
+                                onActionSelect={isAddingAction ? addAction : addReaction}
+                                type={isAddingAction ? 'trigger' : 'reaction'}
+                            />
+                        )}
+                    </View>
                 </View>
             </Modal>
         </View>
@@ -94,109 +170,20 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
+    modalContent: {
+        backgroundColor: '#fff',
+        borderRadius: 10,
+        marginHorizontal: 30,
+        position: 'relative',
+    },
+    closeButton: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        zIndex: 1,
+    },
+    closeButtonText: {
+        fontSize: 24,
+        color: '#000',
+    },
 });
-
-// import React, { useState } from 'react';
-// import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-// import { Colors } from '@/constants/Colors';
-// // @ts-ignore
-// import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
-// import { GestureHandlerRootView } from 'react-native-gesture-handler';
-// import TechBox from '@/components/actions/TechBox';
-// import Draggable from '@/components/actions/Draggable';
-// import ActionReactionList from '@/components/actions/ActionReactionList';
-// import Video from '@/components/actions/Video';
-
-// interface ActionBox {
-//     name: string;
-//     icon: React.ReactElement;
-// }
-
-// const technologies: ActionBox[] = [
-//     { name: 'Google', icon: <Ionicons name="logo-google" size={30} color={Colors.light.google} /> },
-//     { name: 'Github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
-//     { name: 'Outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.outlook} /> },
-//     { name: 'Slack', icon: <FontAwesome5 name="slack" size={30} color={Colors.light.slack} /> },
-//     { name: 'Discord', icon: <FontAwesome5 name="discord" size={30} color={Colors.light.discord} /> },
-// ];
-
-// export default function TriggersScreen() {
-//     const [service, setService] = useState<ActionBox | undefined>(undefined);
-
-//     const addService = (techName: string) => {
-//         const foundTech = technologies.find(tech => tech.name === techName);
-//         if (foundTech) {
-//             setService(foundTech);
-//         }
-//     }
-
-//     return (
-//         <View style={styles.container}>
-//             <View style={styles.servicesContainer}>
-//                 <Text style={styles.servicesTitle}>Services</Text>
-//                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.servicesList}>
-//                     {technologies.map((tech, index) => (
-//                         <TouchableOpacity key={index} style={styles.techItem} onPress={() => addService(tech.name)}>
-//                             <View style={styles.iconContainer}>{tech.icon}</View>
-//                             <Text style={styles.techName}>{tech.name}</Text>
-//                         </TouchableOpacity>
-//                     ))}
-//                 </ScrollView>
-//             </View>
-
-//             <View style={styles.manageActions}>
-//                 <ScrollView showsVerticalScrollIndicator={false}>
-//                     <ActionReactionList tech={service}/>
-//                 </ScrollView>
-//             </View>
-
-//         </View>
-//     );
-// }
-
-// const styles = StyleSheet.create({
-//     container: {
-//         flex: 1,
-//     },
-//     manageActions: {
-//         flex: 1,
-//         marginTop: 10,
-//         padding: 20,
-//         borderRadius: 10,
-//         backgroundColor: Colors.light.grey,
-//         marginHorizontal: 10,
-//         height: "100%",
-//     },
-//     servicesContainer: {
-//         marginTop: 10,
-//         padding: 20,
-//         backgroundColor: Colors.light.grey,
-//         borderRadius: 10,
-//         marginHorizontal: 10,
-//     },
-//     servicesTitle: {
-//         fontSize: 18,
-//         fontWeight: 'bold',
-//         marginBottom: 10,
-//     },
-//     servicesList: {
-//         flexDirection: 'row',
-//     },
-//     techItem: {
-//         marginRight: 20,
-//         alignItems: 'center',
-//         justifyContent: 'center',
-//         borderWidth: 1,
-//         borderColor: '#ccc',
-//         borderRadius: 10,
-//         padding: 10,
-//         backgroundColor: '#FFFFFF',
-//     },
-//     iconContainer: {
-//         marginBottom: 5,
-//     },
-//     techName: {
-//         fontSize: 16,
-//         fontWeight: 'bold',
-//     },
-// });

@@ -17,5 +17,5 @@ func Router(ctx context.Context) (*router.Router, error) {
 	server.Handle("POST /register", http.HandlerFunc(handler.Register))
 	server.Handle("POST /verify", http.HandlerFunc(handler.Verify))
 
-	return router.NewRouter("/auth", server), nil
+	return router.NewRouter("/api/auth", server), nil
 }

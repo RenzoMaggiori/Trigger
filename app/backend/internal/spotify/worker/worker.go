@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -20,6 +21,7 @@ import (
 	"trigger.com/trigger/internal/spotify"
 	"trigger.com/trigger/internal/spotify/trigger"
 	userSync "trigger.com/trigger/internal/sync"
+	"trigger.com/trigger/pkg/auth/oaclient"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/fetch"
 	"trigger.com/trigger/pkg/mongodb"
@@ -36,7 +38,7 @@ var (
 
 func New(ctx context.Context) *cron.Cron {
 	c := cron.New()
-	err := c.AddFunc("0 */5 * * * *", func() {
+	err := c.AddFunc("0 */1 * * * *", func() {
 		log.Println("job running...")
 		if err := changeInFollowers(ctx); err != nil {
 			log.Println(err)
@@ -62,12 +64,13 @@ func changeInFollowers(ctx context.Context) error {
 
 	workspaces, _, err := workspace.GetByActionIdRequest(
 		os.Getenv("ADMIN_TOKEN"),
-		spotifyAction.Id.String(),
+		spotifyAction.Id.Hex(),
 	)
 	if err != nil {
 		return err
 	}
 
+	log.Printf("%v\n", workspaces)
 	var wg sync.WaitGroup
 	for _, w := range workspaces {
 		wg.Add(1)
@@ -75,7 +78,7 @@ func changeInFollowers(ctx context.Context) error {
 			defer wg.Done()
 			err := userChangeInFollowers(ctx, collection, w, a)
 			if err != nil {
-				log.Printf("Error processing user %s: %v", w.UserId.String(), err)
+				log.Printf("Error processing user %s: %v", w.UserId.Hex(), err)
 			}
 		}(w, *spotifyAction)
 	}
@@ -84,13 +87,13 @@ func changeInFollowers(ctx context.Context) error {
 }
 
 func userChangeInFollowers(ctx context.Context, collection *mongo.Collection, workspace workspace.WorkspaceModel, action action.ActionModel) error {
-	userId := workspace.UserId.String()
-	accessToken, err := getUserAccessToken(userId)
+	userId := workspace.UserId.Hex()
+	userTokens, err := getUserAccessToken(userId)
 	if err != nil {
 		return err
 	}
 
-	spotifyUser, err := getSpotifyUser(accessToken)
+	spotifyUser, err := getSpotifyUser(userTokens.sync)
 	if err != nil {
 		return err
 	}
@@ -114,7 +117,7 @@ func userChangeInFollowers(ctx context.Context, collection *mongo.Collection, wo
 	}
 
 	if spotifyUser.Followers.Total != userHistory.Total {
-		err := fetchSpotifyWebhook(accessToken, trigger.ActionBody{
+		err := fetchSpotifyWebhook(userTokens.session.AccessToken, trigger.ActionBody{
 			Type: action.Action,
 			Data: trigger.FollowerChange{
 				Followers: spotifyUser.Followers.Total,
@@ -158,35 +161,43 @@ func getSpotifyAction() (*action.ActionModel, error) {
 	return nil, errSpotifyAction
 }
 
-func getUserAccessToken(userId string) (string, error) {
+func getUserAccessToken(userId string) (*UserTokens, error) {
 	session, _, err := session.GetSessionByUserIdRequest(os.Getenv("ADMIN_TOKEN"), userId)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if session == nil || len(session) == 0 {
-		return "", errSessionNotFound
+		return nil, errSessionNotFound
 	}
 
-	user, _, err := userSync.GetSyncAccessTokenRequest(session[0].AccessToken, userId, "spotify")
+	userTokens := UserTokens{
+		session: session[0],
+	}
+	syncModel, _, err := userSync.GetSyncAccessTokenRequest(userTokens.session.AccessToken, userId, "spotify")
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	if user == nil {
-		return "", errSyncModelNull
+	if syncModel == nil {
+		return nil, errSyncModelNull
 	}
-	return user.AccessToken, nil
+
+	userTokens.sync = *syncModel
+	return &userTokens, nil
 }
 
-func getSpotifyUser(accessToken string) (*SpotifyUser, error) {
+func getSpotifyUser(syncModel userSync.SyncModel) (*SpotifyUser, error) {
+	client, err := oaclient.New(context.TODO(), spotify.Config(), &syncModel)
+	if err != nil {
+		return nil, err
+	}
+
 	res, err := fetch.Fetch(
-		http.DefaultClient,
+		client,
 		fetch.NewFetchRequest(
 			http.MethodGet,
 			fmt.Sprintf("%s/me", spotify.BaseUrl),
 			nil,
-			map[string]string{
-				"Authorization": fmt.Sprintf("Bearer %s", accessToken),
-			},
+			nil,
 		),
 	)
 	if err != nil {
@@ -194,7 +205,11 @@ func getSpotifyUser(accessToken string) (*SpotifyUser, error) {
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		return nil, errSpotifyBadStatus
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, errSpotifyBadStatus
+		}
+		return nil, fmt.Errorf("%w: %s", errSpotifyBadStatus, body)
 	}
 
 	spotifyUser, err := decode.Json[SpotifyUser](res.Body)
@@ -218,7 +233,7 @@ func fetchSpotifyWebhook(accessToken string, data trigger.ActionBody) error {
 			fmt.Sprintf("%s/api/spotify/trigger/webhook", os.Getenv("SPOTIFY_SERVICE_BASE_URL")),
 			bytes.NewReader(body),
 			map[string]string{
-				"Authroization": fmt.Sprintf("Bearer %s", accessToken),
+				"Authorization": fmt.Sprintf("Bearer %s", accessToken),
 			},
 		),
 	)

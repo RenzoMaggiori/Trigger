@@ -13,8 +13,16 @@ import (
 
 var (
 	errEnvNotFound      string    = "Enviroment argument %s not found"
-	enviromentArguments [1]string = [...]string{
+	enviromentArguments [9]string = [...]string{
 		"GITHUB_WEBHOOK_URL",
+		"AUTH_PORT",
+		"GITHUB_KEY",
+		"GITHUB_SECRET",
+		"AUTH_SERVICE_BASE_URL",
+		"USER_SERVICE_BASE_URL",
+		"SESSION_SERVICE_BASE_URL",
+		"ACTION_SERVICE_BASE_URL",
+		"SYNC_SERVICE_BASE_URL",
 	}
 )
 
