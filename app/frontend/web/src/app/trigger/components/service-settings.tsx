@@ -33,8 +33,12 @@ function GithubSettings({ }: { node: NodeItem, type: string }) {
   return <div></div>;
 }
 
+function TwitchSettings({ }: { node: NodeItem, type: string }) {
+  return <div></div>;
+}
+
 function EmailSettings({ node, type, actions }: { node: NodeItem, type: string, actions: ActionType }) {
-  const { triggerWorkspace, setFields, setNodes } = useMenu();
+  const { setFields, setNodes } = useMenu();
 
   React.useEffect(() => {
     const gmailTriggerAction = actions.find(
@@ -69,7 +73,6 @@ function EmailSettings({ node, type, actions }: { node: NodeItem, type: string, 
   ];
 
   if (!node) return <div>No node found</div>;
-  console.log(triggerWorkspace)
 
   return (
     <>
@@ -116,8 +119,26 @@ function EmailSettings({ node, type, actions }: { node: NodeItem, type: string, 
   );
 }
 
-function SpotifySettings({node, type}: {node: NodeItem, type: string}) {
+function SpotifySettings({node, type, actions}: {node: NodeItem, type: string, actions: ActionType}) {
+  const { setFields, setNodes } = useMenu();
+
+  React.useEffect(() => {
+    const gmailTriggerAction = actions.find(
+      (action) => action.provider === "spotify" && action.type === type
+    );
+    if (!gmailTriggerAction) return;
+    if (node.action_id !== gmailTriggerAction.id) {
+      setNodes({
+        [node.id]: { ...node, action_id: gmailTriggerAction.id },
+      });
+    }
+    if (node.fields?.type !== type) {
+      setFields(node.id, { ["type"]: type });
+    }
+  }, [type, actions, node, setNodes, setFields]);
+
   if (!node) return <div>No node found</div>;
+
 
   return (
     <>
@@ -265,5 +286,5 @@ function DiscordSettings({ }: { node: NodeItem, type: string }) {
   );
 }
 
-export { EmailSettings, DiscordSettings, GithubSettings, SpotifySettings };
+export { EmailSettings, DiscordSettings, GithubSettings, SpotifySettings, TwitchSettings };
 

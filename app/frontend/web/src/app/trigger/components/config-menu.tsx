@@ -16,6 +16,7 @@ import {
   EmailSettings,
   GithubSettings,
   SpotifySettings,
+  TwitchSettings,
 } from "@/app/trigger/components/service-settings";
 
 export type ConfigMenuType = {
@@ -30,6 +31,7 @@ const settingsComponentMap = {
   discord: DiscordSettings,
   github: GithubSettings,
   spotify: SpotifySettings,
+  twitch: TwitchSettings,
 };
 
 const configOptions = [

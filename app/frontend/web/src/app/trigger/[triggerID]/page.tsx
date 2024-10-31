@@ -2,8 +2,7 @@
 
 import React from "react";
 import { IoLogoGithub } from "react-icons/io";
-import { FaDiscord } from "react-icons/fa";
-import { FaSpotify } from "react-icons/fa";
+import { FaDiscord, FaTwitch, FaSpotify } from "react-icons/fa";
 import { type Edge } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { ConfigMenu } from "@/app/trigger/components/config-menu";
@@ -38,6 +37,11 @@ const services: Service[] = [
     name: "Spotify",
     settings: "spotify",
   },
+  {
+    icon: <FaTwitch className="w-5 h-5 mr-2 text-violet-500" />,
+    name: "Twitch",
+    settings: "twitch",
+  }
 ];
 
 export default function Page({ params }: { params: { triggerID: string } }) {
