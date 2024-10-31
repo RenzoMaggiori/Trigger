@@ -415,12 +415,15 @@ func (m Model) UpdateNodeById(ctx context.Context, workspaceId primitive.ObjectI
 
 	nodeUpdate := bson.M{
 		"$set": bson.M{
-			"nodes.$.parents":   node.Parents,
-			"nodes.$.children":  node.Children,
-			"nodes.$.x_pos":     node.XPos,
-			"nodes.$.y_pos":     node.YPos,
-			"nodes.$.action_id": node.ActionId,
+			"nodes.$.parents":  node.Parents,
+			"nodes.$.children": node.Children,
+			"nodes.$.x_pos":    node.XPos,
+			"nodes.$.y_pos":    node.YPos,
 		},
+	}
+
+	if node.ActionId != nil {
+		nodeUpdate["$set"] = bson.M{"nodes.$.action_id": node.ActionId}
 	}
 
 	for k, v := range node.Input {
