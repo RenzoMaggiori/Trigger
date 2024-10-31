@@ -8,7 +8,6 @@ import { type Edge } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { ConfigMenu } from "@/app/trigger/components/config-menu";
 import { BiLogoGmail } from "react-icons/bi";
-import { PiMicrosoftOutlookLogo } from "react-icons/pi";
 import { CustomNode, NodeItem, Service } from "@/app/trigger/lib/types";
 import { useMenu } from "@/app/trigger/components/MenuProvider";
 import { transformCustomNodes } from "@/app/trigger/lib/transform-custom-nodes";
@@ -32,11 +31,6 @@ const services: Service[] = [
   {
     icon: <BiLogoGmail className="w-5 h-5 mr-2 text-red-600" />,
     name: "Gmail",
-    settings: "email",
-  },
-  {
-    icon: <PiMicrosoftOutlookLogo className="w-5 h-5 mr-2 text-sky-500" />,
-    name: "Outlook",
     settings: "email",
   },
   {

@@ -7,8 +7,8 @@ import { FcGoogle } from "react-icons/fc";
 
 import { FaDiscord } from "react-icons/fa";
 import { IoLogoGithub } from "react-icons/io";
-import { FaSlack } from "react-icons/fa6";
-import { PiMicrosoftOutlookLogo } from "react-icons/pi";
+import { FaSpotify } from "react-icons/fa";
+import { FaTwitch } from "react-icons/fa";
 
 import { FaCircle } from "react-icons/fa6";
 // import { env } from "@/lib/env";
@@ -31,9 +31,9 @@ import { sync } from "./lib/sync";
 const services = {
   "Google": <FcGoogle className="w-5 h-5" />,
   "Discord": <FaDiscord className="w-5 h-5 text-blue-500" />,
-  "Slack": <FaSlack className="w-5 h-5" />,
-  "Outlook": <PiMicrosoftOutlookLogo className="w-5 h-5 text-black" />,
   "Github": <IoLogoGithub className="w-5 h-5" />,
+  "Spotify": <FaSpotify className="w-5 h-5 text-green-500" />,
+  "Twitch": <FaTwitch className="w-5 h-5 text-violet-500" />,
 } as const;
 
 export default function Page() {

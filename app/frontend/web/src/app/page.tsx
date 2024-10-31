@@ -13,8 +13,9 @@ import { FcGoogle } from "react-icons/fc";
 import { BiLogoGmail } from "react-icons/bi";
 import { FaDiscord } from "react-icons/fa";
 import { IoLogoGithub } from "react-icons/io";
-import { FaSlack } from "react-icons/fa6";
-import { PiMicrosoftOutlookLogo } from "react-icons/pi";
+import { FaSpotify } from "react-icons/fa";
+import { FaTwitch } from "react-icons/fa";
+
 import { Card, CardHeader } from "@/components/ui/card";
 import { Footer } from "@/components/ui/footer";
 
@@ -28,11 +29,8 @@ export default function Home() {
     { name: "Gmail", icon: <BiLogoGmail className="mr-2 hidden md:block" /> },
     { name: "Discord", icon: <FaDiscord className="mr-2 hidden md:block" /> },
     { name: "Github", icon: <IoLogoGithub className="mr-2 hidden md:block" /> },
-    { name: "Slack", icon: <FaSlack className="mr-2 hidden md:block" /> },
-    {
-      name: "Outlook",
-      icon: <PiMicrosoftOutlookLogo className="mr-2 hidden md:block" />,
-    },
+    { name: "Spotify", icon: <FaSpotify className="mr-2 hidden md:block" /> },
+    { name: "Twitch", icon: <FaTwitch className="mr-2 hidden md:block" /> },
   ];
 
   // TODO: Add href to start with google
