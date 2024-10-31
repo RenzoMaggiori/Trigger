@@ -40,6 +40,7 @@ var (
 	ErrCreatingWorkspace error = errors.New("error while creating workspace")
 	ErrCreatingSession   error = errors.New("error while creating session")
 	ErrCreatingEmail     error = errors.New("failed to create raw email")
+	ErrCreatingNode      error = errors.New("failed to create workspace node")
 
 	// Updating Errors
 	ErrUpdatingWorkspace error = errors.New("error while updating workspace")
@@ -86,6 +87,10 @@ var (
 			Message: ErrWorkspaceNotFound.Error(),
 			Code:    http.StatusNotFound,
 		},
+		ErrNodeNotFound: {
+			Message: ErrNodeNotFound.Error(),
+			Code:    http.StatusNotFound,
+		},
 		ErrBadWorkspaceId: {
 			Message: ErrBadWorkspaceId.Error(),
 			Code:    http.StatusBadRequest,
@@ -108,6 +113,10 @@ var (
 		},
 		ErrCreatingWorkspace: {
 			Message: ErrCreatingWorkspace.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrCreatingNode: {
+			Message: ErrCreatingNode.Error(),
 			Code:    http.StatusInternalServerError,
 		},
 		ErrFetchingActions: {
@@ -209,10 +218,6 @@ var (
 		ErrInvalidGoogleToken: {
 			Message: ErrInvalidGoogleToken.Error(),
 			Code:    http.StatusUnauthorized,
-		},
-		ErrNodeNotFound: {
-			Message: ErrNodeNotFound.Error(),
-			Code:    http.StatusInternalServerError,
 		},
 		ErrAuthorizationHeaderNotFound: {
 			Message: ErrAuthorizationHeaderNotFound.Error(),

@@ -72,13 +72,13 @@ type AddActionNodeModel struct {
 }
 
 type UpdateActionNodeModel struct {
-	NodeId   string            `json:"node_id" bson:"node_id"`
-	Input    map[string]string `json:"input" bson:"input"`
-	Output   map[string]string `json:"output" bson:"input"`
-	Parents  []string          `json:"parents" bson:"parents"`
-	Children []string          `json:"children" bson:"children"`
-	XPos     float32           `json:"x_pos" bson:"x_pos"`
-	YPos     float32           `json:"y_pos" bson:"y_pos"`
+	NodeId   string              `json:"node_id" bson:"node_id"`
+	ActionId *primitive.ObjectID `json:"action_id,omitempty" bson:"action_id"`
+	Input    map[string]string   `json:"input" bson:"input"`
+	Parents  []string            `json:"parents" bson:"parents"`
+	Children []string            `json:"children" bson:"children"`
+	XPos     float32             `json:"x_pos" bson:"x_pos"`
+	YPos     float32             `json:"y_pos" bson:"y_pos"`
 }
 
 type UpdateWorkspaceModel struct {
