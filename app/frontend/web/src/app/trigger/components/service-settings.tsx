@@ -29,8 +29,83 @@ const InputComponent = ({
   );
 };
 
-function GithubSettings({ }: { node: NodeItem, type: string }) {
-  return <div></div>;
+function GithubSettings({ node, type, actions }: { node: NodeItem, type: string, actions: ActionType }) {
+  const { setFields, setNodes } = useMenu();
+
+  React.useEffect(() => {
+    const gmailTriggerAction = actions.find(
+      (action) => action.provider === "gmail" && action.type === type
+    );
+    if (!gmailTriggerAction) return;
+    if (node.action_id !== gmailTriggerAction.id) {
+      setNodes({
+        [node.id]: { ...node, action_id: gmailTriggerAction.id },
+      });
+    }
+    if (node.fields?.type !== type) {
+      setFields(node.id, { ["type"]: type });
+    }
+  }, [type, actions, node, setNodes, setFields]);
+
+  const handleFieldChange = (type: string, index: string, value: string) => {
+    const currentField = node.fields["type"];
+
+    if (currentField !== null && type === currentField) {
+      setFields(node.id, { ...node.fields, [index]: value });
+    } else {
+      setFields(node.id, { ["type"]: type, [index]: value });
+    }
+  };
+
+  const triggerInputs = [
+    { label: "Owner", json: "owner", placeholder: "John Doe" },
+    { label: "Repository", json: "repo", placeholder: "example_repository" },
+  ];
+
+  const reactionInputs = [
+    { label: "Owner", json: "owner", placeholder: "John Doe" },
+    { label: "Repository", json: "repo", placeholder: "example_repository" },
+    { label: "Title", json: "title", placeholder: "Example title" },
+    { label: "Description", json: "description", placeholder: "This is a new issue" },
+  ];
+
+  return (
+    <div>
+      {type === "reaction" ? (
+        <div className="flex flex-col gap-y-4">
+          <p className="text-zinc-500">Creates a new issue on the specified repository.</p>
+          {reactionInputs.map((item, key) => (
+            <div key={`${node.id}-${key}`}>
+              <Label>{item.label}</Label>
+              <Input
+                placeholder={item.placeholder}
+                onChange={(e) => handleFieldChange(type, item.json, e.target.value)}
+                value={node.fields["type"] !== null
+                  ? (node.fields[item.json] as string | number | undefined) || ""
+                  : ""}
+              />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-y-4">
+          <p className="text-zinc-500">Waits for a push to happen.</p>
+          {triggerInputs.map((item, key) => (
+            <div key={`${node.id}-${key}`}>
+              <Label>{item.label}</Label>
+              <Input
+                placeholder={item.placeholder}
+                onChange={(e) => handleFieldChange(type, item.json, e.target.value)}
+                value={node.fields["type"] !== null
+                  ? (node.fields[item.json] as string | number | undefined) || ""
+                  : ""}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function TwitchSettings({ }: { node: NodeItem, type: string }) {
@@ -119,7 +194,7 @@ function EmailSettings({ node, type, actions }: { node: NodeItem, type: string, 
   );
 }
 
-function SpotifySettings({node, type, actions}: {node: NodeItem, type: string, actions: ActionType}) {
+function SpotifySettings({ node, type, actions }: { node: NodeItem, type: string, actions: ActionType }) {
   const { setFields, setNodes } = useMenu();
 
   React.useEffect(() => {
