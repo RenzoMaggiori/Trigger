@@ -20,7 +20,7 @@ import (
 
 func (m Model) MutlipleReactions(actionName string, ctx context.Context, action workspace.ActionNodeModel) error {
 	switch actionName {
-	case "send_channel_message":
+	case "send_chat_message":
 		return m.SendChannelMessage(ctx, action)
 	}
 	return nil

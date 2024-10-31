@@ -121,7 +121,7 @@ func (m Model) Webhook(ctx context.Context) error {
 	}
 
 	accessToken := userSesssion[0].AccessToken
-	action, _, err := action.GetByActionNameRequest(accessToken, "actionName")
+	action, _, err := action.GetByActionNameRequest(accessToken, "channel_follow")
 	if err != nil {
 		return err
 	}
