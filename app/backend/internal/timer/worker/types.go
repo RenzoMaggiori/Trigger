@@ -20,6 +20,7 @@ type TimerWorker struct {
 	services []TimerService
 	ctx      context.Context
 	cancel   context.CancelFunc
+	ticker   *time.Ticker
 }
 
 type MinuteService struct {
