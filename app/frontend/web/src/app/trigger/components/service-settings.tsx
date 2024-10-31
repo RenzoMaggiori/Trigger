@@ -33,13 +33,13 @@ function GithubSettings({ node, type, actions }: { node: NodeItem, type: string,
   const { setFields, setNodes } = useMenu();
 
   React.useEffect(() => {
-    const gmailTriggerAction = actions.find(
-      (action) => action.provider === "gmail" && action.type === type
+    const githubTriggerAction = actions.find(
+      (action) => action.provider === "github" && action.type === type
     );
-    if (!gmailTriggerAction) return;
-    if (node.action_id !== gmailTriggerAction.id) {
+    if (!githubTriggerAction) return;
+    if (node.action_id !== githubTriggerAction.id) {
       setNodes({
-        [node.id]: { ...node, action_id: gmailTriggerAction.id },
+        [node.id]: { ...node, action_id: githubTriggerAction.id },
       });
     }
     if (node.fields?.type !== type) {
@@ -192,13 +192,13 @@ function SpotifySettings({ node, type, actions }: { node: NodeItem, type: string
   const { setFields, setNodes } = useMenu();
 
   React.useEffect(() => {
-    const gmailTriggerAction = actions.find(
+    const spotifyTriggerAction = actions.find(
       (action) => action.provider === "spotify" && action.type === type
     );
-    if (!gmailTriggerAction) return;
-    if (node.action_id !== gmailTriggerAction.id) {
+    if (!spotifyTriggerAction) return;
+    if (node.action_id !== spotifyTriggerAction.id) {
       setNodes({
-        [node.id]: { ...node, action_id: gmailTriggerAction.id },
+        [node.id]: { ...node, action_id: spotifyTriggerAction.id },
       });
     }
     if (node.fields?.type !== type) {
