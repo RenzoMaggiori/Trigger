@@ -1,7 +1,13 @@
 package worker
 
 import (
+	"sync"
+
+	"github.com/bwmarrin/discordgo"
 	"go.mongodb.org/mongo-driver/mongo"
+	"trigger.com/trigger/internal/discord/trigger"
+	"trigger.com/trigger/internal/session"
+	userSync "trigger.com/trigger/internal/sync"
 )
 
 const (
@@ -14,12 +20,17 @@ const (
 )
 
 type Service interface {
-	Me(token string) (*Me, error)
-	GuildChannels(guildID string) ([]Channel, error)
-	AddSession(session *AddDiscordSessionModel) error
-	UpdateSession(userId string, session *UpdateDiscordSessionModel) error
-	GetSession(token string) (*DiscordSessionModel, error)
+	GetGuildChannels(guildID string) ([]Channel, error)
+	GetBotGuilds(guildID string) ([]Guild, error)
+	GetUserGuilds(discordToken string) ([]Guild, error)
+	FindCommonGuilds(botGuilds, userGuilds []Guild) []Guild
+
+	AddSession(data *DiscordSessionModel) error
+	GetSessionByUserId(userId string) (*DiscordSessionModel, error)
+	GetAllDiscordSessions() ([]DiscordSessionModel, error)
 	DeleteSession(userId string) error
+
+	FetchDiscordWebhook(accessToken string, data trigger.ActionBody) error
 }
 
 type Handler struct {
@@ -28,41 +39,48 @@ type Handler struct {
 
 type Model struct {
 	Collection *mongo.Collection
-	// discord    *discordgo.Session
-	// mutex      sync.Mutex
+	bot    *discordgo.Session
+	mutex      sync.Mutex
 }
 
-type DiscordSessionModel struct {
-	UserId  string `json:"user_id" bson:"user_id"`
-	DiscordId string `json:"discord_id" bson:"discord_id"`
-	GuildId string `json:"guild_id" bson:"guild_id"`
-	// Token   string `json:"token" bson:"token"`
-	Running bool   `json:"running" bson:"running"`
-	Stop    bool   `json:"stop" bson:"stop"`
-}
-
-type AddDiscordSessionModel struct {
-	UserId  string `json:"user_id" bson:"user_id"`
-	DiscordId string `json:"discord_id" bson:"discord_id"`
-	GuildId string `json:"guild_id" bson:"guild_id"`
-}
-
-type UpdateDiscordSessionModel struct {
-	Running bool   `json:"running" bson:"running"`
-	Stop    bool   `json:"stop" bson:"stop"`
+type Guild struct {
+	Id   string
+	Name string
 }
 
 type Channel struct {
 	Id   string `json:"id"`
 	Name string `json:"name"`
 }
-type Me struct {
+
+type UserTokens struct {
+	session session.SessionModel
+	sync    userSync.SyncModel
+}
+
+type DiscordSessionModel struct {
+	UserId  string `json:"user_id" bson:"user_id"`
+	DiscordId string `json:"discord_id" bson:"discord_id"`
+	GuildId string `json:"guild_id" bson:"guild_id"`
+	ChannelId string `json:"channel_id" bson:"channel_id"`
+	ActionId string `json:"action_id" bson:"action_id"`
+	Token string `json:"token" bson:"token"`
+}
+
+// type WatchCompletedModel struct {
+// 	UserId   primitive.ObjectID `json:"user_id"`
+// 	ActionId primitive.ObjectID `json:"action_id"`
+// 	Status   string             `json:"status"`
+// 	Output   map[string]string  `json:"output"`
+// }
+
+type DiscordMe struct {
 	DiscordId string `json:"id"`
 	Username  string `json:"username"`
 	Email     string `json:"email"`
 }
 
-type DiscordMe struct {
+type DiscordStruct struct {
 	Id                   string  `json:"id"`
 	Username             string  `json:"username"`
 	Avatar               *string `json:"avatar"`

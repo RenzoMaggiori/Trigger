@@ -45,7 +45,6 @@ func main() {
 		ctx,
 		trigger.Router,
 		reaction.Router,
-		worker.Router,
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -64,5 +63,11 @@ func main() {
 	}
 
 	go server.Start()
+
+	w := &worker.Model{}
+	worker := w.New(ctx)
+	worker.Start()
+
 	server.Stop()
+	worker.Stop()
 }

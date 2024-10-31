@@ -8,6 +8,12 @@ import (
 	"trigger.com/trigger/pkg/action"
 )
 
+type WorkspaceCtx string
+const DiscordEventCtxKey WorkspaceCtx = WorkspaceCtx("DiscordEventCtxKey")
+const AccessTokenCtxKey WorkspaceCtx = WorkspaceCtx("AuthorizationCtxKey")
+const WorkspaceCtxKey WorkspaceCtx = WorkspaceCtx("WorkspaceCtxKey")
+
+
 type Service interface {
 	action.Trigger
 
@@ -20,33 +26,20 @@ type Handler struct {
 	Service
 }
 
-// type Model struct {
-// 	Collection *mongo.Collection
-// }
-
-// type Model struct {
-// 	Collection *mongo.Collection
-//     discord *discordgo.Session
-//     stop    chan struct{}
-//     running bool
-//     mutex   sync.Mutex
-// }
-
-type Model struct {
-	// Collection *mongo.Collection
-	bot    *discordgo.Session
-	mutex      sync.Mutex
+type MsgInfo struct {
+	Author string `json:"author"`
+	Content string `json:"content"`
 }
 
-// type DiscordSessionModel struct {
-// 	UserID  string `json:"user_id" bson:"user_id"`
-// 	GuildId string `json:"guild_id" bson:"guild_id"`
-// 	Token   string `json:"token" bson:"token"`
-// 	Running bool   `json:"running" bson:"running"`
-// 	Stop    bool   `json:"stop" bson:"stop"`
-// }
+type Model struct {
+}
 
 type ActionBody struct {
 	Type string      `json:"type"`
 	Data interface{} `json:"data"`
+}
+
+type Event struct {
+	GuildId   string `json:"guild_id"`
+	ChannelId string `json:"channel_id"`
 }

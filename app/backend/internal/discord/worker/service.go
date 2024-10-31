@@ -16,7 +16,7 @@ import (
 	"trigger.com/trigger/pkg/fetch"
 )
 
-func (m *Model) Me(token string) (*Me, error) {
+func (m *Model) GetMe(token string) (*DiscordMe, error) {
 	user, _, err := user.GetUserByAccesstokenRequest(token)
 	if err != nil {
 		return nil, err
@@ -50,35 +50,38 @@ func (m *Model) Me(token string) (*Me, error) {
 		return nil, fmt.Errorf("%w: %v", errors.ErrDiscordMe, res.StatusCode)
 	}
 
-	discord_me, err := decode.Json[DiscordMe](res.Body)
+	discord_struct, err := decode.Json[DiscordStruct](res.Body)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errors.ErrDecodeData, err)
 	}
 
-	log.Println("id", discord_me.Id)
-	log.Println("username", discord_me.Username)
-	log.Println("email", discord_me.Email)
+	log.Println("id", discord_struct.Id)
+	log.Println("username", discord_struct.Username)
+	log.Println("email", discord_struct.Email)
 
-	me := Me{
-		DiscordId:       discord_me.Id,
-		Username: discord_me.Username,
-		Email:    discord_me.Email,
+	discord_me := DiscordMe{
+		DiscordId:       discord_struct.Id,
+		Username: discord_struct.Username,
+		Email:    discord_struct.Email,
 	}
 
-	return &me, nil
+	return &discord_me, nil
 }
 
-func (m *Model) GuildChannels(guildID string) ([]Channel, error) {
-	discord, err := discordgo.New("Bot " + os.Getenv("BOT_TOKEN"))
+//* GET CHANNELS FROM A GUILD
+func (m *Model) GetGuildChannels(guildID string) ([]Channel, error) {
+	bot, err := discordgo.New("Bot " + os.Getenv("BOT_TOKEN"))
 
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errors.ErrCreateDiscordGoSession, err)
 	}
 
-	defer discord.Close()
+	if err := bot.Open(); err != nil {
+		return nil, errors.ErrOpeningDiscordConnection
+    }
+	defer bot.Close()
 
-	channels, err := discord.GuildChannels(guildID)
-
+	channels, err := bot.GuildChannels(guildID)
 	if err != nil {
 		return nil, err
 	}
@@ -88,24 +91,82 @@ func (m *Model) GuildChannels(guildID string) ([]Channel, error) {
 		if ch.Type != discordgo.ChannelTypeGuildText {
 			continue
 		}
-		response = append(response, Channel{
-			Id:   ch.ID,
-			Name: ch.Name,
-		})
+		response = append(response, Channel{Id: ch.ID, Name: ch.Name})
 	}
 
 	return response, nil
 }
 
-func (m *Model) AddSession(session *AddDiscordSessionModel) error {
+// * GET GUILDS FROM BOT
+func (m *Model) GetBotGuilds(guildID string) ([]Guild, error) {
+	bot, err := discordgo.New("Bot " + os.Getenv("BOT_TOKEN"))
+
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", errors.ErrCreateDiscordGoSession, err)
+	}
+
+	if err := bot.Open(); err != nil {
+		return nil, errors.ErrOpeningDiscordConnection
+    }
+	defer bot.Close()
+
+	guilds, err := bot.UserGuilds(100, "", "", false)
+	if err != nil {
+		return nil, err
+	}
+
+	var userGuilds []Guild
+	for _, g := range guilds {
+		userGuilds = append(userGuilds, Guild{Id: g.ID, Name: g.Name})
+	}
+
+	return userGuilds, nil
+}
+
+// * GET GUILDS FROM USER
+func (m *Model) GetUserGuilds(discordToken string) ([]Guild, error) {
+	userSession, err := discordgo.New("Bearer " + discordToken)
+	if err != nil {
+		return nil, err
+	}
+
+	guilds, err := userSession.UserGuilds(100, "", "", false)
+	if err != nil {
+		return nil, err
+	}
+
+	var userGuilds []Guild
+	for _, g := range guilds {
+		userGuilds = append(userGuilds, Guild{Id: g.ID, Name: g.Name})
+	}
+	return userGuilds, nil
+}
+
+// * FIND COMMON GUILDS USER-BOT
+func (m *Model) FindCommonGuilds(botGuilds, userGuilds []Guild) []Guild {
+	botGuildMap := make(map[string]Guild)
+	for _, guild := range botGuilds {
+		botGuildMap[guild.Id] = guild
+	}
+
+	var commonGuilds []Guild
+	for _, guild := range userGuilds {
+		if _, exists := botGuildMap[guild.Id]; exists {
+			commonGuilds = append(commonGuilds, guild)
+		}
+	}
+
+	return commonGuilds
+}
+
+func (m *Model) AddSession(data *DiscordSessionModel) error {
 	ctx := context.TODO()
 	newSync := DiscordSessionModel{
-		UserId:  session.UserId,
-		DiscordId: session.DiscordId,
-		GuildId: session.GuildId,
-		// Token:   os.Getenv("BOT_TOKEN"),
-		Running: false,
-		Stop:    false,
+		UserId:  data.UserId,
+		DiscordId: data.DiscordId,
+		GuildId: data.GuildId,
+		ChannelId: data.ChannelId,
+		ActionId: data.ActionId,
 	}
 
 	_, err := m.Collection.InsertOne(ctx, newSync)
@@ -113,42 +174,63 @@ func (m *Model) AddSession(session *AddDiscordSessionModel) error {
 		return errors.ErrAddDiscordSession
 	}
 
-	log.Printf("Discord session created for user %s...\n", session.UserId)
+	log.Printf("Discord session created for user %s...\n", data.UserId)
 
 	return nil
 }
 
-func (m *Model) UpdateSession(userId string, session *UpdateDiscordSessionModel) error {
-	ctx := context.TODO()
-	filter := bson.M{"user_id": userId}
-	update := bson.M{"$set": bson.M{"running": session.Running, "stop": session.Stop}}
+// func (m *Model) UpdateSession(userId string, session *UpdateDiscordSessionModel) error {
+// 	ctx := context.TODO()
+// 	filter := bson.M{"user_id": userId}
+// 	update := bson.M{"$set": bson.M{"running": session.Running, "stop": session.Stop}}
 
-	_, err := m.Collection.UpdateOne(
-		ctx,
-		filter,
-		update,
-	)
-	if err != nil {
-		return errors.ErrUpdateDiscordSession
-	}
+// 	_, err := m.Collection.UpdateOne(
+// 		ctx,
+// 		filter,
+// 		update,
+// 	)
+// 	if err != nil {
+// 		return errors.ErrUpdateDiscordSession
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
-func  (m *Model) GetSession(token string) (*DiscordSessionModel, error) {
-	user, _, err := user.GetUserByAccesstokenRequest(token)
-	if err != nil {
-		return nil, err
-	}
-
+func  (m *Model) GetSessionByUserId(userId string) (*DiscordSessionModel, error) {
 	var discordSession DiscordSessionModel
-	err = m.Collection.FindOne(context.TODO(), bson.M{"user_id": user.Id.Hex()}).Decode(&discordSession)
+	err := m.Collection.FindOne(context.TODO(), bson.M{"user_id": userId}).Decode(&discordSession)
 	if err != nil {
 		return nil, errors.ErrDiscordUserSessionNotFound
 	}
 
 	return &discordSession, nil
 }
+
+
+func  (m *Model) GetAllDiscordSessions() ([]DiscordSessionModel, error) {
+	ctx := context.TODO()
+	cursor, err := m.Collection.Find(ctx, bson.M{})
+	if err != nil {
+		return nil, errors.ErrDiscordUserSessionNotFound
+	}
+
+	var discordSessions []DiscordSessionModel
+	if err = cursor.All(ctx, &discordSessions); err != nil {
+		return nil, errors.ErrDiscordUserSessionNotFound
+	}
+
+	return discordSessions, nil
+}
+
+// func (m *Model) GetSessionByDiscordId(discordId string) (*DiscordSessionModel, error) {
+// 	var discordSession DiscordSessionModel
+// 	err := m.Collection.FindOne(context.TODO(), bson.M{"discord_id": discordId}).Decode(&discordSession)
+// 	if err != nil {
+// 		return nil, errors.ErrDiscordUserSessionNotFound
+// 	}
+
+// 	return &discordSession, nil
+// }
 
 func (m *Model) DeleteSession(userId string) error {
 	ctx := context.TODO()
