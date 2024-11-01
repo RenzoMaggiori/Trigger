@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	githubClient "github.com/google/go-github/v66/github"
 	"trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/internal/github"
 	customerror "trigger.com/trigger/pkg/custom-error"
@@ -26,7 +27,15 @@ func (h *Handler) WatchGithub(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) WebhookGithub(w http.ResponseWriter, r *http.Request) {
-	if err := h.Service.Webhook(r.Context()); err != nil {
+
+	commit, err := decode.Json[githubClient.RepositoryCommit](r.Body)
+
+	if err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+
+	if err := h.Service.Webhook(context.WithValue(r.Context(), GithubCommitCtxKey, commit)); err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
 		return
 	}

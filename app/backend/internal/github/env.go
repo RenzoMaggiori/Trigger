@@ -12,13 +12,15 @@ import (
  */
 
 var (
-	errEnvNotFound      string    = "Enviroment argument %s not found"
-	enviromentArguments [8]string = [...]string{
+	errEnvNotFound      string     = "Enviroment argument %s not found"
+	enviromentArguments [10]string = [...]string{
+		"ADMIN_TOKEN",
 		"AUTH_PORT",
 		"GITHUB_KEY",
 		"GITHUB_SECRET",
 		"AUTH_SERVICE_BASE_URL",
 		"USER_SERVICE_BASE_URL",
+		"GITHUB_SERVICE_BASE_URL",
 		"SESSION_SERVICE_BASE_URL",
 		"ACTION_SERVICE_BASE_URL",
 		"SYNC_SERVICE_BASE_URL",

@@ -86,7 +86,7 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 	watchCompleted := workspace.WatchCompletedModel{
 		ActionId: actionNode.ActionId,
 		UserId:   session.UserId,
-		Output: map[string]string{
+		Input: map[string]string{
 			"historyId":  watchResponse.HistoryId,
 			"expiration": watchResponse.Expiration,
 		},

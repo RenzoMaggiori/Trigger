@@ -29,8 +29,8 @@ var (
 		{
 			Provider: "github",
 			Type:     "trigger",
-			Action:   "watch_push",
-			Input:    []string{"owner", "repo"},
+			Action:   "watch_commit",
+			Input:    []string{"repo", "since"},
 			Output:   []string{},
 		},
 		{

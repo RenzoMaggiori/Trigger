@@ -1,13 +1,13 @@
 package trigger
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
+	"time"
 
+	githubClient "github.com/google/go-github/v66/github"
+	"trigger.com/trigger/internal/action/action"
 	"trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/internal/github"
 	"trigger.com/trigger/internal/session"
@@ -33,80 +33,57 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 		return err
 	}
 
-	syncModel, _, err := sync.GetSyncAccessTokenRequest(accessToken, session.UserId.Hex(), "github")
-	if err != nil {
-		return err
-	}
-
-	client, err := oaclient.New(ctx, github.Config(), syncModel)
-	if err != nil {
-		return err
-	}
-
-	body, err := json.Marshal(map[string]any{
-		"name":   "web",
-		"active": true,
-		"events": []string{"push"},
-		"config": map[string]any{
-			"url":          "https://d66e-95-19-19-190.ngrok-free.app/api/github/trigger/webhook",
-			"content_type": "json",
-			"insecure_ssl": "0",
+	watchCompleted := workspace.WatchCompletedModel{
+		ActionId: actionNode.ActionId,
+		UserId:   session.UserId,
+		Input: map[string]string{
+			"since": time.Now().Format("2006-01-02 15:04:05"),
 		},
-	})
-	if err != nil {
-		return err
-	}
-	if len(actionNode.Input) != 2 {
-		return errors.ErrInvalidReactionInput
 	}
 
-	owner := actionNode.Input["owner"]
-	repo := actionNode.Input["repo"]
-	res, err := fetch.Fetch(
-		client,
-		fetch.NewFetchRequest(
-			http.MethodPost,
-			fmt.Sprintf("%s/repos/%s/%s/hooks", githuBaseUrl, owner, repo),
-			bytes.NewReader(body),
-			map[string]string{
-				"Accept":               "application/vnd.github+json",
-				"X-GitHub-Api-Version": "2022-11-28",
-			},
-		),
-	)
+	_, _, err = workspace.WatchCompletedRequest(accessToken, watchCompleted)
 	if err != nil {
 		return err
-	}
-	defer res.Body.Close()
-	if res.StatusCode >= 400 {
-		b, _ := io.ReadAll(res.Body)
-		fmt.Printf("%s\n", b)
-		return fmt.Errorf("%w: received %s", errors.ErrInvalidGithubStatus, res.Status)
 	}
 	return nil
 }
 
 func (m Model) Webhook(ctx context.Context) error {
-	_, ok := ctx.Value(middleware.TokenCtxKey).(string)
+	accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
 	if !ok {
 		return errors.ErrAccessTokenCtx
 	}
 
-	// TODO: get data
+	commit, ok := ctx.Value(GithubCommitCtxKey).(githubClient.RepositoryCommit)
 
-	/* update := workspace.ActionCompletedModel{
-		ActionId: action.Id,
-		UserId:   user.Id,
-		Output:   map[string]any{"hello": "world"},
+	if !ok {
+		return errors.ErrGithubCommitData
 	}
 
-	_, err = workspace.ActionCompletedRequest(googleSession.AccessToken, update)
+	user, _, err := session.GetSessionByAccessTokenRequest(accessToken)
 
 	if err != nil {
 		return err
 	}
 
-	return nil */
+	action, _, err := action.GetByActionNameRequest(accessToken, "watch_commit")
+
+	if err != nil {
+		return err
+	}
+
+	update := workspace.ActionCompletedModel{
+		ActionId: action.Id,
+		UserId:   user.Id,
+		Output:   map[string]string{"author": *commit.Commit.Author.Name},
+	}
+
+	_, err = workspace.ActionCompletedRequest(accessToken, update)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
