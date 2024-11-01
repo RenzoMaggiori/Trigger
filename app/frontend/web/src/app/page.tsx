@@ -18,6 +18,7 @@ import { FaTwitch } from "react-icons/fa";
 
 import { Card, CardHeader } from "@/components/ui/card";
 import { Footer } from "@/components/ui/footer";
+import { env } from "@/lib/env";
 
 export default function Home() {
   const plugin = React.useRef(AutoScroll({ startDelay: 0 }));
@@ -57,7 +58,7 @@ export default function Home() {
             asChild
           >
             <Link
-              href="http://localhost:8000/api/auth/gmail/provider"
+              href={`${env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/oauth2/login?provider=google&redirect=${env.NEXT_PUBLIC_WEB_URL}/home`}
               className="flex items-center"
             >
               <FcGoogle className="mr-2 text-2xl" /> Start with Google
