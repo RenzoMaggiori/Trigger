@@ -12,13 +12,13 @@ import (
 )
 
 func (m Model) Login(w http.ResponseWriter, r *http.Request) error {
-	redirectUrl := r.URL.Query().Get("redirect")
-	state := base64.URLEncoding.EncodeToString([]byte(redirectUrl))
-	values := r.URL.Query()
-	values.Set("state", state)
-	r.URL.RawQuery = values.Encode()
-	gothic.BeginAuthHandler(w, r)
-	return nil
+    redirectUrl := r.URL.Query().Get("redirect")
+    state := base64.URLEncoding.EncodeToString([]byte(redirectUrl))
+    values := r.URL.Query()
+    values.Set("state", state)
+    r.URL.RawQuery = values.Encode()
+    gothic.BeginAuthHandler(w, r)
+    return nil
 }
 
 func (m Model) AccessToken(gothUser goth.User) (string, error) {
