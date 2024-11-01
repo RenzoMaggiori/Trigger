@@ -6,13 +6,25 @@ const BASE_URL = `http://${Env.IPV4}:${Env.AUTH_PORT}`;
 export class ProvidersService {
     //? OAUTH
     static async handleOAuth(provider: string) {
-        const url = `${Env.NGROK}/api/oauth2/login?provider=${provider}&redirect=${Env.NGROK}/api/oauth2/callback`;
+        console.log("Callback URL:", `${Env.NGROK}/api/oauth2/callback`);
+
+        // const url = `${BASE_URL}/api/oauth2/login?provider=${provider}&redirect=${Env.NGROK}/api/oauth2/callback`;
+        // const url = `${BASE_URL}/api/oauth2/login?provider=${provider}&redirect=https://google.com`;
+
+        const redirectUrl = `${Env.NGROK}/api/oauth2/callback`;
+        // const redirectUrl = `https://google.com`;
+        const url = `${Env.NGROK}/api/oauth2/login?provider=${provider}&redirect=${encodeURIComponent(redirectUrl)}`;
 
         try {
             const result = await WebBrowser.openAuthSessionAsync(
                 url,
-                `${BASE_URL}/api/oauth2/callback`
+                redirectUrl,
+                // `https://google.com`
+                // `${Env.NGROK}/api/oauth2/callback`
             );
+            console.log('hola');
+            console.log(result);
+
             if (result.type === 'cancel') {
                 throw new Error('Browser Canceled');
             } else if (result.type === 'dismiss') {
