@@ -117,7 +117,7 @@ func userChangeInPushes(ctx context.Context, workspace workspace.WorkspaceModel,
 			log.Printf("Got %d commits", len(commit))
 
 			if len(commit) > 0 {
-				sendCommitWebhook(session[0].AccessToken, commit[len(commit)-1])
+				sendCommitWebhook(sync.AccessToken, commit[len(commit)-1])
 			}
 		}
 	}
