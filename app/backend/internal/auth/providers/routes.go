@@ -2,7 +2,6 @@ package providers
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 
@@ -21,12 +20,12 @@ func Router(ctx context.Context) (*router.Router, error) {
 		Service: Model{},
 	}
 
-	callback := fmt.Sprintf("http://localhost:%s/api/oauth2/callback", os.Getenv("AUTH_PORT"))
+	callback := os.Getenv("AUTH_CALLBACK_URL")
 	CreateProvider(
 		google.New(
 			os.Getenv("GOOGLE_CLIENT_ID"),
 			os.Getenv("GOOGLE_CLIENT_SECRET"),
-			"https://8bc2-91-243-143-166.ngrok-free.app/api/oauth2/callback",
+			callback,
 			"https://mail.google.com/",
 			"https://www.googleapis.com/auth/gmail.send",
 			"email",
