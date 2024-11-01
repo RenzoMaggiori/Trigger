@@ -30,4 +30,27 @@ export class UserService {
             throw error;
         }
     }
+
+    static async getUserById(id: string) {
+        try {
+            const baseUrl = await this.getBaseUrl();
+            const response = await fetch (`${baseUrl}/id/${id}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.status !== 200) {
+                console.log('get user by id failed', response.status);
+                throw new Error('Something went wrong.');
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error("Catched Get User By Id Error:", error);
+            throw error;
+        }
+    }
 }
