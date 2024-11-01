@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import React from "react";
 import { useMenu } from "@/app/trigger/components/MenuProvider";
-import { NodeItem } from "@/app/trigger/lib/types";
+import { ActionType, NodeItem } from "@/app/trigger/lib/types";
 import { Combox, Status } from "@/components/ui/combox";
 
 const InputComponent = ({
@@ -29,12 +29,28 @@ const InputComponent = ({
   );
 };
 
-function GithubSettings({}: { node: NodeItem, type: string }) {
+function GithubSettings({ }: { node: NodeItem, type: string }) {
   return <div></div>;
 }
 
-function EmailSettings({ node, type }: { node: NodeItem, type: string }) {
-  const { setFields } = useMenu();
+function EmailSettings({ node, type, actions }: { node: NodeItem, type: string, actions: ActionType }) {
+  const { triggerWorkspace, setFields, setNodes } = useMenu();
+
+  React.useEffect(() => {
+    const gmailTriggerAction = actions.find(
+      (action) => action.provider === "gmail" && action.type === type
+    );
+    if (!gmailTriggerAction) return;
+    if (node.action_id !== gmailTriggerAction.id) {
+      setNodes({
+        [node.id]: { ...node, action_id: gmailTriggerAction.id },
+      });
+    }
+    if (node.fields?.type !== type) {
+      setFields(node.id, { ["type"]: type });
+    }
+  }, [type, actions, node, setNodes, setFields]);
+
 
   const handleFieldChange = (type: string, index: string, value: string) => {
     const currentField = node.fields["type"];
@@ -53,6 +69,7 @@ function EmailSettings({ node, type }: { node: NodeItem, type: string }) {
   ];
 
   if (!node) return <div>No node found</div>;
+  console.log(triggerWorkspace)
 
   return (
     <>
@@ -64,7 +81,7 @@ function EmailSettings({ node, type }: { node: NodeItem, type: string }) {
               <Input
                 placeholder={item.placeholder}
                 onChange={(e) => handleFieldChange(type, item.json, e.target.value)}
-                value={ node.fields["type"] !== null
+                value={node.fields["type"] !== null
                   ? (node.fields[item.json] as string | number | undefined) || ""
                   : ""}
                 type={item.type}
@@ -100,7 +117,7 @@ function EmailSettings({ node, type }: { node: NodeItem, type: string }) {
 }
 
 
-function DiscordSettings({}: { node: NodeItem, type: string }) {
+function DiscordSettings({ }: { node: NodeItem, type: string }) {
   const [messageType, setMessageType] = React.useState<Status | null>({ label: "Normal Message", value: "Normal" });
   const [embedFields, setEmbedFields] = React.useState<
     { name: string; value: string }[]

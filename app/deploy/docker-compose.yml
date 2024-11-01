@@ -30,6 +30,7 @@ services:
       - github
       - spotify
       - twitch
+      - timer
     networks:
       - trigger
     environment:
@@ -43,6 +44,7 @@ services:
       GITHUB_SERVICE_BASE_URL: ${GITHUB_SERVICE_BASE_URL}
       SPOTIFY_SERVICE_BASE_URL: ${SPOTIFY_SERVICE_BASE_URL}
       TWITCH_SERVICE_BASE_URL: ${TWITCH_SERVICE_BASE_URL}
+      TIMER_SERVICE_BASE_URL: ${TIMER_SERVICE_BASE_URL}
 
   auth:
     container_name: trigger-auth-instance
@@ -169,7 +171,6 @@ services:
       DISCORD_SECRET: ${DISCORD_SECRET}
       SPOTIFY_KEY: ${SPOTIFY_KEY}
       SPOTIFY_SECRET: ${SPOTIFY_SECRET}
-
       ADMIN_TOKEN: ${ADMIN_TOKEN}
 
       AUTH_PORT: ${AUTH_PORT}
@@ -227,6 +228,8 @@ services:
       SETTINGS_SERVICE_BASE_URL: ${SETTINGS_SERVICE_BASE_URL}
       GITHUB_SERVICE_BASE_URL: ${GITHUB_SERVICE_BASE_URL}
       SPOTIFY_SERVICE_BASE_URL: ${SPOTIFY_SERVICE_BASE_URL}
+      TWITCH_SERVICE_BASE_URL: ${TWITCH_SERVICE_BASE_URL}
+      TIMER_SERVICE_BASE_URL: ${TIMER_SERVICE_BASE_URL}
 
       ADMIN_TOKEN: ${ADMIN_TOKEN}
 
@@ -343,6 +346,25 @@ services:
     ports:
       - "${TWITCH_PORT}:${TWITCH_PORT}"
 
+  timer:
+    container_name: trigger-timer-instance
+    build:
+      context: ..
+      dockerfile: ./deploy/dockerfiles/backend/timer.Dockerfile
+    networks:
+      - trigger
+    environment:
+      ACTION_SERVICE_BASE_URL: ${ACTION_SERVICE_BASE_URL}
+      AUTH_SERVICE_BASE_URL: ${AUTH_SERVICE_BASE_URL}
+      SESSION_SERVICE_BASE_URL: ${SESSION_SERVICE_BASE_URL}
+      TIMER_SERVICE_BASE_URL: ${TIMER_SERVICE_BASE_URL}
+      USER_SERVICE_BASE_URL: ${USER_SERVICE_BASE_URL}
+
+      ADMIN_TOKEN: ${ADMIN_TOKEN}
+      TIMER_PORT: ${TIMER_PORT}
+    ports:
+      - "${TIMER_PORT}:${TIMER_PORT}"
+
   client_mobile:
     container_name: trigger-mobile-instance
     build:
@@ -350,8 +372,6 @@ services:
       dockerfile: ./deploy/dockerfiles/frontend/mobile.Dockerfile
     networks:
       - trigger
-    environment:
-      MOBILE_PORT: ${MOBILE_PORT}
     volumes:
       - shared_volume:/shared
 

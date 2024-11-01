@@ -40,6 +40,12 @@ func (m Model) About(remoteAddr string) (AboutModel, error) {
 
 	services := make([]ServiceModel, 0)
 	for k, v := range areaServices {
+		if v.Actions == nil {
+			v.Actions = make([]AreaModel, 0)
+		}
+		if v.Reactions == nil {
+			v.Reactions = make([]AreaModel, 0)
+		}
 		services = append(services, ServiceModel{
 			Name:      k,
 			Actions:   v.Actions,

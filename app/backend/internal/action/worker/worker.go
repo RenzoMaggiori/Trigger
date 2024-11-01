@@ -8,6 +8,8 @@ import (
 	"trigger.com/trigger/internal/action/action"
 )
 
+// WARNING: Action names must be unique
+
 var (
 	actions = [...]action.AddActionModel{
 		{
@@ -21,7 +23,7 @@ var (
 			Provider: "gmail",
 			Type:     "reaction",
 			Action:   "send_email",
-			Input:    []string{},
+			Input:    []string{"to", "body", "subject"},
 			Output:   []string{},
 		},
 		{
@@ -49,6 +51,41 @@ var (
 			Provider: "spotify",
 			Type:     "reaction",
 			Action:   "play_music",
+			Input:    []string{},
+			Output:   []string{},
+		},
+		{
+			Provider: "timer",
+			Type:     "trigger",
+			Action:   "watch_minute",
+			Input:    []string{},
+			Output:   []string{"datetime"},
+		},
+		{
+			Provider: "timer",
+			Type:     "trigger",
+			Action:   "watch_hour",
+			Input:    []string{},
+			Output:   []string{"datetime"},
+		},
+		{
+			Provider: "timer",
+			Type:     "trigger",
+			Action:   "watch_day",
+			Input:    []string{},
+			Output:   []string{"datetime"},
+		},
+		{
+			Provider: "twitch",
+			Type:     "trigger",
+			Action:   "channel_follow",
+			Input:    []string{},
+			Output:   []string{},
+		},
+		{
+			Provider: "twitch",
+			Type:     "reaction",
+			Action:   "send_chat_message",
 			Input:    []string{},
 			Output:   []string{},
 		},

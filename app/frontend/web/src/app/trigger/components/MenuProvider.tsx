@@ -33,33 +33,40 @@ export function MenuProvider({
   const [triggerWorkspace, setTriggerWorkspace] =
     React.useState<TriggerWorkspace | null>(initialWorkspace);
 
-  const setNodes = (nodes: Record<string, NodeItem>) => {
-    setTriggerWorkspace((prev) => {
-      if (!prev) return prev;
+    const setNodes = React.useCallback(
+      (nodes: Record<string, NodeItem>) => {
+        setTriggerWorkspace((prev) => {
+          if (!prev) return prev;
 
-      const updates = { ...prev.nodes };
-      Object.entries(nodes).forEach(([id, newNode]) => {
-        const existingNode = updates[id];
+          const updates = { ...prev.nodes };
+          let hasChanges = false;
 
-        if (existingNode) {
-          updates[id] = {
-            ...existingNode,
-            ...newNode,
-            fields: {
-              ...existingNode.fields,
-              ...newNode.fields,
-            },
-          };
-        } else {
-          updates[id] = newNode;
-        }
-      });
-      return {
-        ...prev,
-        nodes: updates,
-      };
-    });
-  };
+          Object.entries(nodes).forEach(([id, newNode]) => {
+            const existingNode = updates[id];
+            const updatedFields = { ...existingNode?.fields, ...newNode.fields };
+
+            if (
+              !existingNode ||
+              existingNode.action_id !== newNode.action_id ||
+              JSON.stringify(existingNode.fields) !== JSON.stringify(updatedFields) ||
+              JSON.stringify(existingNode.parent_ids) !== JSON.stringify(newNode.parent_ids) ||
+              JSON.stringify(existingNode.child_ids) !== JSON.stringify(newNode.child_ids)
+            ) {
+              updates[id] = {
+                ...existingNode,
+                ...newNode,
+                fields: updatedFields,
+              };
+              hasChanges = true;
+            }
+          });
+
+          return hasChanges ? { ...prev, nodes: updates } : prev;
+        });
+      },
+      [setTriggerWorkspace]
+    );
+
 
   const updateNodes = (nodes: Record<string, NodeItem>) => {
     setTriggerWorkspace((prev) => {

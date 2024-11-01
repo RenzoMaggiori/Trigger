@@ -31,7 +31,7 @@ export const ServicesComponent: React.FC<ServicesProps> = ({
       for (const n of data.nodes) {
         nodes[n.node_id] = {
           id: n.node_id,
-          type: n.action_id,
+          action_id: n.action_id,
           fields: n.input || {},
           parent_ids: n.parents,
           child_ids: n.children,

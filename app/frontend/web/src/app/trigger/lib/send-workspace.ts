@@ -7,6 +7,8 @@ import { triggerSchema } from "@/app/home/lib/types";
 
 export async function send_workspace(triggerWorkspace: TriggerWorkspace) {
   const access_token = cookies().get("Authorization")?.value;
+
+  console.log(triggerWorkspace.id)
   const res = await fetch(
     `${env.NEXT_PUBLIC_ACTION_SERVICE_URL}/api/workspace/id/${triggerWorkspace.id}`,
     {
@@ -18,6 +20,7 @@ export async function send_workspace(triggerWorkspace: TriggerWorkspace) {
       body: JSON.stringify({
         nodes: Object.keys(triggerWorkspace.nodes).map((k) => ({
           node_id: k,
+          action_id: triggerWorkspace.nodes[k].action_id,
           input: triggerWorkspace.nodes[k].fields || {},
           parents: triggerWorkspace.nodes[k].parent_ids,
           children: triggerWorkspace.nodes[k].child_ids,

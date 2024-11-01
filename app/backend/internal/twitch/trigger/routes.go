@@ -18,9 +18,9 @@ func Router(ctx context.Context) (*router.Router, error) {
 		Service: Model{},
 	}
 
-	server.Handle("POST /watch", middlewares(http.HandlerFunc(handler.Watch)))
-	server.Handle("POST /webhook", http.HandlerFunc(handler.Webhook))
-	server.Handle("POST /stop", middlewares(http.HandlerFunc(handler.Stop)))
+	server.Handle("POST /watch", middlewares(http.HandlerFunc(handler.WatchChannelFollow)))
+	server.Handle("POST /webhook", http.HandlerFunc(handler.WebhookChannelFollow))
+	server.Handle("POST /stop", middlewares(http.HandlerFunc(handler.StopChannelFollow)))
 
 	return router.NewRouter("/api/twitch/trigger", server), nil
 }
