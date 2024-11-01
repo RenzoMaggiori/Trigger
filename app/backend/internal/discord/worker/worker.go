@@ -28,7 +28,7 @@ var (
 	errCollectionNotFound error = errors.New("could not find discord collection")
 	errSessionNotFound    error = errors.New("could not find user session")
 	errSyncModelNull      error = errors.New("the sync models type is null")
-	errAction      error = errors.New("discord action not found")
+	errAction             error = errors.New("discord action not found")
 	errWebhookBadStatus   error = errors.New("webhook returned a bad status")
 )
 
@@ -57,6 +57,7 @@ func (m *Model) Start(ctx context.Context) error {
 
 	discordAction, err := getDiscordAction()
 	if err != nil {
+		log.Println("here")
 		return err
 	}
 
@@ -121,18 +122,18 @@ func (m *Model) newMessageRecieved(w workspace.WorkspaceModel, a action.ActionMo
 		return err
 	}
 
-	discord_me, err := m.GetMe(userTokens.sync.AccessToken)
+	discord_me, err := m.GetMe(userTokens.session.AccessToken)
 	if err != nil {
 		return err
 	}
 
 	newSession := &DiscordSessionModel{
-		UserId: userId,
+		UserId:    userId,
 		DiscordId: discord_me.DiscordId,
-		GuildId: guild_id,
+		GuildId:   guild_id,
 		ChannelId: channel_id,
-		ActionId: actionId,
-		Token: userTokens.session.AccessToken,
+		ActionId:  actionId,
+		Token:     userTokens.session.AccessToken,
 	}
 
 	err = m.AddSession(newSession)
@@ -143,7 +144,7 @@ func (m *Model) newMessageRecieved(w workspace.WorkspaceModel, a action.ActionMo
 	return nil
 }
 
-//* SESSION TOKEN // SYNC TOKEN (discord)
+// * SESSION TOKEN // SYNC TOKEN (discord)
 func getUserAccessToken(userId string) (*UserTokens, error) {
 	session, _, err := session.GetSessionByUserIdRequest(os.Getenv("ADMIN_TOKEN"), userId)
 	if err != nil {
@@ -156,7 +157,7 @@ func getUserAccessToken(userId string) (*UserTokens, error) {
 	userTokens := UserTokens{
 		session: session[0],
 	}
-	syncModel, _, err := userSync.GetSyncAccessTokenRequest(userTokens.session.AccessToken, userId, "spotify")
+	syncModel, _, err := userSync.GetSyncAccessTokenRequest(userTokens.session.AccessToken, userId, "discord")
 	if err != nil {
 		return nil, err
 	}
@@ -195,6 +196,7 @@ func (m *Model) FetchDiscordWebhook(accessToken string, data trigger.ActionBody)
 		return err
 	}
 
+	log.Printf("FetchDiscordWebhook")
 	res, err := fetch.Fetch(
 		http.DefaultClient,
 		fetch.NewFetchRequest(
@@ -217,15 +219,15 @@ func (m *Model) FetchDiscordWebhook(accessToken string, data trigger.ActionBody)
 }
 
 func (m *Model) HandleNewMessage(s *discordgo.Session, msg *discordgo.MessageCreate) {
-    log.Println("NEW MESSAGE RECEIVED")
+	log.Println("NEW MESSAGE RECEIVED")
 
-    if msg.Author.ID == s.State.User.ID {
-        log.Println("Message from bot itself, ignoring.")
-        return
-    }
+	if msg.Author.ID == s.State.User.ID {
+		log.Println("Message from bot itself, ignoring.")
+		return
+	}
 
-    m.mutex.Lock()
-    defer m.mutex.Unlock()
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
 
 	discord_sessions, err := m.GetAllDiscordSessions()
 	if err != nil {
@@ -241,8 +243,8 @@ func (m *Model) HandleNewMessage(s *discordgo.Session, msg *discordgo.MessageCre
 			err := m.FetchDiscordWebhook(ds.Token, trigger.ActionBody{
 				Type: "watch_message",
 				Data: trigger.MsgInfo{
-					Author: msg.Author.Username,
-					Content: msg.Content,
+					Author:  msg.Author.Username,
+					Content: "manolo culo roto",
 				},
 			})
 			if err != nil {
@@ -253,27 +255,27 @@ func (m *Model) HandleNewMessage(s *discordgo.Session, msg *discordgo.MessageCre
 
 }
 
-func (m *Model)InitBot() error {
-    m.mutex.Lock()
-    defer m.mutex.Unlock()
+func (m *Model) InitBot() error {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
 
-    bot, err := discordgo.New("Bot " + os.Getenv("BOT_TOKEN"))
-    if err != nil {
-        return myErrors.ErrCreateDiscordGoSession
-    }
+	bot, err := discordgo.New("Bot " + os.Getenv("BOT_TOKEN"))
+	if err != nil {
+		return myErrors.ErrCreateDiscordGoSession
+	}
 
-    if err := bot.Open(); err != nil {
-        return myErrors.ErrOpeningDiscordConnection
-    }
+	if err := bot.Open(); err != nil {
+		return myErrors.ErrOpeningDiscordConnection
+	}
 
 	defer bot.Close()
 
 	bot.AddHandler(func(s *discordgo.Session, msg *discordgo.MessageCreate) {
-        m.HandleNewMessage(s, msg)
-    })
+		m.HandleNewMessage(s, msg)
+	})
 
-    log.Println("Bot started and running...")
-    return nil
+	log.Println("Bot started and running...")
+	return nil
 }
 
 // func GetMembers(s *discordgo.Session, guildID string) ([]*discordgo.Member, error) {

@@ -76,7 +76,20 @@ var (
 			Output:   []string{"datetime"},
 		},
 		{
-<<<<<<< HEAD
+			Provider: "twitch",
+			Type:     "trigger",
+			Action:   "watch_channel_follow",
+			Input:    []string{},
+			Output:   []string{},
+		},
+		{
+			Provider: "twitch",
+			Type:     "reaction",
+			Action:   "send_chat_message",
+			Input:    []string{},
+			Output:   []string{},
+		},
+		{
 			Provider: "discord",
 			Type:     "trigger",
 			Action:   "watch_message",
@@ -87,18 +100,6 @@ var (
 			Provider: "discord",
 			Type:     "reaction",
 			Action:   "send_message",
-=======
-			Provider: "twitch",
-			Type:     "trigger",
-			Action:   "channel_follow",
-			Input:    []string{},
-			Output:   []string{},
-		},
-		{
-			Provider: "twitch",
-			Type:     "reaction",
-			Action:   "send_chat_message",
->>>>>>> 183907ee4298b350b98850ed3c1d8d87390b6877
 			Input:    []string{},
 			Output:   []string{},
 		},

@@ -2,6 +2,7 @@ package trigger
 
 import (
 	"context"
+	"log"
 	"net/http"
 
 	"trigger.com/trigger/internal/action/workspace"
@@ -13,11 +14,13 @@ import (
 
 func (h *Handler) WatchDiscord(w http.ResponseWriter, r *http.Request) {
 	actionNode, err := decode.Json[workspace.ActionNodeModel](r.Body)
+	log.Println("PRE ERROR DECODE")
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
 		return
 	}
 
+	log.Println("WatchDiscord", actionNode)
 	err = h.Service.Watch(r.Context(), actionNode)
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
@@ -31,7 +34,7 @@ func (h *Handler) WebhookDiscord(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = h.Service.Webhook(context.WithValue(r.Context(), DiscordEventCtxKey, event))
-	 if err != nil {
+	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
 		return
 	}
