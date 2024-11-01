@@ -8,6 +8,8 @@ import React from "react";
 import { useMenu } from "@/app/trigger/components/MenuProvider";
 import { ActionType, NodeItem } from "@/app/trigger/lib/types";
 import { Combox, Status } from "@/components/ui/combox";
+import { BsHourglassTop, BsHourglassBottom, BsHourglassSplit } from "react-icons/bs";
+
 
 const InputComponent = ({
   label,
@@ -355,5 +357,78 @@ function DiscordSettings({ }: { node: NodeItem, type: string }) {
   );
 }
 
-export { EmailSettings, DiscordSettings, GithubSettings, SpotifySettings, TwitchSettings };
+const timerStatuses = [
+  {
+    label:
+      <div className="flex flex-row">
+        <BsHourglassTop className="mr-2 w-5 h-5" />
+        <p className="font-bold">Minute</p>
+      </div>,
+    value: "watch_minute"
+  },
+  {
+    label:
+      <div className="flex flex-row">
+        <BsHourglassSplit className="mr-2 w-5 h-5" />
+        <p className="font-bold">Hour</p>
+      </div>,
+    value: "watch_hour"
+  },
+  {
+    label:
+      <div className="flex flex-row">
+        <BsHourglassBottom className="mr-2 w-5 h-5" />
+        <p className="font-bold">Day</p>
+      </div>,
+    value: "watch_day"
+  },
+];
+
+function TimerSettings({ node, type, actions }: { node: NodeItem, type: string, actions: ActionType }) {
+  const [messageType, setMessageType] = React.useState<Status | null>(timerStatuses[0]);
+  const { setFields, setNodes } = useMenu();
+
+  React.useEffect(() => {
+    const timmerTriggerAction = actions.find(
+      (action) => action.provider === "timer" && action.type === "trigger" && action.action === messageType?.value
+    );
+    if (!timmerTriggerAction) return;
+    if (node.action_id !== timmerTriggerAction.id) {
+      setNodes({
+        [node.id]: { ...node, action_id: timmerTriggerAction.id },
+      });
+    }
+  }, [type, actions, node, setNodes, setFields]);
+
+
+  const descriptions = {
+    "watch_minute": "Triggers each time the minute changes.",
+    "watch_hour": "Triggers each time the hour changes.",
+    "watch_day": "Triggers each time the day changes.",
+  }
+
+  if (!node) return <div>No node found</div>;
+
+  return (
+    <div>
+      <div className="mb-4">
+        <Label
+          htmlFor="message-type-dropdown"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Select Message Type
+        </Label>
+        <Combox
+          statuses={timerStatuses}
+          selectedStatus={messageType}
+          setSelectedStatus={setMessageType}
+          label="Select Time for trigger"
+        />
+      </div>
+      <p className="text-zinc-500">{descriptions[messageType?.value as keyof typeof descriptions || "watch_minute"]}</p>
+    </div>
+  );
+}
+
+export { EmailSettings, DiscordSettings, GithubSettings, SpotifySettings, TwitchSettings, TimerSettings };
 

@@ -16,6 +16,7 @@ import {
   EmailSettings,
   GithubSettings,
   SpotifySettings,
+  TimerSettings,
   TwitchSettings,
 } from "@/app/trigger/components/service-settings";
 
@@ -32,6 +33,7 @@ const settingsComponentMap = {
   github: GithubSettings,
   spotify: SpotifySettings,
   twitch: TwitchSettings,
+  timer: TimerSettings,
 };
 
 const configOptions = [
