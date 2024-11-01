@@ -92,15 +92,15 @@ var (
 		{
 			Provider: "discord",
 			Type:     "trigger",
-			Action:   "watch_message",
-			Input:    []string{},
-			Output:   []string{"followers", "increased"},
+			Action:   "watch_channel_message",
+			Input:    []string{"channel_id"},
+			Output:   []string{"content", "author_id", "author_username"},
 		},
 		{
 			Provider: "discord",
 			Type:     "reaction",
-			Action:   "send_message",
-			Input:    []string{},
+			Action:   "send_channel_message",
+			Input:    []string{"channel_id", "content"},
 			Output:   []string{},
 		},
 	}

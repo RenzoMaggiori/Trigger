@@ -9,25 +9,60 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"go.mongodb.org/mongo-driver/bson"
-	"trigger.com/trigger/internal/sync"
-	"trigger.com/trigger/internal/user"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
 )
 
-func (m *Model) GetMe(token string) (*DiscordMe, error) {
-	user, _, err := user.GetUserByAccesstokenRequest(token)
-	if err != nil {
-		return nil, err
-	}
+// func (m *Model) GetMe(syncDiscordToken string) (*DiscordMe, error) {
+// 	// user, _, err := user.GetUserByAccesstokenRequest(syncDiscordToken)
+// 	// if err != nil {
+// 	// 	return nil, err
+// 	// }
 
-	sync, _, err := sync.GetSyncAccessTokenRequest(token, user.Id.Hex(), "discord")
-	log.Println("sync_access_token", sync.AccessToken)
-	if err != nil {
-		return nil, err
-	}
+// 	// sync, _, err := sync.GetSyncAccessTokenRequest(syncDiscordToken, user.Id.Hex(), "discord")
+// 	// log.Println("sync_access_token", sync.AccessToken)
+// 	// if err != nil {
+// 	// 	return nil, err
+// 	// }
 
+// 	res, err := fetch.Fetch(
+// 		http.DefaultClient,
+// 		fetch.NewFetchRequest(
+// 			http.MethodGet,
+// 			userEndpoint,
+// 			nil,
+// 			map[string]string{
+// 				"Authorization": fmt.Sprintf("Bearer %s", syncDiscordToken),
+// 			},
+// 		),
+// 	)
+
+// 	if err != nil {
+// 		return nil, fmt.Errorf("%w: %v", errors.ErrDiscordMe, err)
+// 	}
+
+// 	defer res.Body.Close()
+
+// 	if res.StatusCode != http.StatusOK {
+// 		return nil, fmt.Errorf("%w: %v", errors.ErrDiscordMe, res.StatusCode)
+// 	}
+
+// 	discord_struct, err := decode.Json[discordgo.User](res.Body)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("%w: %v", errors.ErrDecodeData, err)
+// 	}
+
+// 	discord_me := DiscordMe{
+// 		DiscordId: discord_struct.ID,
+// 		Username:  discord_struct.Username,
+// 		Email:     discord_struct.Email,
+// 	}
+
+// 	return &discord_me, nil
+// }
+
+func (m *Model) GetMe(syncDiscordToken string) (*discordgo.User, error) {
 	res, err := fetch.Fetch(
 		http.DefaultClient,
 		fetch.NewFetchRequest(
@@ -35,7 +70,7 @@ func (m *Model) GetMe(token string) (*DiscordMe, error) {
 			userEndpoint,
 			nil,
 			map[string]string{
-				"Authorization": fmt.Sprintf("Bearer %s", sync.AccessToken),
+				"Authorization": fmt.Sprintf("Bearer %s", syncDiscordToken),
 			},
 		),
 	)
@@ -50,25 +85,15 @@ func (m *Model) GetMe(token string) (*DiscordMe, error) {
 		return nil, fmt.Errorf("%w: %v", errors.ErrDiscordMe, res.StatusCode)
 	}
 
-	discord_struct, err := decode.Json[DiscordStruct](res.Body)
+	discord_me, err := decode.Json[discordgo.User](res.Body)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", errors.ErrDecodeData, err)
-	}
-
-	log.Println("id", discord_struct.Id)
-	log.Println("username", discord_struct.Username)
-	log.Println("email", discord_struct.Email)
-
-	discord_me := DiscordMe{
-		DiscordId:       discord_struct.Id,
-		Username: discord_struct.Username,
-		Email:    discord_struct.Email,
 	}
 
 	return &discord_me, nil
 }
 
-//* GET CHANNELS FROM A GUILD
+// * GET CHANNELS FROM A GUILD
 func (m *Model) GetGuildChannels(guildID string) ([]Channel, error) {
 	bot, err := discordgo.New("Bot " + os.Getenv("BOT_TOKEN"))
 
@@ -78,7 +103,7 @@ func (m *Model) GetGuildChannels(guildID string) ([]Channel, error) {
 
 	if err := bot.Open(); err != nil {
 		return nil, errors.ErrOpeningDiscordConnection
-    }
+	}
 	defer bot.Close()
 
 	channels, err := bot.GuildChannels(guildID)
@@ -107,7 +132,7 @@ func (m *Model) GetBotGuilds(guildID string) ([]Guild, error) {
 
 	if err := bot.Open(); err != nil {
 		return nil, errors.ErrOpeningDiscordConnection
-    }
+	}
 	defer bot.Close()
 
 	guilds, err := bot.UserGuilds(100, "", "", false)
@@ -162,11 +187,11 @@ func (m *Model) FindCommonGuilds(botGuilds, userGuilds []Guild) []Guild {
 func (m *Model) AddSession(data *DiscordSessionModel) error {
 	ctx := context.TODO()
 	newSync := DiscordSessionModel{
-		UserId:  data.UserId,
-		DiscordId: data.DiscordId,
-		GuildId: data.GuildId,
+		UserId:    data.UserId,
 		ChannelId: data.ChannelId,
-		ActionId: data.ActionId,
+		ActionId:  data.ActionId,
+		Token: 	data.Token,
+		DiscordData: data.DiscordData,
 	}
 
 	_, err := m.Collection.InsertOne(ctx, newSync)
@@ -196,7 +221,7 @@ func (m *Model) AddSession(data *DiscordSessionModel) error {
 // 	return nil
 // }
 
-func  (m *Model) GetSessionByUserId(userId string) (*DiscordSessionModel, error) {
+func (m *Model) GetSessionByUserId(userId string) (*DiscordSessionModel, error) {
 	var discordSession DiscordSessionModel
 	err := m.Collection.FindOne(context.TODO(), bson.M{"user_id": userId}).Decode(&discordSession)
 	if err != nil {
@@ -206,8 +231,7 @@ func  (m *Model) GetSessionByUserId(userId string) (*DiscordSessionModel, error)
 	return &discordSession, nil
 }
 
-
-func  (m *Model) GetAllDiscordSessions() ([]DiscordSessionModel, error) {
+func (m *Model) GetAllDiscordSessions() ([]DiscordSessionModel, error) {
 	ctx := context.TODO()
 	cursor, err := m.Collection.Find(ctx, bson.M{})
 	if err != nil {

@@ -23,8 +23,9 @@ type Handler struct {
 }
 
 type MsgInfo struct {
-	Author string `json:"author"`
 	Content string `json:"content"`
+	AuthoId string `json:"author_id"`
+	AuthoUsername string `json:"author_username"`
 }
 
 type Model struct {

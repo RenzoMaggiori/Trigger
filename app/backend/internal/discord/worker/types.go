@@ -16,7 +16,7 @@ const (
 	userEndpoint string = "https://discord.com/api/v10/users/@me"
 	baseURL      string = "https://discord.com/api/v10"
 
-	workerBaseURL string = "http://localhost:8010/api/discord/worker"
+	// workerBaseURL string = "http://localhost:8010/api/discord/worker"
 )
 
 type Service interface {
@@ -60,11 +60,10 @@ type UserTokens struct {
 
 type DiscordSessionModel struct {
 	UserId  string `json:"user_id" bson:"user_id"`
-	DiscordId string `json:"discord_id" bson:"discord_id"`
-	GuildId string `json:"guild_id" bson:"guild_id"`
 	ChannelId string `json:"channel_id" bson:"channel_id"`
 	ActionId string `json:"action_id" bson:"action_id"`
 	Token string `json:"token" bson:"token"`
+	DiscordData *discordgo.User `json:"discord_data"`
 }
 
 // type WatchCompletedModel struct {
@@ -74,28 +73,28 @@ type DiscordSessionModel struct {
 // 	Output   map[string]string  `json:"output"`
 // }
 
-type DiscordMe struct {
-	DiscordId string `json:"id"`
-	Username  string `json:"username"`
-	Email     string `json:"email"`
-}
+// type DiscordMe struct {
+// 	DiscordId discordgo.User `json:"discord_id"`
+// 	Username  string `json:"username"`
+// 	Email     string `json:"email"`
+// }
 
-type DiscordStruct struct {
-	Id                   string  `json:"id"`
-	Username             string  `json:"username"`
-	Avatar               *string `json:"avatar"`
-	Discriminator        string  `json:"discriminator"`
-	PublicFlags          int     `json:"public_flags"`
-	Flags                int     `json:"flags"`
-	Banner               *string `json:"banner"`
-	AccentColor          *string `json:"accent_color"`
-	GlobalName           string  `json:"global_name"`
-	AvatarDecorationData *string `json:"avatar_decoration_data"`
-	BannerColor          *string `json:"banner_color"`
-	Clan                 *string `json:"clan"`
-	MFAEnabled           bool    `json:"mfa_enabled"`
-	Locale               string  `json:"locale"`
-	PremiumType          int     `json:"premium_type"`
-	Email                string  `json:"email"`
-	Verified             bool    `json:"verified"`
-}
+// type DiscordStruct struct {
+// 	Id                   string  `json:"id"`
+// 	Username             string  `json:"username"`
+// 	Avatar               *string `json:"avatar"`
+// 	Discriminator        string  `json:"discriminator"`
+// 	PublicFlags          int     `json:"public_flags"`
+// 	Flags                int     `json:"flags"`
+// 	Banner               *string `json:"banner"`
+// 	AccentColor          *string `json:"accent_color"`
+// 	GlobalName           string  `json:"global_name"`
+// 	AvatarDecorationData *string `json:"avatar_decoration_data"`
+// 	BannerColor          *string `json:"banner_color"`
+// 	Clan                 *string `json:"clan"`
+// 	MFAEnabled           bool    `json:"mfa_enabled"`
+// 	Locale               string  `json:"locale"`
+// 	PremiumType          int     `json:"premium_type"`
+// 	Email                string  `json:"email"`
+// 	Verified             bool    `json:"verified"`
+// }

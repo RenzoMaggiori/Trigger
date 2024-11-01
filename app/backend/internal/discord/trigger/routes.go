@@ -27,7 +27,7 @@ func Router(ctx context.Context) (*router.Router, error) {
 		},
 	}
 
-	server.Handle("POST /watch_message", middlewares((http.HandlerFunc(handler.WatchDiscord))))
+	server.Handle("POST /watch_channel_message", middlewares((http.HandlerFunc(handler.WatchDiscord))))
 	server.Handle("POST /stop", middlewares(http.HandlerFunc(handler.StopDiscord)))
 	server.Handle("POST /webhook", middlewares(http.HandlerFunc(handler.WebhookDiscord)))
 
