@@ -77,8 +77,9 @@ func (m *Model) HandleNewMessage(s *discordgo.Session, msg *discordgo.MessageCre
 				Type: "watch_channel_message",
 				Data: trigger.MsgInfo{
 					Content: msg.Content,
-					AuthoId:  msg.Author.ID,
-					AuthoUsername: msg.Author.Username,
+					AuthorId:  msg.Author.ID,
+					AuthorUsername: msg.Author.Username,
+					NodeId: ds.NodeId,
 				},
 			})
 			if err != nil {

@@ -14,7 +14,6 @@ import (
 	"trigger.com/trigger/internal/session"
 	"trigger.com/trigger/internal/sync"
 
-	"trigger.com/trigger/internal/user"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
@@ -61,6 +60,7 @@ func (m *Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel)
 		ActionId:  actionId,
 		Token:     session.AccessToken,
 		DiscordData: discord_me,
+		NodeId:     actionNode.NodeId,
 	}
 	err = m.AddSession(newSession)
 	if err != nil {
@@ -81,11 +81,6 @@ func (m *Model) Webhook(ctx context.Context) error {
 		return errors.ErrEventCtx
 	}
 
-	user, _, err := user.GetUserByAccesstokenRequest(token)
-	if err != nil {
-		return err
-	}
-
 	action, _, err := action.GetByActionNameRequest(token, event.Type)
 	if err != nil {
 		return err
@@ -103,14 +98,13 @@ func (m *Model) Webhook(ctx context.Context) error {
 		}
 
 		_, err := workspace.ActionCompletedRequest(token, workspace.ActionCompletedModel{
-			UserId:   user.Id,
 			ActionId: action.Id,
 			Output: map[string]string{
                 "content": msgInfo.Content,
-				"author_id": msgInfo.AuthoId,
-				"author_username":  msgInfo.AuthoUsername,
+				"author_id": msgInfo.AuthorId,
+				"author_username":  msgInfo.AuthorUsername,
             },
-			// NodeId:   actionNode.Id,
+			NodeId: &msgInfo.NodeId,
 		})
 		return err
 	}

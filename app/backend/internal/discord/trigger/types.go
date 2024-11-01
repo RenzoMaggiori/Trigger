@@ -32,8 +32,9 @@ type Handler struct {
 
 type MsgInfo struct {
 	Content string `json:"content"`
-	AuthoId string `json:"author_id"`
-	AuthoUsername string `json:"author_username"`
+	AuthorId string `json:"author_id"`
+	AuthorUsername string `json:"author_username"`
+	NodeId string `json:"node_id"`
 }
 
 type Model struct {
@@ -51,4 +52,5 @@ type DiscordSessionModel struct {
 	ActionId string `json:"action_id" bson:"action_id"`
 	Token string `json:"token" bson:"token"`
 	DiscordData *discordgo.User `json:"discord_data"`
+	NodeId string `json:"node_id" bson:"node_id"`
 }
