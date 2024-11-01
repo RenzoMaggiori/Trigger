@@ -375,7 +375,7 @@ func (m Model) WatchCompleted(ctx context.Context, watchCompleted WatchCompleted
 
 	update := bson.M{
 		"$set": bson.M{
-			"nodes.$.output": watchCompleted.Output,
+			"nodes.$.input": watchCompleted.Input,
 		},
 	}
 
