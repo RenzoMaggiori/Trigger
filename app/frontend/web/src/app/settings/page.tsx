@@ -67,7 +67,6 @@ export default function Page() {
     provider: string,
   ) => {
     const updatedServices = settings.find((s) => s.providerName.toLocaleLowerCase() === provider.toLocaleLowerCase());
-    console.log(active)
     if (!active) {
       mutation.mutate(provider.toLocaleLowerCase())
     } else {
