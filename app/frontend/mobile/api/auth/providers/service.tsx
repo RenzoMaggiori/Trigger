@@ -11,10 +11,11 @@ export class ProvidersService {
         // const url = `${BASE_URL}/api/oauth2/login?provider=${provider}&redirect=${Env.NGROK}/api/oauth2/callback`;
         // const url = `${BASE_URL}/api/oauth2/login?provider=${provider}&redirect=https://google.com`;
 
-        const redirectUrl = `${Env.NGROK}/api/oauth2/callback`;
-        // const redirectUrl = `https://google.com`;
-        const url = `${Env.NGROK}/api/oauth2/login?provider=${provider}&redirect=${encodeURIComponent(redirectUrl)}`;
+        // const redirectUrl = `${Env.NGROK}/api/oauth2/callback`;
+        const redirectUrl = `https://google.com`;
+        const url = `${Env.NGROK}/api/oauth2/login?provider=${provider}&redirect=${redirectUrl}`;
 
+        console.log('URL:', url);
         try {
             const result = await WebBrowser.openAuthSessionAsync(
                 url,
