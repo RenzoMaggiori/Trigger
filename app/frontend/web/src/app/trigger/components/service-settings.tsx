@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,27 +8,6 @@ import { useMenu } from "@/app/trigger/components/MenuProvider";
 import { ActionType, NodeItem } from "@/app/trigger/lib/types";
 import { Combox, Status } from "@/components/ui/combox";
 import { BsHourglassTop, BsHourglassBottom, BsHourglassSplit } from "react-icons/bs";
-
-
-const InputComponent = ({
-  label,
-  placeholder,
-  type,
-}: {
-  label: string;
-  placeholder?: string;
-  type?: string;
-}) => {
-  const inputType = type ? type : undefined;
-  const inputPlaceholder = placeholder ? placeholder : undefined;
-
-  return (
-    <div>
-      <Label>{label}</Label>
-      <Input placeholder={inputPlaceholder} type={inputType} />
-    </div>
-  );
-};
 
 function GithubSettings({ node, type, actions }: { node: NodeItem, type: string, actions: ActionType }) {
   const { setFields, setNodes } = useMenu();
@@ -110,8 +88,56 @@ function GithubSettings({ node, type, actions }: { node: NodeItem, type: string,
   );
 }
 
-function TwitchSettings({ }: { node: NodeItem, type: string }) {
-  return <div></div>;
+function TwitchSettings({ node, type, actions }: { node: NodeItem, type: string, actions: ActionType }) {
+  const { setFields, setNodes } = useMenu();
+
+  React.useEffect(() => {
+    const twitchTriggerAction = actions.find(
+      (action) => action.provider === "twitch" && action.type === type
+    );
+    if (!twitchTriggerAction) return;
+    if (node.action_id !== twitchTriggerAction.id) {
+      setNodes({
+        [node.id]: { ...node, action_id: twitchTriggerAction.id },
+      });
+    }
+    if (node.fields?.type !== type) {
+      setFields(node.id, { ["type"]: type });
+    }
+  }, [type, actions, node, setNodes, setFields]);
+
+  const handleFieldChange = (type: string, index: string, value: string) => {
+    const currentField = node.fields["type"];
+
+    if (currentField !== null && type === currentField) {
+      setFields(node.id, { ...node.fields, [index]: value });
+    } else {
+      setFields(node.id, { ["type"]: type, [index]: value });
+    }
+  };
+
+  if (!node) return <div>No node found</div>;
+
+  return (
+    <>
+      {type === "reaction" ? (
+        <div className="flex flex-col gap-y-4">
+          <Label>Message to send</Label>
+          <Input
+            placeholder="your followers count increased!!"
+            onChange={(e) => handleFieldChange(type, "message", e.target.value)}
+            value={node.fields["type"] !== null
+              ? (node.fields["message"] as string | number | undefined) || ""
+              : ""}
+          />
+        </div>
+      ) : (
+        <div className="flex flex-col gap-y-4">
+          <p className="text-zinc-500">Waits for the follower count to increase.</p>
+        </div>
+      )}
+    </>
+  );
 }
 
 function EmailSettings({ node, type, actions }: { node: NodeItem, type: string, actions: ActionType }) {
@@ -144,8 +170,7 @@ function EmailSettings({ node, type, actions }: { node: NodeItem, type: string, 
   };
 
   const inputs = [
-    { label: "Destination", json: "destination", placeholder: "example@example.com", type: "email" },
-    { label: "Title", json: "title", placeholder: "Example title" },
+    { label: "Destination", json: "to", placeholder: "example@example.com", type: "email" },
     { label: "Subject", json: "subject", placeholder: "This is an email subject" },
   ];
 
@@ -228,133 +253,7 @@ function SpotifySettings({ node, type, actions }: { node: NodeItem, type: string
 
 
 function DiscordSettings({ }: { node: NodeItem, type: string }) {
-  const [messageType, setMessageType] = React.useState<Status | null>({ label: "Normal Message", value: "Normal" });
-  const [embedFields, setEmbedFields] = React.useState<
-    { name: string; value: string }[]
-  >([]);
-
-  const handleAddField = () => {
-    setEmbedFields([...embedFields, { name: "", value: "" }]);
-  };
-
-  const handleFieldChange = (
-    index: number,
-    fieldType: "name" | "value",
-    value: string,
-  ) => {
-    const updatedFields = [...embedFields];
-    updatedFields[index][fieldType] = value;
-    setEmbedFields(updatedFields);
-  };
-
-  const handleRemoveField = (index: number) => {
-    const updatedFields = embedFields.filter((_, i) => i !== index);
-    setEmbedFields(updatedFields);
-  };
-
-  const inputs: {
-    label: string;
-    placeholder?: string;
-    type?: string;
-  }[] = [
-      { label: "Embed Color", placeholder: "Example title...", type: "color" },
-      { label: "Embed Title", placeholder: "Example embed title" },
-    ];
-
-  const fieldInputs = [
-    { placeholder: "Field Name", fieldType: "name" },
-    { placeholder: "Field Value", fieldType: "value" },
-  ];
-
-  return (
-    <>
-      <div className="mb-4">
-        <Label
-          htmlFor="message-type-dropdown"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Select Message Type
-        </Label>
-        <Combox
-          statuses={[{ label: "Normal Message", value: "Normal" }, { label: "Embeded Message", value: "Embed" }]}
-          selectedStatus={messageType}
-          setSelectedStatus={setMessageType}
-          label="Select Message Type"
-        />
-      </div>
-
-      {messageType?.value === "Normal" ? (
-        <div className="normal-message-settings">
-          <Label
-            htmlFor="normal-message-content"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Message Content
-          </Label>
-          <Textarea
-            id="normal-message-content"
-            placeholder="Enter your message content here..."
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm sm:text-sm resize-none h-[150px]"
-          />
-        </div>
-      ) : (
-        <div className="embed-message-settings">
-          {inputs.map((item, key) => (
-            <div key={key}>
-              <InputComponent
-                label={item.label}
-                placeholder={item.placeholder}
-                type={item.type}
-              />
-            </div>
-          ))}
-
-          <Label
-            htmlFor="embed-description"
-            className="block text-sm font-medium text-gray-700 mt-4"
-          >
-            Embed Description
-          </Label>
-          <Textarea
-            id="embed-description"
-            placeholder="Enter embed description"
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          />
-          <div className="mt-4">
-            <h4 className="font-bold text-lg">Custom Fields</h4>
-            {embedFields.map((field, index) => (
-              <div key={index} className="flex gap-4 items-center mb-2">
-                {fieldInputs.map((item, key) => (
-                  <Input
-                    key={key}
-                    placeholder={item.placeholder}
-                    onChange={(e) =>
-                      handleFieldChange(
-                        index,
-                        item.fieldType === "name" ? "name" : "value",
-                        e.target.value,
-                      )
-                    }
-                    className="w-1/2"
-                  />
-                ))}
-                <Button
-                  variant="destructive"
-                  onClick={() => handleRemoveField(index)}
-                  className="ml-2"
-                >
-                  Remove
-                </Button>
-              </div>
-            ))}
-            <Button variant="outline" onClick={handleAddField} className="mt-2">
-              Add Field
-            </Button>
-          </div>
-        </div>
-      )}
-    </>
-  );
+  return <div></div>;
 }
 
 const timerStatuses = [
