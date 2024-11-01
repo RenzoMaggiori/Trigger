@@ -143,8 +143,7 @@ func (m Model) Webhook(ctx context.Context) error {
 
 	update := workspace.ActionCompletedModel{
 		ActionId: action.Id,
-		UserId:   user.Id,
-		Output:   map[string]string{"email": ""},
+		Output:   map[string]string{},
 	}
 	_, err = workspace.ActionCompletedRequest(googleSession.AccessToken, update)
 	if err != nil {
