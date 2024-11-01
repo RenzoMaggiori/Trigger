@@ -3,7 +3,6 @@ package sync
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
 
@@ -34,7 +33,7 @@ func Router(ctx context.Context) (*router.Router, error) {
 		},
 	}
 
-	callback := fmt.Sprintf("http://localhost:%s/api/sync/callback", os.Getenv("SYNC_PORT"))
+	callback := os.Getenv("SYNC_CALLBACK_URL")
 	CreateProvider(
 		google.New(
 			os.Getenv("GOOGLE_CLIENT_ID"),

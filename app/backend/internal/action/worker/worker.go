@@ -79,7 +79,7 @@ var (
 			Provider: "twitch",
 			Type:     "trigger",
 			Action:   "channel_follow",
-			Input:    []string{},
+			Input:    []string{"message"},
 			Output:   []string{},
 		},
 		{

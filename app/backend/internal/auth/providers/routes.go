@@ -2,7 +2,6 @@ package providers
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 
@@ -21,7 +20,7 @@ func Router(ctx context.Context) (*router.Router, error) {
 		Service: Model{},
 	}
 
-	callback := fmt.Sprintf("http://localhost:%s/api/oauth2/callback", os.Getenv("AUTH_PORT"))
+	callback := os.Getenv("AUTH_CALLBACK_URL")
 	CreateProvider(
 		google.New(
 			os.Getenv("GOOGLE_CLIENT_ID"),
