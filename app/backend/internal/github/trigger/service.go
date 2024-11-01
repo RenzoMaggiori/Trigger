@@ -1,11 +1,7 @@
 package trigger
 
 import (
-	"bytes"
 	"context"
-	"fmt"
-	"io"
-	"net/http"
 
 	githubClient "github.com/google/go-github/v66/github"
 	"trigger.com/trigger/internal/action/action"
@@ -15,7 +11,6 @@ import (
 	"trigger.com/trigger/internal/sync"
 	"trigger.com/trigger/pkg/auth/oaclient"
 	"trigger.com/trigger/pkg/errors"
-	"trigger.com/trigger/pkg/fetch"
 	"trigger.com/trigger/pkg/middleware"
 )
 
@@ -57,7 +52,7 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 
 	name := "web"
 	active := true
-	url := ""
+	url := "https://5758-95-19-19-190.ngrok-free.app/api/github/trigger/webhook"
 	contentType := "json"
 	insecureSSL := "0"
 	_, _, err = ghClient.Repositories.CreateHook(
@@ -87,7 +82,7 @@ func (m Model) Webhook(ctx context.Context) error {
 		return errors.ErrAccessTokenCtx
 	}
 
-	commit, ok := ctx.Value(GithubCommitCtxKey).(githubClient.RepositoryCommit)
+	commit, ok := ctx.Value(GithubCommitCtxKey).(githubClient.PushEvent)
 	if !ok {
 		return errors.ErrGithubCommitData
 	}
@@ -106,8 +101,8 @@ func (m Model) Webhook(ctx context.Context) error {
 		ActionId: action.Id,
 		UserId:   sesion.UserId,
 		Output: map[string]string{
-			"author":  *commit.Commit.Author.Name,
-			"message": *commit.Commit.Message,
+			"author":  *commit.Repo.Owner.Name,
+			"message": *commit.Commits[0].Message,
 		},
 	}
 	_, err = workspace.ActionCompletedRequest(accessToken, update)

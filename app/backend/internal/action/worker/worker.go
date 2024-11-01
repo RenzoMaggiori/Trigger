@@ -29,7 +29,7 @@ var (
 		{
 			Provider: "github",
 			Type:     "trigger",
-			Action:   "watch_commit",
+			Action:   "watch_push",
 			Input:    []string{"owner", "repo"},
 			Output:   []string{},
 		},

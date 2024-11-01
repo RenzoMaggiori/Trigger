@@ -4,6 +4,7 @@ go 1.23.1
 
 require (
 	github.com/golang-jwt/jwt/v5 v5.2.1
+	github.com/google/go-github/v66 v66.0.0
 	github.com/gorilla/sessions v1.1.1
 	github.com/joho/godotenv v1.5.1
 	github.com/markbates/goth v1.80.0
@@ -19,7 +20,6 @@ require (
 	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/google/go-github/v66 v66.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/mux v1.6.2 // indirect
