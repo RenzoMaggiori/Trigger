@@ -78,8 +78,8 @@ var (
 		{
 			Provider: "twitch",
 			Type:     "trigger",
-			Action:   "watch_channel_follow",
-			Input:    []string{},
+			Action:   "channel_follow",
+			Input:    []string{"message"},
 			Output:   []string{},
 		},
 		{

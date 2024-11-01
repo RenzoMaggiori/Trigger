@@ -11,6 +11,7 @@ const envSchema = z.object({
     AUTH_PORT: z.string(),
     USER_PORT: z.string(),
     ACTION_PORT: z.string(),
+    SESSION_PORT: z.string(),
 });
 
 function getEnv() {
@@ -20,6 +21,7 @@ function getEnv() {
         AUTH_PORT: process.env['AUTH_PORT'],
         USER_PORT: process.env['USER_PORT'],
         ACTION_PORT: process.env['ACTION_PORT'],
+        SESSION_PORT: process.env['SESSION_PORT'],
     });
 
     if (!success) {
