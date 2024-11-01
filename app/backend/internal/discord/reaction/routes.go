@@ -20,5 +20,5 @@ func Router(ctx context.Context) (*router.Router, error) {
 
 	server.Handle("POST /send_message", middlewares(http.HandlerFunc(handler.SendMessage)))
 
-	return router.NewRouter("/discord/reaction", server), nil
+	return router.NewRouter("/api/discord/reaction", server), nil
 }

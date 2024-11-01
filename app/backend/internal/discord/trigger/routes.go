@@ -31,5 +31,5 @@ func Router(ctx context.Context) (*router.Router, error) {
 	server.Handle("POST /stop", middlewares(http.HandlerFunc(handler.StopDiscord)))
 	server.Handle("POST /webhook", middlewares(http.HandlerFunc(handler.WebhookDiscord)))
 
-	return router.NewRouter("/discord/trigger", server), nil
+	return router.NewRouter("/api/discord/trigger", server), nil
 }
