@@ -1,10 +1,11 @@
 package trigger
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"net/http"
-	"time"
 
 	githubClient "github.com/google/go-github/v66/github"
 	"trigger.com/trigger/internal/action/action"
@@ -33,15 +34,47 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 		return err
 	}
 
-	watchCompleted := workspace.WatchCompletedModel{
-		ActionId: actionNode.ActionId,
-		UserId:   session.UserId,
-		Input: map[string]string{
-			"since": time.Now().Format("2006-01-02 15:04:05"),
-		},
+	syncModel, _, err := sync.GetSyncAccessTokenRequest(accessToken, session.UserId.Hex(), "github")
+	if err != nil {
+		return err
 	}
 
-	_, _, err = workspace.WatchCompletedRequest(accessToken, watchCompleted)
+	client, err := oaclient.New(ctx, github.Config(), syncModel)
+	if err != nil {
+		return err
+	}
+
+	ghClient := githubClient.NewClient(client)
+	owner, ok := actionNode.Input["owner"]
+	if !ok {
+		return errors.ErrInvalidReactionInput
+	}
+
+	repo, ok := actionNode.Input["repo"]
+	if !ok {
+		return errors.ErrInvalidReactionInput
+	}
+
+	name := "web"
+	active := true
+	url := ""
+	contentType := "json"
+	insecureSSL := "0"
+	_, _, err = ghClient.Repositories.CreateHook(
+		ctx,
+		owner,
+		repo,
+		&githubClient.Hook{
+			Name:   &name,
+			Active: &active,
+			Events: []string{"push"},
+			Config: &githubClient.HookConfig{
+				URL:         &url,
+				ContentType: &contentType,
+				InsecureSSL: &insecureSSL,
+			},
+		},
+	)
 	if err != nil {
 		return err
 	}
@@ -55,19 +88,16 @@ func (m Model) Webhook(ctx context.Context) error {
 	}
 
 	commit, ok := ctx.Value(GithubCommitCtxKey).(githubClient.RepositoryCommit)
-
 	if !ok {
 		return errors.ErrGithubCommitData
 	}
 
 	sesion, _, err := session.GetSessionByAccessTokenRequest(accessToken)
-
 	if err != nil {
 		return err
 	}
 
 	action, _, err := action.GetByActionNameRequest(accessToken, "watch_commit")
-
 	if err != nil {
 		return err
 	}
@@ -75,62 +105,18 @@ func (m Model) Webhook(ctx context.Context) error {
 	update := workspace.ActionCompletedModel{
 		ActionId: action.Id,
 		UserId:   sesion.UserId,
-		Output:   map[string]string{"author": *commit.Commit.Author.Name},
+		Output: map[string]string{
+			"author":  *commit.Commit.Author.Name,
+			"message": *commit.Commit.Message,
+		},
 	}
-
 	_, err = workspace.ActionCompletedRequest(accessToken, update)
-
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
 func (m Model) Stop(ctx context.Context) error {
-	accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
-	if !ok {
-		return errors.ErrAccessTokenCtx
-	}
-
-	session, _, err := session.GetSessionByAccessTokenRequest(accessToken)
-	if err != nil {
-		return err
-	}
-
-	syncModel, _, err := sync.GetSyncAccessTokenRequest(accessToken, session.UserId.Hex(), "github")
-	if err != nil {
-		return err
-	}
-
-	client, err := oaclient.New(ctx, github.Config(), syncModel)
-	if err != nil {
-		return err
-	}
-
-	body, ok := ctx.Value(github.StopCtxKey).(StopModel)
-	if !ok {
-		return errors.ErrGithubStopModelNotFound
-	}
-
-	res, err := fetch.Fetch(
-		client,
-		fetch.NewFetchRequest(
-			http.MethodDelete,
-			fmt.Sprintf("%s/repos/%s/%s/hooks/%s", githuBaseUrl, body.Owner, body.Repo, body.HookId),
-			nil,
-			map[string]string{
-				"Accept":               "application/vnd.github+json",
-				"X-GitHub-Api-Version": "2022-11-28",
-			},
-		),
-	)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-	if res.StatusCode >= 400 {
-		return fmt.Errorf("%w: received %s", errors.ErrInvalidGithubStatus, res.Status)
-	}
 	return nil
 }
