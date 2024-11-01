@@ -17,7 +17,7 @@ import { GrDocumentImage } from "react-icons/gr";
 import { SiGooglegemini } from "react-icons/si";
 import { IoSettingsOutline } from "react-icons/io5";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const navbarItems = [
   { name: "Home", href: "/home" },
@@ -67,20 +67,20 @@ const authButtons = [
 
 export function Navbar() {
   const [isHomePage, setIsHomePage] = React.useState<boolean>(false);
-  const [loggedIn, setLoggedIn] = React.useState<boolean>(false);
 
   React.useEffect(() => {
-    const isUserLoggedIn = document.cookie
-      .split(";")
-      .some((cookie) => cookie.trim().startsWith("Authentication="));
+    const checkIfHomePage = () => {
+      if (typeof window !== "undefined" && window.location.pathname === "/home") {
+        setIsHomePage(true);
+      } else {
+        setIsHomePage(false);
+      }
+    };
 
-    setLoggedIn(isUserLoggedIn);
-  }, []);
+    checkIfHomePage();
+    window.addEventListener("popstate", checkIfHomePage);
 
-  React.useEffect(() => {
-    if (typeof window !== "undefined") {
-      setIsHomePage(window.location.pathname === "/home");
-    }
+    return () => window.removeEventListener("popstate", checkIfHomePage);
   }, []);
 
   return (
@@ -125,7 +125,6 @@ export function Navbar() {
                   </div>
                 ))}
               {!isHomePage &&
-                loggedIn &&
                 navbarItems.map((item, key) => (
                   <div key={key}>
                     <Button
@@ -139,7 +138,7 @@ export function Navbar() {
                 ))}
             </div>
             <div className="w-full flex flex-col mt-auto gap-5">
-              {loggedIn ? (
+              {/* {loggedIn ? ( */}{
                 authButtons.map((item, key) => (
                   <Button
                     key={key}
@@ -157,12 +156,12 @@ export function Navbar() {
                   >
                     <Link href={item.href}>{item.name}</Link>
                   </Button>
-                ))
-              ) : (
+                ))}
+              {/* ) : (
                 <Button className="bg-red-500 hover:bg-red-600 text-xl rounded-full">
                   Log Out
                 </Button>
-              )}
+              )} */}
             </div>
           </SheetContent>
         </Sheet>
@@ -178,7 +177,7 @@ export function Navbar() {
           </div>
         </div>
         <div className="absolute gap-x-4 right-6 hidden md:flex">
-          {!loggedIn ? (
+          {/* {!loggedIn ? ( */}{
             authButtons.map((item, key) => (
               <Button
                 key={key}
@@ -196,13 +195,13 @@ export function Navbar() {
               >
                 <Link href={item.href}>{item.name}</Link>
               </Button>
-            ))
-          ) : (
-            <Avatar>
-              <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-              <AvatarFallback>CN</AvatarFallback>
-            </Avatar>
-          )}
+            ))}
+          {/* // ) : (
+          //   <Avatar>
+          //     <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+          //     <AvatarFallback>TA</AvatarFallback>
+          //   </Avatar>
+          // )} */}
         </div>
       </div>
     </nav>

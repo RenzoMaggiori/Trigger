@@ -196,10 +196,13 @@ export default function Page({ params }: { params: { triggerID: string } }) {
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
-      <ServicesComponent
-        services={services}
-        handleDragStart={handleDragStart}
-      />
+      <div className="hidden md:flex h-full">
+
+        <ServicesComponent
+          services={services}
+          handleDragStart={handleDragStart}
+        />
+      </div>
       <ReactFlowComponent
         customNodes={customNodes}
         setCustomNodes={setCustomNodes}
@@ -210,7 +213,7 @@ export default function Page({ params }: { params: { triggerID: string } }) {
         handleDragOver={handleDragOver}
         updateParentNodes={updateParentNodes}
       />
-      <div className="p-5">
+      <div className="p-5 hidden md:flex h-full">
         {settings && (
           <ConfigMenu
             menu={settings}
