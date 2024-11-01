@@ -11,6 +11,7 @@ import (
 	"github.com/markbates/goth/providers/github"
 	"github.com/markbates/goth/providers/google"
 	"github.com/markbates/goth/providers/spotify"
+	"github.com/markbates/goth/providers/twitch"
 	"go.mongodb.org/mongo-driver/mongo"
 	"trigger.com/trigger/pkg/middleware"
 	"trigger.com/trigger/pkg/mongodb"
@@ -70,6 +71,14 @@ func Router(ctx context.Context) (*router.Router, error) {
 			spotify.ScopeUserReadPrivate,
 			spotify.ScopeUserReadPlaybackState,
 			spotify.ScopeUserModifyPlaybackState,
+		),
+		twitch.New(
+			os.Getenv("TWITCH_CLIENT_ID"),
+			os.Getenv("TWITCH_CLIENT_SECRET"),
+			callback,
+			twitch.ScopeUserReadEmail,
+			twitch.ScopeModeratorReadFollowers,
+			"user:write:chat",
 		),
 	)
 
