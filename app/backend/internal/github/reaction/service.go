@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"net/http"
 
+	githubClient "github.com/google/go-github/v66/github"
+
 	"trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/internal/github"
 	"trigger.com/trigger/internal/session"
@@ -43,14 +45,20 @@ func (m Model) Reaction(ctx context.Context, actionNode workspace.ActionNodeMode
 		return err
 	}
 
-	owner := actionNode.Input["owner"]
+	githubClient := githubClient.NewClient(nil).WithAuthToken(syncModel.AccessToken)
+	githubUser, _, err := githubClient.Users.Get(ctx, "")
+
+	if err != nil {
+		return err
+	}
+
+	owner := *githubUser.Login
 	repo := actionNode.Input["repo"]
 	body, err := json.Marshal(map[string]any{
-		"title":     "Reaction Title",
-		"body":      "Reaction Body",
+		"title":     actionNode.Input["title"],
+		"body":      actionNode.Input["body"],
 		"assignees": []string{owner},
-		"milestone": 1,
-		"labels":    []string{"bug"},
+		"labels":    []string{actionNode.Input["labels"]},
 	})
 	if err != nil {
 		return err

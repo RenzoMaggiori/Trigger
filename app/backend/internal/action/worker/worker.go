@@ -30,7 +30,7 @@ var (
 			Provider: "github",
 			Type:     "trigger",
 			Action:   "watch_commit",
-			Input:    []string{"repo", "since"},
+			Input:    []string{"repo", "title", "labels", "body"},
 			Output:   []string{},
 		},
 		{

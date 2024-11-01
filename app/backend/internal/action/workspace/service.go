@@ -373,10 +373,10 @@ func (m Model) WatchCompleted(ctx context.Context, watchCompleted WatchCompleted
 		},
 	}
 
-	update := bson.M{
-		"$set": bson.M{
-			"nodes.$.input": watchCompleted.Input,
-		},
+	update := bson.M{"$set": bson.M{}}
+
+	for k, v := range watchCompleted.Input {
+		update["$set"].(bson.M)[fmt.Sprintf("nodes.$.input.%s", k)] = v
 	}
 
 	// Perform the update
@@ -527,6 +527,9 @@ func (m Model) ActionCompleted(ctx context.Context, actionCompleted ActionComple
 		return nil, err
 	}
 
+	if len(userWorkspaces) == 0 {
+		return nil, errors.ErrWorkspaceNotFound
+	}
 	// Iterate over all user workspaces and update them in case they have any actions that are completed
 	updatedWorkspaces, err := m.processUserWorkspaces(userWorkspaces, actionCompleted, accessToken)
 	if err != nil {

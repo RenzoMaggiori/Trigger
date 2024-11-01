@@ -60,7 +60,7 @@ func (m Model) Webhook(ctx context.Context) error {
 		return errors.ErrGithubCommitData
 	}
 
-	user, _, err := session.GetSessionByAccessTokenRequest(accessToken)
+	sesion, _, err := session.GetSessionByAccessTokenRequest(accessToken)
 
 	if err != nil {
 		return err
@@ -74,7 +74,7 @@ func (m Model) Webhook(ctx context.Context) error {
 
 	update := workspace.ActionCompletedModel{
 		ActionId: action.Id,
-		UserId:   user.Id,
+		UserId:   sesion.UserId,
 		Output:   map[string]string{"author": *commit.Commit.Author.Name},
 	}
 
