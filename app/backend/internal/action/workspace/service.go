@@ -12,6 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"trigger.com/trigger/internal/action/action"
 	"trigger.com/trigger/internal/session"
+	"trigger.com/trigger/internal/user"
 	"trigger.com/trigger/pkg/errors"
 )
 
@@ -432,6 +433,10 @@ func (m Model) processWorkspace(
 		},
 	}
 
+	if actionCompleted.NodeId != nil {
+		filter["nodes.$elemMatch.node_id"] = actionCompleted.NodeId
+	}
+
 	outputUpdate := bson.M{}
 	for key, value := range actionCompleted.Output {
 		outputUpdate[fmt.Sprintf("nodes.$.output.%s", key)] = value
@@ -521,10 +526,31 @@ func (m Model) ActionCompleted(ctx context.Context, actionCompleted ActionComple
 		return nil, errors.ErrAccessTokenCtx
 	}
 
-	// Get all user workspaces
-	userWorkspaces, err := m.GetByUserId(ctx, actionCompleted.UserId)
+	session, _, err := session.GetSessionByAccessTokenRequest(accessToken)
+
 	if err != nil {
 		return nil, err
+	}
+
+	user, _, err := user.GetUserByIdRequest(accessToken, session.UserId.Hex())
+
+	if err != nil {
+		return nil, err
+	}
+
+	var userWorkspaces []WorkspaceModel
+
+	if actionCompleted.WorkspaceId != nil {
+		w, err := m.GetById(ctx, *actionCompleted.WorkspaceId)
+		if err != nil {
+			return nil, err
+		}
+		userWorkspaces = append(userWorkspaces, *w)
+	} else {
+		userWorkspaces, err = m.GetByUserId(ctx, user.Id)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Iterate over all user workspaces and update them in case they have any actions that are completed

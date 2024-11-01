@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"trigger.com/trigger/internal/action/action"
 	"trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/internal/session"
@@ -126,14 +125,8 @@ func (m Model) Webhook(ctx context.Context) error {
 		return err
 	}
 
-	userUUID, err := primitive.ObjectIDFromHex(userId)
-	if err != nil {
-		return err
-	}
-
 	update := workspace.ActionCompletedModel{
 		ActionId: action.Id,
-		UserId:   userUUID,
 		Output:   map[string]string{},
 	}
 	_, err = workspace.ActionCompletedRequest(accessToken, update)
