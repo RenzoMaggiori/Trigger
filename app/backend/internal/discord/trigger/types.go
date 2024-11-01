@@ -1,6 +1,8 @@
 package trigger
 
 import (
+	"github.com/bwmarrin/discordgo"
+	"go.mongodb.org/mongo-driver/mongo"
 	"trigger.com/trigger/pkg/action"
 )
 
@@ -9,13 +11,19 @@ const DiscordEventCtxKey WorkspaceCtx = WorkspaceCtx("DiscordEventCtxKey")
 const AccessTokenCtxKey WorkspaceCtx = WorkspaceCtx("AuthorizationCtxKey")
 const WorkspaceCtxKey WorkspaceCtx = WorkspaceCtx("WorkspaceCtxKey")
 
+const (
+	authURL      string = "https://discord.com/api/oauth2/authorize"
+	tokenURL     string = "https://discord.com/api/v10/oauth2/token"
+	userEndpoint string = "https://discord.com/api/v10/users/@me"
+	baseURL      string = "https://discord.com/api/v10"
+
+	// workerBaseURL string = "http://localhost:8010/api/discord/worker"
+)
+
 
 type Service interface {
 	action.Trigger
-
-	// Stop(ctx context.Context, userID string) error
-	// Watch(ctx context.Context, userID string, actionNode workspace.ActionNodeModel) error
-	// Webhook(ctx context.Context, userID string) error
+	GetAllSessions() ([]DiscordSessionModel, error)
 }
 
 type Handler struct {
@@ -29,6 +37,7 @@ type MsgInfo struct {
 }
 
 type Model struct {
+	Collection *mongo.Collection
 }
 
 type ActionBody struct {
@@ -36,7 +45,10 @@ type ActionBody struct {
 	Data interface{} `json:"data"`
 }
 
-type Event struct {
-	GuildId   string `json:"guild_id"`
-	ChannelId string `json:"channel_id"`
+type DiscordSessionModel struct {
+	UserId  string `json:"user_id" bson:"user_id"`
+	ChannelId string `json:"channel_id" bson:"channel_id"`
+	ActionId string `json:"action_id" bson:"action_id"`
+	Token string `json:"token" bson:"token"`
+	DiscordData *discordgo.User `json:"discord_data"`
 }

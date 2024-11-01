@@ -6,6 +6,7 @@ import (
 
 	"trigger.com/trigger/internal/action/workspace"
 	customerror "trigger.com/trigger/pkg/custom-error"
+	"trigger.com/trigger/pkg/encode"
 	"trigger.com/trigger/pkg/errors"
 
 	"trigger.com/trigger/pkg/decode"
@@ -41,5 +42,17 @@ func (h *Handler) StopDiscord(w http.ResponseWriter, r *http.Request) {
 	err := h.Service.Stop(r.Context())
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)
+	}
+}
+
+func (h *Handler) GetDiscordSessions(w http.ResponseWriter, r *http.Request) {
+	sessions, err := h.Service.GetAllSessions()
+	if err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+	if err = encode.Json(w, sessions); err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+		return
 	}
 }

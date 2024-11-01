@@ -65,9 +65,9 @@ func main() {
 	go server.Start()
 
 	w := &worker.Model{}
-	worker := w.New(ctx)
-	worker.Start()
+	w.InitBot()
+	// worker.Start()
 
 	server.Stop()
-	worker.Stop()
+	// worker.Stop()
 }
