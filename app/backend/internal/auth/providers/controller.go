@@ -2,9 +2,8 @@ package providers
 
 import (
 	"encoding/base64"
-	"net/http"
-	"time"
 	"fmt"
+	"net/http"
 
 	"github.com/markbates/goth/gothic"
 	customerror "trigger.com/trigger/pkg/custom-error"
@@ -31,7 +30,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		Name:     authCookieName,
 		Value:    accessToken,
 		Expires:  gothUser.ExpiresAt,
-		HttpOnly: true,
+		HttpOnly: false,
 		SameSite: http.SameSiteLaxMode,
 		Path:     "/",
 		Secure:   false, // TODO: true when in production
@@ -60,17 +59,8 @@ func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
 		customerror.Send(w, err, errCodes)
 		return
 	}
-	cookie := &http.Cookie{
-		Name:     authCookieName,
-		Value:    accessToken,
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-		Path:     "/",
-		Secure:   false, // TODO: true when in production
-		Expires:  time.Now().Add(24 * time.Hour),
-	}
+
 	redirectWithToken := fmt.Sprintf("%s?token=%s", redirectUrl, accessToken)
-	http.SetCookie(w, cookie)
 	http.Redirect(w, r, redirectWithToken, http.StatusPermanentRedirect)
 }
 

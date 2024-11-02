@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,33 +7,141 @@ import React from "react";
 import { useMenu } from "@/app/trigger/components/MenuProvider";
 import { ActionType, NodeItem } from "@/app/trigger/lib/types";
 import { Combox, Status } from "@/components/ui/combox";
+import { BsHourglassTop, BsHourglassBottom, BsHourglassSplit } from "react-icons/bs";
 
-const InputComponent = ({
-  label,
-  placeholder,
-  type,
-}: {
-  label: string;
-  placeholder?: string;
-  type?: string;
-}) => {
-  const inputType = type ? type : undefined;
-  const inputPlaceholder = placeholder ? placeholder : undefined;
+function GithubSettings({ node, type, actions }: { node: NodeItem, type: string, actions: ActionType }) {
+  const { setFields, setNodes } = useMenu();
+
+  React.useEffect(() => {
+    const githubTriggerAction = actions.find(
+      (action) => action.provider === "github" && action.type === type
+    );
+    if (!githubTriggerAction) return;
+    if (node.action_id !== githubTriggerAction.id) {
+      setNodes({
+        [node.id]: { ...node, action_id: githubTriggerAction.id },
+      });
+    }
+    if (node.fields?.type !== type) {
+      setFields(node.id, { ["type"]: type });
+    }
+  }, [type, actions, node, setNodes, setFields]);
+
+  const handleFieldChange = (type: string, index: string, value: string) => {
+    const currentField = node.fields["type"];
+
+    if (currentField !== null && type === currentField) {
+      setFields(node.id, { ...node.fields, [index]: value });
+    } else {
+      setFields(node.id, { ["type"]: type, [index]: value });
+    }
+  };
+
+  const triggerInputs = [
+    { label: "Owner", json: "owner", placeholder: "John Doe" },
+    { label: "Repository", json: "repo", placeholder: "example_repository" },
+  ];
+
+  const reactionInputs = [
+    { label: "Owner", json: "owner", placeholder: "John Doe" },
+    { label: "Repository", json: "repo", placeholder: "example_repository" },
+    { label: "Title", json: "title", placeholder: "Example title" },
+    { label: "Description", json: "description", placeholder: "This is a new issue" },
+  ];
 
   return (
     <div>
-      <Label>{label}</Label>
-      <Input placeholder={inputPlaceholder} type={inputType} />
+      {type === "reaction" ? (
+        <div className="flex flex-col gap-y-4">
+          <p className="text-zinc-500">Creates a new issue on the specified repository.</p>
+          {reactionInputs.map((item, key) => (
+            <div key={`${node.id}-${key}`}>
+              <Label>{item.label}</Label>
+              <Input
+                placeholder={item.placeholder}
+                onChange={(e) => handleFieldChange(type, item.json, e.target.value)}
+                value={node.fields["type"] !== null
+                  ? (node.fields[item.json] as string | number | undefined) || ""
+                  : ""}
+              />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-y-4">
+          <p className="text-zinc-500">Waits for a push to happen.</p>
+          {triggerInputs.map((item, key) => (
+            <div key={`${node.id}-${key}`}>
+              <Label>{item.label}</Label>
+              <Input
+                placeholder={item.placeholder}
+                onChange={(e) => handleFieldChange(type, item.json, e.target.value)}
+                value={node.fields["type"] !== null
+                  ? (node.fields[item.json] as string | number | undefined) || ""
+                  : ""}
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
-};
+}
 
-function GithubSettings({ }: { node: NodeItem, type: string }) {
-  return <div></div>;
+function TwitchSettings({ node, type, actions }: { node: NodeItem, type: string, actions: ActionType }) {
+  const { setFields, setNodes } = useMenu();
+
+  React.useEffect(() => {
+    const twitchTriggerAction = actions.find(
+      (action) => action.provider === "twitch" && action.type === type
+    );
+    if (!twitchTriggerAction) return;
+    if (node.action_id !== twitchTriggerAction.id) {
+      setNodes({
+        [node.id]: { ...node, action_id: twitchTriggerAction.id },
+      });
+    }
+    if (node.fields?.type !== type) {
+      setFields(node.id, { ["type"]: type });
+    }
+  }, [type, actions, node, setNodes, setFields]);
+
+  const handleFieldChange = (type: string, index: string, value: string) => {
+    const currentField = node.fields["type"];
+
+    if (currentField !== null && type === currentField) {
+      setFields(node.id, { ...node.fields, [index]: value });
+    } else {
+      setFields(node.id, { ["type"]: type, [index]: value });
+    }
+  };
+
+  if (!node) return <div>No node found</div>;
+
+  return (
+    <>
+      {type === "reaction" ? (
+        <div className="flex flex-col gap-y-4">
+          <Label>Message to send</Label>
+          <Input
+            placeholder="your followers count increased!!"
+            onChange={(e) => handleFieldChange(type, "message", e.target.value)}
+            value={node.fields["type"] !== null
+              ? (node.fields["message"] as string | number | undefined) || ""
+              : ""}
+          />
+        </div>
+      ) : (
+        <div className="flex flex-col gap-y-4">
+          <p className="text-zinc-500">Waits for the follower count to increase.</p>
+        </div>
+      )}
+    </>
+  );
 }
 
 function EmailSettings({ node, type, actions }: { node: NodeItem, type: string, actions: ActionType }) {
-  const { triggerWorkspace, setFields, setNodes } = useMenu();
+  const { setFields, setNodes } = useMenu();
 
   React.useEffect(() => {
     const gmailTriggerAction = actions.find(
@@ -63,18 +170,17 @@ function EmailSettings({ node, type, actions }: { node: NodeItem, type: string, 
   };
 
   const inputs = [
-    { label: "Destination", json: "destination", placeholder: "example@example.com", type: "email" },
-    { label: "Title", json: "title", placeholder: "Example title..." },
-    { label: "Subject", json: "subject", placeholder: "Example subject..." },
+    { label: "Destination", json: "to", placeholder: "example@example.com", type: "email" },
+    { label: "Subject", json: "subject", placeholder: "This is an email subject" },
   ];
 
   if (!node) return <div>No node found</div>;
-  console.log(triggerWorkspace)
 
   return (
     <>
       {type === "reaction" ? (
         <div className="flex flex-col gap-y-4">
+          <p className="text-zinc-500">Sends an email to the desired destination.</p>
           {inputs.map((item, key) => (
             <div key={`${node.id}-${key}`}>
               <Label>{item.label}</Label>
@@ -91,7 +197,7 @@ function EmailSettings({ node, type, actions }: { node: NodeItem, type: string, 
           <div>
             <Label>Email body</Label>
             <Textarea
-              placeholder="Example body..."
+              placeholder="Hey there! Just wanted to check in and see how you’re doing..."
               className="resize-none h-[200px]"
               onChange={(e) => handleFieldChange(type, "body", e.target.value)}
               value={node.fields["type"] !== null
@@ -102,14 +208,43 @@ function EmailSettings({ node, type, actions }: { node: NodeItem, type: string, 
         </div>
       ) : (
         <div className="flex flex-col gap-y-4">
-          <Label>Source</Label>
-          <Input
-            placeholder="example@example.com"
-            onChange={(e) => handleFieldChange(type, "source", e.target.value)}
-            value={node.fields["type"] !== null
-              ? (node.fields["source"] as string | number | undefined) || ""
-              : ""}
-          />
+          <p className="text-zinc-500">Waits for a gmail action to happen {"(email arrived, sent, deleted, etc)"}.</p>
+        </div>
+      )}
+    </>
+  );
+}
+
+function SpotifySettings({ node, type, actions }: { node: NodeItem, type: string, actions: ActionType }) {
+  const { setFields, setNodes } = useMenu();
+
+  React.useEffect(() => {
+    const spotifyTriggerAction = actions.find(
+      (action) => action.provider === "spotify" && action.type === type
+    );
+    if (!spotifyTriggerAction) return;
+    if (node.action_id !== spotifyTriggerAction.id) {
+      setNodes({
+        [node.id]: { ...node, action_id: spotifyTriggerAction.id },
+      });
+    }
+    if (node.fields?.type !== type) {
+      setFields(node.id, { ["type"]: type });
+    }
+  }, [type, actions, node, setNodes, setFields]);
+
+  if (!node) return <div>No node found</div>;
+
+
+  return (
+    <>
+      {type === "reaction" ? (
+        <div className="flex flex-col gap-y-4">
+          <p className="text-zinc-500">Plays music on your device.</p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-y-4">
+          <p className="text-zinc-500">Waits for the follower count to change.</p>
         </div>
       )}
     </>
@@ -118,46 +253,63 @@ function EmailSettings({ node, type, actions }: { node: NodeItem, type: string, 
 
 
 function DiscordSettings({ }: { node: NodeItem, type: string }) {
-  const [messageType, setMessageType] = React.useState<Status | null>({ label: "Normal Message", value: "Normal" });
-  const [embedFields, setEmbedFields] = React.useState<
-    { name: string; value: string }[]
-  >([]);
+  return <div></div>;
+}
 
-  const handleAddField = () => {
-    setEmbedFields([...embedFields, { name: "", value: "" }]);
-  };
+const timerStatuses = [
+  {
+    label:
+      <div className="flex flex-row">
+        <BsHourglassTop className="mr-2 w-5 h-5" />
+        <p className="font-bold">Minute</p>
+      </div>,
+    value: "watch_minute"
+  },
+  {
+    label:
+      <div className="flex flex-row">
+        <BsHourglassSplit className="mr-2 w-5 h-5" />
+        <p className="font-bold">Hour</p>
+      </div>,
+    value: "watch_hour"
+  },
+  {
+    label:
+      <div className="flex flex-row">
+        <BsHourglassBottom className="mr-2 w-5 h-5" />
+        <p className="font-bold">Day</p>
+      </div>,
+    value: "watch_day"
+  },
+];
 
-  const handleFieldChange = (
-    index: number,
-    fieldType: "name" | "value",
-    value: string,
-  ) => {
-    const updatedFields = [...embedFields];
-    updatedFields[index][fieldType] = value;
-    setEmbedFields(updatedFields);
-  };
+function TimerSettings({ node, type, actions }: { node: NodeItem, type: string, actions: ActionType }) {
+  const [messageType, setMessageType] = React.useState<Status | null>(timerStatuses[0]);
+  const { setFields, setNodes } = useMenu();
 
-  const handleRemoveField = (index: number) => {
-    const updatedFields = embedFields.filter((_, i) => i !== index);
-    setEmbedFields(updatedFields);
-  };
+  React.useEffect(() => {
+    const timmerTriggerAction = actions.find(
+      (action) => action.provider === "timer" && action.type === "trigger" && action.action === messageType?.value
+    );
+    if (!timmerTriggerAction) return;
+    if (node.action_id !== timmerTriggerAction.id) {
+      setNodes({
+        [node.id]: { ...node, action_id: timmerTriggerAction.id },
+      });
+    }
+  }, [type, actions, node, setNodes, setFields]);
 
-  const inputs: {
-    label: string;
-    placeholder?: string;
-    type?: string;
-  }[] = [
-      { label: "Embed Color", placeholder: "Example title...", type: "color" },
-      { label: "Embed Title", placeholder: "Example embed title" },
-    ];
 
-  const fieldInputs = [
-    { placeholder: "Field Name", fieldType: "name" },
-    { placeholder: "Field Value", fieldType: "value" },
-  ];
+  const descriptions = {
+    "watch_minute": "Triggers each time the minute changes.",
+    "watch_hour": "Triggers each time the hour changes.",
+    "watch_day": "Triggers each time the day changes.",
+  }
+
+  if (!node) return <div>No node found</div>;
 
   return (
-    <>
+    <div>
       <div className="mb-4">
         <Label
           htmlFor="message-type-dropdown"
@@ -166,86 +318,16 @@ function DiscordSettings({ }: { node: NodeItem, type: string }) {
           Select Message Type
         </Label>
         <Combox
-          statuses={[{ label: "Normal Message", value: "Normal" }, { label: "Embeded Message", value: "Embed" }]}
+          statuses={timerStatuses}
           selectedStatus={messageType}
           setSelectedStatus={setMessageType}
-          label="Select Message Type"
+          label="Select Time for trigger"
         />
       </div>
-
-      {messageType?.value === "Normal" ? (
-        <div className="normal-message-settings">
-          <Label
-            htmlFor="normal-message-content"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Message Content
-          </Label>
-          <Textarea
-            id="normal-message-content"
-            placeholder="Enter your message content here..."
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm sm:text-sm resize-none h-[150px]"
-          />
-        </div>
-      ) : (
-        <div className="embed-message-settings">
-          {inputs.map((item, key) => (
-            <div key={key}>
-              <InputComponent
-                label={item.label}
-                placeholder={item.placeholder}
-                type={item.type}
-              />
-            </div>
-          ))}
-
-          <Label
-            htmlFor="embed-description"
-            className="block text-sm font-medium text-gray-700 mt-4"
-          >
-            Embed Description
-          </Label>
-          <Textarea
-            id="embed-description"
-            placeholder="Enter embed description"
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          />
-          <div className="mt-4">
-            <h4 className="font-bold text-lg">Custom Fields</h4>
-            {embedFields.map((field, index) => (
-              <div key={index} className="flex gap-4 items-center mb-2">
-                {fieldInputs.map((item, key) => (
-                  <Input
-                    key={key}
-                    placeholder={item.placeholder}
-                    onChange={(e) =>
-                      handleFieldChange(
-                        index,
-                        item.fieldType === "name" ? "name" : "value",
-                        e.target.value,
-                      )
-                    }
-                    className="w-1/2"
-                  />
-                ))}
-                <Button
-                  variant="destructive"
-                  onClick={() => handleRemoveField(index)}
-                  className="ml-2"
-                >
-                  Remove
-                </Button>
-              </div>
-            ))}
-            <Button variant="outline" onClick={handleAddField} className="mt-2">
-              Add Field
-            </Button>
-          </div>
-        </div>
-      )}
-    </>
+      <p className="text-zinc-500">{descriptions[messageType?.value as keyof typeof descriptions || "watch_minute"]}</p>
+    </div>
   );
 }
 
-export { EmailSettings, DiscordSettings, GithubSettings };
+export { EmailSettings, DiscordSettings, GithubSettings, SpotifySettings, TwitchSettings, TimerSettings };
 

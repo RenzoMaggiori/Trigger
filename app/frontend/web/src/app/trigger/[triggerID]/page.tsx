@@ -2,12 +2,11 @@
 
 import React from "react";
 import { IoLogoGithub } from "react-icons/io";
-import { FaDiscord } from "react-icons/fa";
+import { FaDiscord, FaTwitch, FaSpotify } from "react-icons/fa";
 import { type Edge } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { ConfigMenu } from "@/app/trigger/components/config-menu";
 import { BiLogoGmail } from "react-icons/bi";
-import { PiMicrosoftOutlookLogo } from "react-icons/pi";
 import { CustomNode, NodeItem, Service } from "@/app/trigger/lib/types";
 import { useMenu } from "@/app/trigger/components/MenuProvider";
 import { transformCustomNodes } from "@/app/trigger/lib/transform-custom-nodes";
@@ -16,6 +15,7 @@ import { ServicesComponent } from "@/app/trigger/components/service-page";
 import { ReactFlowComponent } from "@/app/trigger/components/react-flow";
 import { getWorkspace } from "@/app/trigger/lib/get-workspace";
 import { getActions } from "../lib/get-actions";
+import { IoMdStopwatch } from "react-icons/io";
 
 const services: Service[] = [
   {
@@ -34,10 +34,20 @@ const services: Service[] = [
     settings: "email",
   },
   {
-    icon: <PiMicrosoftOutlookLogo className="w-5 h-5 mr-2 text-sky-500" />,
-    name: "Outlook",
-    settings: "email",
+    icon: <FaSpotify className="w-5 h-5 mr-2 text-green-500" />,
+    name: "Spotify",
+    settings: "spotify",
   },
+  {
+    icon: <FaTwitch className="w-5 h-5 mr-2 text-violet-500" />,
+    name: "Twitch",
+    settings: "twitch",
+  },
+  {
+    icon: <IoMdStopwatch className="w-5 h-5 mr-2" />,
+    name: "Timer",
+    settings: "timer",
+  }
 ];
 
 export default function Page({ params }: { params: { triggerID: string } }) {
@@ -192,10 +202,13 @@ export default function Page({ params }: { params: { triggerID: string } }) {
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
-      <ServicesComponent
-        services={services}
-        handleDragStart={handleDragStart}
-      />
+      <div className="hidden md:flex h-full">
+
+        <ServicesComponent
+          services={services}
+          handleDragStart={handleDragStart}
+        />
+      </div>
       <ReactFlowComponent
         customNodes={customNodes}
         setCustomNodes={setCustomNodes}
@@ -206,7 +219,7 @@ export default function Page({ params }: { params: { triggerID: string } }) {
         handleDragOver={handleDragOver}
         updateParentNodes={updateParentNodes}
       />
-      <div className="p-5">
+      <div className="p-5 hidden md:flex h-full">
         {settings && (
           <ConfigMenu
             menu={settings}

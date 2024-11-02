@@ -6,6 +6,7 @@ const nextConfig = {
     NEXT_PUBLIC_SYNC_SERVICE_URL: process.env.NEXT_PUBLIC_SYNC_SERVICE_URL,
     NEXT_PUBLIC_SETTINGS_SERVICE_URL: process.env.NEXT_PUBLIC_SETTINGS_SERVICE_URL,
     NEXT_PUBLIC_WEB_URL: process.env.NEXT_PUBLIC_WEB_URL,
+    NEXT_PUBLIC_SERVER_URL: process.env.NEXT_PUBLIC_SERVER_URL,
   },
   output: "standalone",
   images: {

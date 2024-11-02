@@ -11,7 +11,7 @@ export async function getConnections() {
   }
 
   const res = await fetch(
-    `${env.NEXT_PUBLIC_SETTINGS_SERVICE_URL}/api/settings/me`,
+    `${env.NEXT_PUBLIC_SERVER_URL}/api/settings/me`,
     {
       method: "GET",
       headers: {
