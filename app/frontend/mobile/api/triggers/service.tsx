@@ -86,4 +86,27 @@ export class TriggersService {
             throw error;
         }
     }
+
+    static async getTriggers() {
+        try {
+            const baseUrl = await this.getBaseUrl();
+            const response = await fetch(`${baseUrl}/workspace/me`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (response.status !== 200) {
+                console.log('get triggers failed', response.status);
+                throw new Error('Something went wrong.');
+            }
+            const data = await response.json();
+            console.log('[get triggers] success: ', data);
+            return data;
+        } catch (error) {
+            console.error("Catched Get Triggers Error:", error);
+            throw error;
+        }
+    }
 }
