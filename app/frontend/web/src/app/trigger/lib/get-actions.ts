@@ -11,7 +11,7 @@ export async function getActions() {
   }
 
   const res = await fetch(
-    `${env.NEXT_PUBLIC_ACTION_SERVICE_URL}/api/action`,
+    `${env.NEXT_PUBLIC_SERVER_URL}/api/action`,
     {
       method: "GET",
       headers: {

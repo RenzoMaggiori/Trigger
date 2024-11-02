@@ -13,7 +13,7 @@ export async function getWorkspaces(): Promise<z.infer<typeof workspaces>> {
   }
 
   const res = await fetch(
-    `${env.NEXT_PUBLIC_ACTION_SERVICE_URL}/api/workspace/me`,
+    `${env.NEXT_PUBLIC_SERVER_URL}/api/workspace/me`,
     {
       method: "GET",
       headers: {

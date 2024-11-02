@@ -58,7 +58,7 @@ export default function Home() {
             asChild
           >
             <Link
-              href={`${env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/oauth2/login?provider=google&redirect=${env.NEXT_PUBLIC_WEB_URL}/home`}
+              href={`${env.NEXT_PUBLIC_SERVER_URL}/api/oauth2/login?provider=google&redirect=${env.NEXT_PUBLIC_WEB_URL}/home`}
               className="flex items-center"
             >
               <FcGoogle className="mr-2 text-2xl" /> Start with Google
@@ -96,7 +96,7 @@ export default function Home() {
               loop
               className="w-full h-full object-cover rounded-md"
             >
-              <source src="/video_placeholder.mov" />
+              <source src="https://res.cloudinary.com/zapier-media/video/upload/q_auto:best/f_auto/v1726860621/Homepage%20%E2%80%94%20Sept%202024/sc01_HP_240917_Connect_v01_edm2pd.mp4" />
             </video>
           </CardHeader>
         </Card>

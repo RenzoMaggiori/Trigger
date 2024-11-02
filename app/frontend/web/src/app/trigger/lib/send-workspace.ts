@@ -9,7 +9,7 @@ export async function send_workspace(triggerWorkspace: TriggerWorkspace) {
   const access_token = cookies().get("Authorization")?.value;
 
   const res = await fetch(
-    `${env.NEXT_PUBLIC_ACTION_SERVICE_URL}/api/workspace/id/${triggerWorkspace.id}`,
+    `${env.NEXT_PUBLIC_SERVER_URL}/api/workspace/id/${triggerWorkspace.id}`,
     {
       method: "PATCH",
       headers: {

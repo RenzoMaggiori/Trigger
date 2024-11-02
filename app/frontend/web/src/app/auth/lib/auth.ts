@@ -4,7 +4,7 @@ import { env } from "@/lib/env";
 
 export async function login(email: string, password: string) {
   const res = await fetch(
-    `${env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/auth/login`,
+    `${env.NEXT_PUBLIC_SERVER_URL}/api/auth/login`,
     {
       method: "POST",
       body: JSON.stringify({
@@ -26,7 +26,7 @@ export async function login(email: string, password: string) {
 
 export async function register(email: string, password: string) {
   const res = await fetch(
-    `${env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/auth/register`,
+    `${env.NEXT_PUBLIC_SERVER_URL}/api/auth/register`,
     {
       method: "POST",
       body: JSON.stringify({

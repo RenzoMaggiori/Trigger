@@ -11,9 +11,9 @@ export async function deployWorkspace({id}: {id: string}) {
   }
 
   const res = await fetch(
-    `${env.NEXT_PUBLIC_ACTION_SERVICE_URL}/api/workspace/id/${id}`,
+    `${env.NEXT_PUBLIC_SERVER_URL}/api/workspace/start/id/${id}`,
     {
-      method: "GET",
+      method: "PATCH",
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },

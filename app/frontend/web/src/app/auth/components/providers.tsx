@@ -31,7 +31,7 @@ export function Providers({ providers }: ProvidersProps) {
           )}
         >
           <Link
-            href={`${env.NEXT_PUBLIC_AUTH_SERVICE_URL}/api/oauth2/login?provider=${p.name}&redirect=${env.NEXT_PUBLIC_WEB_URL}/home`}
+            href={`${env.NEXT_PUBLIC_SERVER_URL}/api/oauth2/login?provider=${p.name}&redirect=${env.NEXT_PUBLIC_WEB_URL}/home`}
           >
             {p.icon}
             {p.text}

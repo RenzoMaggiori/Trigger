@@ -11,7 +11,7 @@ export async function getWorkspace({id}: {id: string}) {
   }
 
   const res = await fetch(
-    `${env.NEXT_PUBLIC_ACTION_SERVICE_URL}/api/workspace/id/${id}`,
+    `${env.NEXT_PUBLIC_SERVER_URL}/api/workspace/id/${id}`,
     {
       method: "GET",
       headers: {
