@@ -22,10 +22,11 @@ import (
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
+	"trigger.com/trigger/pkg/middleware"
 )
 
 func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) error {
-	accessToken, ok := ctx.Value(AccessTokenCtxKey).(string)
+	accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
 	if !ok {
 		return errors.ErrAccessTokenCtx
 	}
@@ -85,13 +86,13 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 
 	watchCompleted := workspace.WatchCompletedModel{
 		ActionId: actionNode.ActionId,
-		UserId:   session.UserId,
+		NodeId:   actionNode.NodeId,
 		Output: map[string]string{
 			"historyId":  watchResponse.HistoryId,
 			"expiration": watchResponse.Expiration,
 		},
 	}
-	_, _, err = workspace.WatchCompletedRequest(accessToken, watchCompleted)
+	_, err = workspace.WatchCompletedRequest(accessToken, watchCompleted)
 	if err != nil {
 		return err
 	}

@@ -49,7 +49,7 @@ var (
 	ErrSettingAction         error = errors.New("error while setting trigger or reaction")
 	ErrCompletingAction      error = errors.New("error while completing action")
 	ErrCompletingWatchAction error = errors.New("error while completing watch action")
-
+	ErrStopingWorkspace      error = errors.New("error while stopping workspace")
 	// Retrieval/Fetching Errors
 	ErrFetchingSession        error = errors.New("error while retrieving session")
 	ErrFetchingActions        error = errors.New("error while retrieving actions")
@@ -69,6 +69,8 @@ var (
 	ErrTwitchAppAccessToken   error = errors.New("error while fetching twitch app access token")
 	ErrTwitchSendMessage      error = errors.New("error while sending twitch channel message")
 	ErrWebhookVerificationCtx error = errors.New("could not find webhook verification in ctx")
+	ErrTwitchWatch            error = errors.New("error while watching twitch")
+
 	// Sync Errors
 	ErrSyncAccessTokenNotFound error = errors.New("error could not find sync access token")
 	ErrSyncModelTypeNone       error = errors.New("error could not decode sync model")
@@ -270,6 +272,14 @@ var (
 		ErrActionProviderNotFound: {
 			Message: ErrActionProviderNotFound.Error(),
 			Code:    http.StatusNotFound,
+		},
+		ErrStopingWorkspace: {
+			Message: ErrStopingWorkspace.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrTwitchWatch: {
+			Message: ErrTwitchWatch.Error(),
+			Code:    http.StatusInternalServerError,
 		},
 	}
 )
