@@ -63,13 +63,13 @@ var (
 	ErrActionProviderNotFound error = errors.New("could not find action provider")
 
 	// Email Errors
-	ErrFailedToSendEmail  error = errors.New("failed to send email")
-	ErrGmailSendEmail     error = errors.New("error while sending email through gmail")
-	ErrGmailWatch         error = errors.New("error while watching gmail")
-	ErrGmailStop          error = errors.New("error while stopping gmail")
-	ErrGmailHistory       error = errors.New("error while fetching gmail history")
-	ErrInvalidGoogleToken error = errors.New("token provided is not valid")
-
+	ErrFailedToSendEmail      error = errors.New("failed to send email")
+	ErrGmailSendEmail         error = errors.New("error while sending email through gmail")
+	ErrGmailWatch             error = errors.New("error while watching gmail")
+	ErrGmailStop              error = errors.New("error while stopping gmail")
+	ErrGmailHistory           error = errors.New("error while fetching gmail history")
+	ErrInvalidGoogleToken     error = errors.New("token provided is not valid")
+	ErrSendingEmailToYourself error = errors.New("it is not possible to send emails to yourself")
 	// Twitch Errors
 	ErrTwitchUser             error = errors.New("error while fetching twitch user")
 	ErrTwitchUserFound        error = errors.New("twitch user found")

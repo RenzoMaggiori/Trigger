@@ -16,6 +16,7 @@ import (
 	"trigger.com/trigger/internal/user"
 
 	"trigger.com/trigger/pkg/auth/oaclient"
+	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
 )
@@ -47,18 +48,51 @@ func createRawEmail(from string, to string, subject string, body string) (string
 	return rawMessage, nil
 }
 
+func getGoogleUserByAccessToken(client *http.Client, accessToken string) (*GoogleUser, error) {
+	res, err := fetch.Fetch(
+		client,
+		fetch.NewFetchRequest(
+			http.MethodPost,
+			fmt.Sprintf("https://www.googleapis.com/oauth2/v3/userinfo?access_token=%s", accessToken),
+			nil,
+			map[string]string{
+				"Content-Type": "application/json",
+			},
+		),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		bodyBytes, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("%v: %s", errors.ErrGmailSendEmail, bodyBytes)
+	}
+	googleUser, err := decode.Json[GoogleUser](res.Body)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &googleUser, nil
+}
+
 func (m Model) SendGmail(ctx context.Context, accessToken string, actionNode workspace.ActionNodeModel) error {
-	session, _, err := session.GetSessionByAccessTokenRequest(accessToken)
+	userSsession, _, err := session.GetSessionByAccessTokenRequest(accessToken)
 	if err != nil {
 		return err
 	}
 
-	syncModel, _, err := sync.GetSyncAccessTokenRequest(accessToken, session.UserId.Hex(), "google")
+	syncModel, _, err := sync.GetSyncAccessTokenRequest(accessToken, userSsession.UserId.Hex(), "google")
 	if err != nil {
 		return err
 	}
 
-	user, _, err := user.GetUserByIdRequest(accessToken, session.UserId.Hex())
+	user, _, err := user.GetUserByIdRequest(accessToken, userSsession.UserId.Hex())
 	if err != nil {
 		return err
 	}
@@ -68,8 +102,18 @@ func (m Model) SendGmail(ctx context.Context, accessToken string, actionNode wor
 		return err
 	}
 
+	googleUser, err := getGoogleUserByAccessToken(client, syncModel.AccessToken)
+
+	if err == nil {
+		// User must be extremely stupid
+		if googleUser.Email == actionNode.Input["to"] {
+			return errors.ErrSendingEmailToYourself
+		}
+	}
+
 	rawEmail, err := createRawEmail(user.Email,
 		actionNode.Input["to"], actionNode.Input["subject"], actionNode.Input["body"])
+
 	if err != nil {
 		return errors.ErrCreatingEmail
 	}
@@ -104,5 +148,6 @@ func (m Model) SendGmail(ctx context.Context, accessToken string, actionNode wor
 		}
 		return fmt.Errorf("%v: %s", errors.ErrFailedToSendEmail, bodyBytes)
 	}
+
 	return nil
 }

@@ -14,10 +14,10 @@ import (
 	"trigger.com/trigger/pkg/fetch"
 )
 
-func StartActionRequest(accessToken string, actionCompletedNode ActionNodeModel, action action.ActionModel) (int, error) {
+func StartActionRequest(accessToken string, actionCompletedNode ActionNodeModel, action action.ActionModel) (*ActionCompletedModel, int, error) {
 	body, err := json.Marshal(actionCompletedNode)
 	if err != nil {
-		return http.StatusInternalServerError, err
+		return nil, http.StatusInternalServerError, err
 	}
 
 	actionEnv := fmt.Sprintf("%s_SERVICE_BASE_URL", strings.ToUpper(action.Provider))
@@ -34,13 +34,20 @@ func StartActionRequest(accessToken string, actionCompletedNode ActionNodeModel,
 	)
 
 	if err != nil {
-		return http.StatusInternalServerError, err
+		return nil, http.StatusInternalServerError, err
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		return res.StatusCode, errors.ErrSettingAction
+		return nil, res.StatusCode, errors.ErrSettingAction
 	}
-	return res.StatusCode, nil
+
+	actionCompletedModel, err := decode.Json[ActionCompletedModel](res.Body)
+
+	if err != nil {
+		return nil, res.StatusCode, nil
+	}
+
+	return &actionCompletedModel, res.StatusCode, nil
 }
 
 func StopActionRequest(accessToken string, workspace *WorkspaceModel, actionNode ActionNodeModel, action action.ActionModel) (int, error) {
