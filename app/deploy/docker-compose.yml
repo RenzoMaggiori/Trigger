@@ -184,11 +184,6 @@ services:
       SYNC_PORT: ${SYNC_PORT}
       WEB_PORT: ${WEB_PORT}
 
-      TOKEN_SECRET: ${TOKEN_SECRET}
-      AUTH_KEY: ${AUTH_KEY}
-      AUTH_IS_PROD: ${AUTH_IS_PROD}
-      AUTH_MAX_AGES: ${AUTH_MAX_AGES}
-      WEB_BASE_URL: ${WEB_BASE_URL}
       BOT_TOKEN: ${BOT_TOKEN}
       USER_PORT: ${USER_PORT}
     ports:
