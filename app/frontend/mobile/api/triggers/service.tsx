@@ -64,9 +64,9 @@ export class TriggersService {
 
     static async addTrigger(trigger: any) {
         try {
-            const baseUrl = this.getBaseUrl();
+            // const baseUrl = this.getBaseUrl();
             const token = await AsyncStorage.getItem('token');
-            const response = await fetch(`${baseUrl}/workspace/add`, {
+            const response = await fetch(`https://ample-social-elk.ngrok-free.app/api/workspace/add`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
