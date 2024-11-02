@@ -368,7 +368,7 @@ var (
 		},
 		ErrDeleteDiscordSession: {
 			Message: ErrDeleteDiscordSession.Error(),
-    }
+    	},
 		ErrCollectionNotFound: {
 			Message: ErrCollectionNotFound.Error(),
 			Code:    http.StatusNotFound,
