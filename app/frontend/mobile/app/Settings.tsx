@@ -5,13 +5,16 @@ import { Colors } from '@/constants/Colors';
 import Button from '@/components/Button';
 import { ProvidersService } from '@/api/auth/providers/service';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SyncService } from '@/api/sync/service';
 
 const providers = [
     { name: 'google', icon: <Ionicons name="logo-google" size={30} color={Colors.light.google} /> },
+    { name: 'twitch', icon: <FontAwesome5 name="twitch" size={30} color={Colors.light.twitch} /> },
     { name: 'discord', icon: <FontAwesome5 name="discord" size={30} color={Colors.light.discord} /> },
+    { name: 'spotify', icon: <FontAwesome5 name="spotify" size={30} color={Colors.light.spotify} /> },
     { name: 'github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
-    { name: 'slack', icon: <FontAwesome name="slack" size={30} color={Colors.light.slack} /> },
-    { name: 'outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.outlook} /> },
+    // { name: 'slack', icon: <FontAwesome name="slack" size={30} color={Colors.light.slack} /> },
+    // { name: 'outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.outlook} /> },
 ];
 
 export default function Settings() {
@@ -59,16 +62,30 @@ type Provider = {
 
 function ProviderItem({ provider }: { provider: Provider }) {
     const [isProfileVisible, setIsProfileVisible] = useState(false);
-    const [isConnected, setIsConnected] = useState(provider.connected);
+    const [isConnected, setIsConnected] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
     const [confirmActionType, setConfirmActionType] = useState<'connect' | 'disconnect' | null>(null);
     const [modalErrVisible, setErrModalVisible] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
+    useEffect(() => {
+        const fetchConnectionStatus = async () => {
+            try {
+                const connectionStatus = await AsyncStorage.getItem(provider.name);
+                setIsConnected(connectionStatus === 'true');
+            } catch (error) {
+                console.error(`Error fetching connection status for ${provider.name}:`, error);
+            }
+        };
+
+        fetchConnectionStatus();
+    }, [provider.name]);
+
     const handleSignIn = async () => {
         try {
-            await ProvidersService.handleOAuth(provider.name);
+            await SyncService.handleSync(provider.name);
             setIsConnected(true);
+            await AsyncStorage.setItem(provider.name, 'true');
         } catch (error) {
             setErrorMessage((error as Error).message + "\nPlease try again.");
             setErrModalVisible(true);
@@ -76,8 +93,13 @@ function ProviderItem({ provider }: { provider: Provider }) {
     };
 
     const handleSignOut = async () => {
-        console.log(`Signing out of ${provider.name}`);
-        setIsConnected(false);
+        try {
+            // await ProvidersService.disconnect(provider.name); // TO DO
+            setIsConnected(false);
+            await AsyncStorage.setItem(provider.name, 'false');
+        } catch (error) {
+            console.error(`Error disconnecting from ${provider.name}:`, error);
+        }
     };
 
     const handleConnectDisconnect = () => {
@@ -89,7 +111,7 @@ function ProviderItem({ provider }: { provider: Provider }) {
         if (confirmActionType === 'connect') {
             await handleSignIn();
         } else if (confirmActionType === 'disconnect') {
-            handleSignOut();
+            await handleSignOut();
         }
         setModalVisible(false);
     };

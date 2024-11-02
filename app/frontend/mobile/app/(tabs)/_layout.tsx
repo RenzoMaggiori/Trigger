@@ -22,8 +22,9 @@ export default function TabLayout() {
   const router = useRouter();
 
   const handleLogout = async () => {
-    await AsyncStorage.removeItem('user');
-    await AsyncStorage.removeItem('token');
+    for (const key of await AsyncStorage.getAllKeys()) {
+      await AsyncStorage.removeItem(key);
+    }
     router.push('/LandingPage' as const);
   };
 

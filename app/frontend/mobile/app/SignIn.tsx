@@ -48,8 +48,9 @@ export default function SignIn() {
 
     const technologies = [
         { name: 'google', icon: <Ionicons name="logo-google" size={30} color={Colors.light.google} />},
-        { name: 'github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
-        { name: 'outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.outlook} /> },
+        { name: 'twitch', icon: <Ionicons name="logo-twitch" size={30} color={Colors.light.twitch} /> },
+        // { name: 'github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
+        // { name: 'outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.outlook} /> },
     ];
 
     const data = {
