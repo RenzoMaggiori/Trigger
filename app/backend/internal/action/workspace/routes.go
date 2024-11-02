@@ -30,16 +30,18 @@ func Router(ctx context.Context) (*router.Router, error) {
 		},
 	}
 
-	server.Handle("GET /", middlewares(http.HandlerFunc(handler.GetWorkspace)))
-	server.Handle("GET /me", middlewares(http.HandlerFunc(handler.GetMyWorkspaces)))
-	server.Handle("GET /id/{id}", middlewares(http.HandlerFunc(handler.GetWorkspaceById)))
-	server.Handle("GET /user_id/{user_id}", middlewares(http.HandlerFunc(handler.GetWorkspacesByUserId)))
-	server.Handle("GET /action_id/{action_id}", middlewares(http.HandlerFunc(handler.GetWorkspacesByActionId)))
-	server.Handle("POST /add", middlewares(http.HandlerFunc(handler.AddWorkspace)))
-	server.Handle("PATCH /action_completed", middlewares(http.HandlerFunc(handler.ActionCompletedWorkspace)))
+	server.Handle("GET /", middlewares(http.HandlerFunc(handler.Get)))
+	server.Handle("GET /me", middlewares(http.HandlerFunc(handler.GetByAcessToken)))
+	server.Handle("GET /id/{id}", middlewares(http.HandlerFunc(handler.GetById)))
+	server.Handle("GET /user_id/{user_id}", middlewares(http.HandlerFunc(handler.GetByUserId)))
+	server.Handle("GET /action_id/{action_id}", middlewares(http.HandlerFunc(handler.GetByActionId)))
+	server.Handle("POST /add", middlewares(http.HandlerFunc(handler.Add)))
 	server.Handle("PATCH /id/{id}", middlewares(http.HandlerFunc(handler.UpdateById)))
+	server.Handle("PATCH /start/id/{id}", middlewares(http.HandlerFunc(handler.Start)))
+	server.Handle("PATCH /stop/id/{id}", middlewares(http.HandlerFunc(handler.Stop)))
+	server.Handle("PATCH /action_completed", middlewares(http.HandlerFunc(handler.ActionCompleted)))
 	server.Handle("PATCH /watch_completed", middlewares(http.HandlerFunc(handler.WatchCompleted)))
-	// server.Handle("DELETE /id/{id}", middlewares(http.HandlerFunc(handler.DeleteById)))
+	server.Handle("DELETE /id/{id}", middlewares(http.HandlerFunc(handler.DeleteById)))
 
 	return router.NewRouter("/api/workspace", server), nil
 }
