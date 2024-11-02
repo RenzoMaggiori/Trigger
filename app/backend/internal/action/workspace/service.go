@@ -311,7 +311,7 @@ func assignInputToAction(action *ActionNodeModel, workspaceNodes []ActionNodeMod
 	}
 }
 
-func initAction(actionNode ActionNodeModel, accessToken string) error {
+func (m Model) initAction(ctx context.Context, workspace WorkspaceModel, actionNode ActionNodeModel, accessToken string) error {
 
 	action, _, err := action.GetByIdRequest(accessToken, actionNode.ActionId.Hex())
 
@@ -319,7 +319,7 @@ func initAction(actionNode ActionNodeModel, accessToken string) error {
 		return err
 	}
 
-	status, err := StartActionRequest(accessToken, actionNode, *action)
+	actionCompleted, status, err := StartActionRequest(accessToken, actionNode, *action)
 	if err != nil {
 		return err
 	}
@@ -328,18 +328,31 @@ func initAction(actionNode ActionNodeModel, accessToken string) error {
 		return errors.ErrSettingAction
 	}
 
+	err = m.updateNodesStatus(workspace.UserId, actionNode.ActionId, "active")
+
+	if err != nil {
+		return err
+	}
+
+	if action.Type == "reaction" {
+		if actionCompleted != nil {
+			m.ActionCompleted(ctx, *actionCompleted)
+		} else {
+			m.ActionCompleted(ctx, ActionCompletedModel{
+				ActionId: action.Id,
+				Output:   make(map[string]string),
+			})
+		}
+	}
+
 	return nil
 }
 
-func (m Model) initWorkspace(workspace *WorkspaceModel, accessToken string, isNodeReady fnIsNodeReady) error {
+func (m Model) initWorkspace(ctx context.Context, workspace *WorkspaceModel, accessToken string, isNodeReady fnIsNodeReady) error {
 	for _, node := range workspace.Nodes {
 		if isNodeReady(node) {
 			assignInputToAction(&node, workspace.Nodes)
-			err := initAction(node, accessToken)
-			if err != nil {
-				return err
-			}
-			err = m.updateNodesStatus(workspace.UserId, node.ActionId, "active")
+			err := m.initAction(ctx, *workspace, node, accessToken)
 			if err != nil {
 				return err
 			}
@@ -399,12 +412,12 @@ func (m Model) WatchCompleted(ctx context.Context, watchCompleted WatchCompleted
 	return nil
 }
 
-func isNodeReadyToStart(child ActionNodeModel, workspace WorkspaceModel) bool {
-	if child.Status != "inactive" {
+func isNodeReadyToStart(node ActionNodeModel, workspace WorkspaceModel) bool {
+	if node.Status != "inactive" {
 		return false
 	}
 
-	for _, parent := range child.Parents {
+	for _, parent := range node.Parents {
 		for _, workspaceNode := range workspace.Nodes {
 			if workspaceNode.NodeId == parent && workspaceNode.Status != "completed" {
 				return false
@@ -430,14 +443,13 @@ func (m Model) restartWorkspaces(ctx context.Context, workspaces []WorkspaceMode
 			if err != nil {
 				log.Printf("Error restarting workspace: %s", w.Id.Hex())
 			}
-
 		} else {
 			isWorkspaceCompleted = true
 		}
 	}
 }
 
-func (m Model) processWorkspace(workspace WorkspaceModel, actionCompleted ActionCompletedModel, accessToken string) error {
+func (m Model) processWorkspace(ctx context.Context, workspace WorkspaceModel, actionCompleted ActionCompletedModel, accessToken string) error {
 
 	filter := bson.M{
 		"_id": workspace.Id,
@@ -449,7 +461,7 @@ func (m Model) processWorkspace(workspace WorkspaceModel, actionCompleted Action
 	}
 
 	if actionCompleted.NodeId != nil {
-		filter["nodes.$elemMatch.node_id"] = actionCompleted.NodeId
+		filter["nodes"].(bson.M)["$elemMatch.node_id"] = actionCompleted.NodeId
 	}
 
 	update := bson.M{
@@ -478,6 +490,7 @@ func (m Model) processWorkspace(workspace WorkspaceModel, actionCompleted Action
 	}
 
 	m.initWorkspace(
+		ctx,
 		updatedResult,
 		accessToken,
 		func(node ActionNodeModel) bool {
@@ -488,7 +501,7 @@ func (m Model) processWorkspace(workspace WorkspaceModel, actionCompleted Action
 	return nil
 }
 
-func (m Model) processUserWorkspaces(workspaces []WorkspaceModel, actionCompleted ActionCompletedModel, accessToken string) error {
+func (m Model) processUserWorkspaces(ctx context.Context, workspaces []WorkspaceModel, actionCompleted ActionCompletedModel, accessToken string) error {
 	var (
 		wg      sync.WaitGroup
 		errChan = make(chan error, len(workspaces))
@@ -498,7 +511,7 @@ func (m Model) processUserWorkspaces(workspaces []WorkspaceModel, actionComplete
 		wg.Add(1)
 		go func(ws WorkspaceModel) {
 			defer wg.Done()
-			if err := m.processWorkspace(ws, actionCompleted, accessToken); err != nil {
+			if err := m.processWorkspace(ctx, ws, actionCompleted, accessToken); err != nil {
 				errChan <- err
 			}
 		}(workspace)
@@ -552,9 +565,8 @@ func (m Model) ActionCompleted(ctx context.Context, actionCompleted ActionComple
 	}
 
 	userWorkspaces, err := getWorkspaces()
-
 	// Iterate over all user workspaces and update them in case they have any actions that are completed
-	err = m.processUserWorkspaces(userWorkspaces, actionCompleted, accessToken)
+	err = m.processUserWorkspaces(ctx, userWorkspaces, actionCompleted, accessToken)
 
 	if err != nil {
 		return nil
@@ -579,17 +591,20 @@ func (m Model) Start(ctx context.Context, id primitive.ObjectID) (*WorkspaceMode
 		return nil, err
 	}
 
-	err = m.initWorkspace(workspace, accessToken, func(node ActionNodeModel) bool { return len(node.Parents) == 0 })
+	err = m.initWorkspace(ctx, workspace, accessToken, func(node ActionNodeModel) bool { return len(node.Parents) == 0 })
+
+	if err != nil {
+		return nil, err
+	}
+	err = m.Collection.FindOne(ctx, bson.M{"_id": id}).Decode(&workspace)
+	if err != nil {
+		return nil, err
+	}
 
 	return workspace, err
 }
 
 func (m Model) Stop(ctx context.Context, id primitive.ObjectID) (*WorkspaceModel, error) {
-	_, ok := ctx.Value(middleware.TokenCtxKey).(string)
-	if !ok {
-		return nil, errors.ErrAccessTokenCtx
-	}
-
 	filter := bson.M{
 		"_id": id,
 	}
