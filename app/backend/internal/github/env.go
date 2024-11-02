@@ -13,7 +13,7 @@ import (
 
 var (
 	errEnvNotFound      string     = "Enviroment argument %s not found"
-	enviromentArguments [10]string = [...]string{
+	enviromentArguments [11]string = [...]string{
 		"ADMIN_TOKEN",
 		"AUTH_PORT",
 		"GITHUB_KEY",
@@ -24,6 +24,7 @@ var (
 		"SESSION_SERVICE_BASE_URL",
 		"ACTION_SERVICE_BASE_URL",
 		"SYNC_SERVICE_BASE_URL",
+		"SERVER_BASE_URL",
 	}
 )
 

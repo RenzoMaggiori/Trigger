@@ -2,6 +2,8 @@ package trigger
 
 import (
 	"context"
+	"fmt"
+	"os"
 
 	githubClient "github.com/google/go-github/v66/github"
 	"trigger.com/trigger/internal/action/action"
@@ -52,7 +54,7 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 
 	name := "web"
 	active := true
-	url := "https://5758-95-19-19-190.ngrok-free.app/api/github/trigger/webhook"
+	url := fmt.Sprintf("%s/api/github/trigger/webhook?userId=%s", os.Getenv("SERVER_BASE_URL"), syncModel.UserId.Hex())
 	contentType := "json"
 	insecureSSL := "0"
 	_, _, err = ghClient.Repositories.CreateHook(
@@ -77,9 +79,9 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 }
 
 func (m Model) Webhook(ctx context.Context) error {
-	accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
+	userId, ok := ctx.Value(userIdCtxKey).(string)
 	if !ok {
-		return errors.ErrAccessTokenCtx
+		return errors.ErrBadUserId
 	}
 
 	commit, ok := ctx.Value(GithubCommitCtxKey).(githubClient.PushEvent)
@@ -87,25 +89,39 @@ func (m Model) Webhook(ctx context.Context) error {
 		return errors.ErrGithubCommitData
 	}
 
-	sesion, _, err := session.GetSessionByAccessTokenRequest(accessToken)
+	session, _, err := session.GetSessionByUserIdRequest(os.Getenv("ADMIN_TOKEN"), userId)
+	if err != nil {
+		return err
+	}
+	if session == nil || len(session) == 0 {
+		return errors.ErrSessionNotFound
+	}
+
+	action, _, err := action.GetByActionNameRequest(session[0].AccessToken, "watch_push")
 	if err != nil {
 		return err
 	}
 
-	action, _, err := action.GetByActionNameRequest(accessToken, "watch_commit")
-	if err != nil {
-		return err
+	author := ""
+	message := ""
+	if commit.Commits != nil && len(commit.Commits) != 0 {
+		if commit.Commits[0].Author != nil && commit.Commits[0].Author.Name != nil {
+			author = *commit.Commits[0].Author.Name
+		}
+		if commit.Commits[0].Message != nil {
+			message = *commit.Commits[0].Message
+		}
 	}
 
 	update := workspace.ActionCompletedModel{
 		ActionId: action.Id,
-		UserId:   sesion.UserId,
+		UserId:   session[0].UserId,
 		Output: map[string]string{
-			"author":  *commit.Repo.Owner.Name,
-			"message": *commit.Commits[0].Message,
+			"author":  author,
+			"message": message,
 		},
 	}
-	_, err = workspace.ActionCompletedRequest(accessToken, update)
+	_, err = workspace.ActionCompletedRequest(session[0].AccessToken, update)
 	if err != nil {
 		return err
 	}
