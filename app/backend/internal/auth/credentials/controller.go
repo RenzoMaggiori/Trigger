@@ -1,7 +1,6 @@
 package credentials
 
 import (
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -89,9 +88,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
 	token, err := jwt.FromRequest(r.Header.Get("Authorization"))
-	log.Println(token)
 	if err != nil {
-		log.Println("todo mal")
 		customerror.Send(w, errAuthorizationHeaderNotFound, errCodes)
 		return
 	}

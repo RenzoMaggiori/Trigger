@@ -18,7 +18,7 @@ var (
 	ErrAuthorizationHeaderNotFound error = errors.New("authorization header not found")
 	ErrSyncNotFound             error = errors.New("sync not found")
 	ErrCollectionNotFound          error = errors.New("collection not found")
-  
+
 	// Bad Request Errors
 	ErrBadWorkspaceId        error = errors.New("bad workspace id")
 	ErrBadUserId             error = errors.New("bad user id")
@@ -28,12 +28,14 @@ var (
 	ErrInvalidReactionInput  error = errors.New("invalid reaction input")
 	ErrInvalidReactionOutput error = errors.New("invalid reaction output")
 	ErrNoTokenInRequest      error = errors.New("token could not be found in the request")
+
 	// Decyphering Errors
 	ErrActionTypeNone       error = errors.New("could not decypher action type")
 	ErrActionNodeTypeNone   error = errors.New("could not decypher action node type")
 	ErrUserTypeNone         error = errors.New("could not decypher user type")
 	ErrGmailHistoryTypeNone error = errors.New("could not decypher gmail history type")
 	ErrHistoryInt           error = errors.New("error converting historyto a number")
+
 	// Context Errors
 	ErrAccessTokenCtx error = errors.New("could not retrieve access token from context")
 	ErrEventCtx       error = errors.New("could not retrieve event")
@@ -100,6 +102,7 @@ var (
 	ErrAddDiscordSession error = errors.New("error storing discord session in db")
 	ErrUpdateDiscordSession error = errors.New("error updating discord session in db")
 	ErrDeleteDiscordSession error = errors.New("error deleting discord session in db")
+
 	// State
 	ErrMalformedState error = errors.New("malformed state")
 
@@ -368,7 +371,8 @@ var (
 		},
 		ErrDeleteDiscordSession: {
 			Message: ErrDeleteDiscordSession.Error(),
-    	},
+    		Code:	http.StatusInternalServerError,
+		},
 		ErrCollectionNotFound: {
 			Message: ErrCollectionNotFound.Error(),
 			Code:    http.StatusNotFound,
