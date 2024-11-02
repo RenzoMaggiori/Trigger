@@ -89,6 +89,20 @@ var (
 			Input:    []string{},
 			Output:   []string{},
 		},
+		{
+			Provider: "discord",
+			Type:     "trigger",
+			Action:   "watch_channel_message",
+			Input:    []string{"channel_id"},
+			Output:   []string{"content", "author_id", "author_username"},
+		},
+		{
+			Provider: "discord",
+			Type:     "reaction",
+			Action:   "send_channel_message",
+			Input:    []string{"channel_id", "content"},
+			Output:   []string{},
+		},
 	}
 )
 

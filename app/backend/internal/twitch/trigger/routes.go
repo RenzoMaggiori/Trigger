@@ -18,7 +18,7 @@ func Router(ctx context.Context) (*router.Router, error) {
 		Service: Model{},
 	}
 
-	server.Handle("POST /watch", middlewares(http.HandlerFunc(handler.WatchChannelFollow)))
+	server.Handle("POST /watch_channel_follow", middlewares(http.HandlerFunc(handler.WatchChannelFollow)))
 	server.Handle("POST /webhook", http.HandlerFunc(handler.WebhookChannelFollow))
 	server.Handle("POST /stop", middlewares(http.HandlerFunc(handler.StopChannelFollow)))
 
