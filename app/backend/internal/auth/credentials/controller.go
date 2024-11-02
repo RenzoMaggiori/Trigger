@@ -1,9 +1,8 @@
 package credentials
 
 import (
-	"context"
 	"net/http"
-	"os"
+	"time"
 
 	customerror "trigger.com/trigger/pkg/custom-error"
 	"trigger.com/trigger/pkg/decode"
@@ -21,35 +20,32 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessToken, err := h.Service.Login(context.WithValue(
-		context.TODO(),
-		CredentialsCtxKey,
-		credentials,
-	))
+	accessToken, err := h.Service.Login(credentials)
 	if err != nil {
 		customerror.Send(w, err, errCodes)
 		return
 	}
 
-	expires, err := jwt.Expiry(
+	w.Header().Set("Authorization", accessToken)
+	/* expires, err := jwt.Expiry(
 		accessToken,
 		os.Getenv("TOKEN_SECRET"),
 	)
 	if err != nil {
 		customerror.Send(w, err, errCodes)
 		return
-	}
+	} */
 
-	cookie := &http.Cookie{
+	/* cookie := &http.Cookie{
 		Name:     authCookieName,
 		Value:    accessToken,
-		HttpOnly: true,
+		HttpOnly: false,
 		SameSite: http.SameSiteLaxMode,
 		Path:     "/",
 		Secure:   false, // TODO: true when in production
 		Expires:  expires,
 	}
-	http.SetCookie(w, cookie)
+	http.SetCookie(w, cookie) */
 }
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
@@ -69,7 +65,9 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expires, err := jwt.Expiry(
+	w.Header().Set("Authorization", accessToken)
+
+	/* expires, err := jwt.Expiry(
 		accessToken,
 		os.Getenv("TOKEN_SECRET"),
 	)
@@ -81,13 +79,13 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	cookie := &http.Cookie{
 		Name:     authCookieName,
 		Value:    accessToken,
-		HttpOnly: true,
+		HttpOnly: false,
 		SameSite: http.SameSiteLaxMode,
 		Path:     "/",
 		Secure:   false, // TODO: true when in production
 		Expires:  expires,
 	}
-	http.SetCookie(w, cookie)
+	http.SetCookie(w, cookie) */
 }
 
 func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
@@ -102,3 +100,22 @@ func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
+	if err := h.Service.Logout(r.Context()); err != nil {
+		customerror.Send(w, err, errCodes)
+		return
+	}
+
+	cookie := &http.Cookie{
+		Name:     authCookieName,
+		Value:    "",
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+		Secure:   false, // TODO: true when in production
+		Expires:  time.Now().Add(-1 * time.Hour),
+	}
+	http.SetCookie(w, cookie)
+}
+

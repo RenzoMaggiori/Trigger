@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { env } from "@/lib/env";
+import { settingsSchema } from "@/app/settings/lib/types";
 
 export async function getConnections() {
   const accessToken = cookies().get("Authorization")?.value;
@@ -10,7 +11,7 @@ export async function getConnections() {
   }
 
   const res = await fetch(
-    `${env.NEXT_PUBLIC_ACTION_SERVICE_URL}/api/`,
+    `${env.NEXT_PUBLIC_SERVER_URL}/api/settings/me`,
     {
       method: "GET",
       headers: {
@@ -19,13 +20,15 @@ export async function getConnections() {
       },
     },
   );
-  if (!res.ok)
+  if (!res.ok) {
     throw new Error(`invalid status code: ${res.status}`);
+  }
 
-//   const { data, error } = triggerSchema.safeParse(await res.json()); // TODO: settings schema
-//   if (error) {
-//     console.error(error);
-//     throw new Error("could not parse api response");
-//   }
-//   return data;
+  const body = await res.json();
+  const { data, error } = settingsSchema.safeParse(body);
+  if (error) {
+    console.error(error);
+    throw new Error("could not parse api response");
+  }
+  return data;
 }

@@ -4,23 +4,20 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"time"
 
 	"trigger.com/trigger/internal/session"
 	"trigger.com/trigger/internal/user"
+	"trigger.com/trigger/pkg/fetch"
 	"trigger.com/trigger/pkg/hash"
 	"trigger.com/trigger/pkg/jwt"
+	"trigger.com/trigger/pkg/middleware"
 )
 
-func (m Model) Login(ctx context.Context) (string, error) {
-	credentials, ok := ctx.Value(CredentialsCtxKey).(CredentialsModel)
-	if !ok {
-		return "", errCredentialsNotFound
-	}
-
+func (m Model) Login(credentials CredentialsModel) (string, error) {
 	user, _, err := user.GetUserByEmailRequest(os.Getenv("ADMIN_TOKEN"), credentials.Email)
-
 	if err != nil {
 		return "", err
 	}
@@ -37,7 +34,6 @@ func (m Model) Login(ctx context.Context) (string, error) {
 		os.Getenv("TOKEN_SECRET"),
 	)
 	if err != nil {
-		log.Println("Credentials Login [jwt.Create] error")
 		return "", fmt.Errorf("%w: %v", errCreateToken, err)
 	}
 	userSessions, _, err := session.GetSessionByUserIdRequest(token, user.Id.Hex())
@@ -76,13 +72,7 @@ func (m Model) Login(ctx context.Context) (string, error) {
 	return session.AccessToken, nil
 }
 
-func (m Model) Logout(ctx context.Context) (string, error) {
-	// TODO: implement logout
-	return "", nil
-}
-
 func (m Model) Register(regsiterModel RegisterModel) (string, error) {
-
 	addUser := user.AddUserModel{
 		Email:    regsiterModel.User.Email,
 		Password: regsiterModel.User.Password,
@@ -108,14 +98,10 @@ func (m Model) Register(regsiterModel RegisterModel) (string, error) {
 		return "", err
 	}
 
-	accessToken, err := m.Login(context.WithValue(
-		context.TODO(),
-		CredentialsCtxKey,
-		CredentialsModel{
-			Email:    regsiterModel.User.Email,
-			Password: *regsiterModel.User.Password,
-		},
-	))
+	accessToken, err := m.Login(CredentialsModel{
+		Email:    regsiterModel.User.Email,
+		Password: *regsiterModel.User.Password,
+	})
 	if err != nil {
 		return "", err
 	}
@@ -125,12 +111,46 @@ func (m Model) Register(regsiterModel RegisterModel) (string, error) {
 
 func (m Model) VerifyToken(token string) error {
 	if err := jwt.Verify(token, os.Getenv("TOKEN_SECRET")); err == nil {
+		log.Println("VerifyToken: Token is not valid")
 		return nil
 	}
 
-	_, _, err := session.GetSessionByTokenRequest(token)
+	_, _, err := session.GetSessionByAccessTokenRequest(token)
 
 	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m Model) Logout(ctx context.Context) error {
+	accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
+	if !ok {
+		return errTokenNotFound
+	}
+	s, _, err := session.GetSessionByAccessTokenRequest(accessToken)
+	if err != nil {
+		return err
+	}
+
+	res, err := fetch.Fetch(
+		http.DefaultClient,
+		fetch.NewFetchRequest(
+			http.MethodDelete,
+			fmt.Sprintf("%s/api/session/id/%s", os.Getenv("SESSION_SERVICE_BASE_URL"), s.Id.Hex()),
+			nil,
+			map[string]string{
+				"Authorization": fmt.Sprintf("Bearer %s", accessToken),
+			},
+		),
+	)
+
+	if err != nil {
+		return err
+	}
+
+	if res.StatusCode != http.StatusOK {
 		return err
 	}
 

@@ -46,5 +46,6 @@ func main() {
 	}
 
 	go server.Start()
+
 	server.Stop()
 }

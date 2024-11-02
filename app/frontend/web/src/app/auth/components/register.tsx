@@ -3,7 +3,6 @@
 import React from "react";
 import { FcGoogle } from "react-icons/fc";
 import { FiGithub } from "react-icons/fi";
-import { PiMicrosoftOutlookLogo } from "react-icons/pi";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,6 +21,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { register } from "@/app/auth/lib/auth";
 import { Providers } from "@/app/auth/components/providers";
+import { FaSpotify } from "react-icons/fa";
 
 const formSchema = z.object({
   email: z.string(),
@@ -112,11 +112,11 @@ export function Register() {
                   icon: <FiGithub className="mr-2" />,
                 },
                 {
-                  name: "outlook",
-                  text: "Start with Outlook",
+                  name: "spotify",
+                  text: "Start with Spotify",
                   className:
-                    "bg-sky-600 text-white hover:bg-sky-700 hover:text-white",
-                  icon: <PiMicrosoftOutlookLogo className="mr-2" />,
+                    "bg-green-600 text-white hover:bg-green-700 hover:text-white",
+                  icon: <FaSpotify className="mr-2" />,
                 },
               ]}
             />

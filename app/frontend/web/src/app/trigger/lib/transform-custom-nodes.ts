@@ -1,16 +1,13 @@
 import { type Edge } from "@xyflow/react";
-import { CustomNode, NodeItem } from "@/app/trigger/lib/types";
+import { CustomNode, NodeItem, TriggerWorkspace } from "@/app/trigger/lib/types";
 
-export const transformCustomNodes = (
-  customNodes: CustomNode[],
-  edges: Edge[],
-): Record<string, NodeItem> => {
+export function transformCustomNodes(customNodes: CustomNode[], edges: Edge[], existingNodes: TriggerWorkspace["nodes"]): Record<string, NodeItem> {
   const nodes: Record<string, NodeItem> = {};
 
   for (const node of customNodes) {
     nodes[node.id] = {
       id: node.id,
-      type: node.type || "default",
+      action_id:  (existingNodes && existingNodes[node.id]) ? existingNodes[node.id]?.action_id : "default",
       fields: {},
       parent_ids: edges
         .filter((edge) => edge.target === node.id)

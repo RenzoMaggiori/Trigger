@@ -3,46 +3,43 @@ package sync
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
 	"github.com/markbates/goth"
+	"github.com/markbates/goth/gothic"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"trigger.com/trigger/internal/settings"
 	"trigger.com/trigger/internal/user"
-	"trigger.com/trigger/pkg/decode"
+	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
 )
 
-func (m Model) SyncWith(gothUser goth.User) error {
-	res, err := fetch.Fetch(
-		http.DefaultClient,
-		fetch.NewFetchRequest(
-			http.MethodGet,
-			fmt.Sprintf("%s/api/user/email/%s", os.Getenv("USER_SERVICE_BASE_URL"), gothUser.Email),
-			nil,
-			map[string]string{
-				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
-			},
-		),
-	)
+func (m Model) GrantAccess(w http.ResponseWriter, r *http.Request) error {
+	redirectUrl := r.URL.Query().Get("redirect")
+	access_token := r.URL.Query().Get("token")
 
+	url := base64.URLEncoding.EncodeToString([]byte(redirectUrl))
+	token := base64.URLEncoding.EncodeToString([]byte(access_token))
+	state := fmt.Sprintf("%s:%s", url, token)
+
+	values := r.URL.Query()
+	values.Set("state", state)
+
+	r.URL.RawQuery = values.Encode()
+	gothic.BeginAuthHandler(w, r)
+	return nil
+}
+
+func (m Model) SyncWith(gothUser goth.User, access_token string) error {
+	user, _, err := user.GetUserByAccesstokenRequest(access_token)
 	if err != nil {
-		return errors.New("failed to fetch user")
-	}
-
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		return errors.New("status code not OK, couldn't fetch user")
-	}
-
-	user, err := decode.Json[user.UserModel](res.Body)
-	if err != nil {
-		return errors.New("failed to decode user")
+		return err
 	}
 
 	ctx := context.TODO()
@@ -56,49 +53,36 @@ func (m Model) SyncWith(gothUser goth.User) error {
 	updateData := bson.M{"$set": update}
 	_, err = m.Collection.UpdateOne(ctx, filter, updateData)
 	if err != nil {
-		return errors.New("failed to find sync")
+		return errors.ErrSessionNotFound
 	}
 
 	var updatedSync SyncModel
 	err = m.Collection.FindOne(ctx, filter).Decode(&updatedSync)
 
 	if err != nil {
-		return errors.New("sync not found")
+		return errors.ErrSessionNotFound
 	}
 
 	return nil
 }
 
-func (m Model) Callback(gothUser goth.User) error {
-	res, err := fetch.Fetch(
-		http.DefaultClient,
-		fetch.NewFetchRequest(
-			http.MethodGet,
-			fmt.Sprintf("%s/api/user/email/%s", os.Getenv("USER_SERVICE_BASE_URL"), gothUser.Email),
-			nil,
-			map[string]string{
-				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
-			},
-		),
-	)
-
+func (m Model) Callback(gothUser goth.User, access_token string) error {
+	user, _, err := user.GetUserByAccesstokenRequest(access_token)
 	if err != nil {
-		return errors.New("failed to fetch user")
+		return err
 	}
 
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		return errors.New("status code not OK, couldn't fetch user")
-	}
-
-	user, err := decode.Json[user.UserModel](res.Body)
+	var sync SyncModel
+	err = m.Collection.FindOne(context.TODO(), bson.M{"userId": user.Id}).Decode(&sync)
 	if err != nil {
-		return errors.New("failed to decode user")
+		if sync.ProviderName == &gothUser.Provider {
+			return m.SyncWith(gothUser, access_token)
+		}
 	}
 
-	syncExists := m.Collection.FindOne(context.TODO(), bson.M{"userId": user.Id})
-	if syncExists.Err() == nil {
-		return m.SyncWith(gothUser)
+	dd := &DiscordData{}
+	if gothUser.Provider == "discord" {
+		dd.GuildId = gothUser.RawData["guild_id"].(string)
 	}
 
 	newSync := SyncModel{
@@ -109,27 +93,29 @@ func (m Model) Callback(gothUser goth.User) error {
 		RefreshToken: &gothUser.RefreshToken,
 		Expiry:       gothUser.ExpiresAt,
 		IdToken:      &gothUser.IDToken,
+		DiscordData:  dd,
 	}
 
 	ctx := context.TODO()
 	_, err = m.Collection.InsertOne(ctx, newSync)
 	if err != nil {
-		return errors.New("failed to insert sync")
+		return errors.ErrSessionNotFound
 	}
+
+	log.Println("SYNC ADDED SUCCESSFULLY")
 
 	addSettings := settings.AddSettingsModel{
 		UserId:       user.Id,
 		ProviderName: &gothUser.Provider,
-		AccessToken:  gothUser.AccessToken,
 		Active:       true,
 	}
 
 	body, err := json.Marshal(addSettings)
 	if err != nil {
-		return errors.New("failed to marshal settings")
+		return errors.ErrSessionNotFound
 	}
 
-	res, err = fetch.Fetch(
+	res, err := fetch.Fetch(
 		http.DefaultClient,
 		fetch.NewFetchRequest(
 			http.MethodPost,
@@ -142,13 +128,66 @@ func (m Model) Callback(gothUser goth.User) error {
 	)
 
 	if err != nil {
-		return errors.New("failed to add new settings")
+		return errors.ErrSessionNotFound
 	}
 
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusCreated {
-		return errors.New("status code not OK, couldn't add new settings")
+		return errors.ErrSessionNotFound
 	}
 
+	log.Println("SETTINGS ADDED SUCCESSFULLY")
+
+	return nil
+}
+
+func (m Model) ByUserId(userId primitive.ObjectID, provider string) (*SyncModel, error) {
+	var sync SyncModel
+	err := m.Collection.FindOne(context.TODO(), bson.M{"userId": userId, "providerName": provider}).Decode(&sync)
+	if err != nil {
+		return nil, fmt.Errorf("%s %v", "could not find sync", err)
+	}
+	return &sync, nil
+}
+
+func (m Model) DeleteSync(userId primitive.ObjectID, provider string) error {
+	ctx := context.TODO()
+	filter := bson.M{"userId": userId, "providerName": provider}
+	_, err := m.Collection.DeleteOne(ctx, filter)
+	if err != nil {
+		return fmt.Errorf("%s %v", "could not delete sync", err)
+	}
+
+	update := settings.UpdateSettingsModel{
+		UserId:       userId,
+		ProviderName: &provider,
+		Active:       false,
+	}
+
+	body, err := json.Marshal(update)
+	if err != nil {
+		return errors.ErrSessionNotFound
+	}
+
+	res, err := fetch.Fetch(
+		http.DefaultClient,
+		fetch.NewFetchRequest(
+			http.MethodPost,
+			fmt.Sprintf("%s/api/settings/update", os.Getenv("SETTINGS_SERVICE_BASE_URL")),
+			bytes.NewReader(body),
+			map[string]string{
+				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
+			},
+		),
+	)
+
+	if err != nil {
+		return err
+	}
+
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusCreated {
+		return fmt.Errorf("%s %v", "could not update setting", err)
+	}
 	return nil
 }

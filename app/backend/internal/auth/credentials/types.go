@@ -1,14 +1,16 @@
 package credentials
 
 import (
+	"context"
+
 	"trigger.com/trigger/internal/user"
-	"trigger.com/trigger/pkg/auth/authenticator"
 )
 
 type Service interface {
-	authenticator.Authenticator
+	Login(CredentialsModel) (string, error)
 	Register(RegisterModel) (string, error)
 	VerifyToken(string) error
+	Logout(ctx context.Context) error
 }
 
 type Handler struct {

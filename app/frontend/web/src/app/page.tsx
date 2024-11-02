@@ -13,10 +13,12 @@ import { FcGoogle } from "react-icons/fc";
 import { BiLogoGmail } from "react-icons/bi";
 import { FaDiscord } from "react-icons/fa";
 import { IoLogoGithub } from "react-icons/io";
-import { FaSlack } from "react-icons/fa6";
-import { PiMicrosoftOutlookLogo } from "react-icons/pi";
+import { FaSpotify } from "react-icons/fa";
+import { FaTwitch } from "react-icons/fa";
+
 import { Card, CardHeader } from "@/components/ui/card";
 import { Footer } from "@/components/ui/footer";
+import { env } from "@/lib/env";
 
 export default function Home() {
   const plugin = React.useRef(AutoScroll({ startDelay: 0 }));
@@ -28,11 +30,8 @@ export default function Home() {
     { name: "Gmail", icon: <BiLogoGmail className="mr-2 hidden md:block" /> },
     { name: "Discord", icon: <FaDiscord className="mr-2 hidden md:block" /> },
     { name: "Github", icon: <IoLogoGithub className="mr-2 hidden md:block" /> },
-    { name: "Slack", icon: <FaSlack className="mr-2 hidden md:block" /> },
-    {
-      name: "Outlook",
-      icon: <PiMicrosoftOutlookLogo className="mr-2 hidden md:block" />,
-    },
+    { name: "Spotify", icon: <FaSpotify className="mr-2 hidden md:block" /> },
+    { name: "Twitch", icon: <FaTwitch className="mr-2 hidden md:block" /> },
   ];
 
   // TODO: Add href to start with google
@@ -59,7 +58,7 @@ export default function Home() {
             asChild
           >
             <Link
-              href="http://localhost:8000/api/auth/gmail/provider"
+              href={`${env.NEXT_PUBLIC_SERVER_URL}/api/oauth2/login?provider=google&redirect=${env.NEXT_PUBLIC_WEB_URL}/home`}
               className="flex items-center"
             >
               <FcGoogle className="mr-2 text-2xl" /> Start with Google
@@ -97,7 +96,7 @@ export default function Home() {
               loop
               className="w-full h-full object-cover rounded-md"
             >
-              <source src="/video_placeholder.mov" />
+              <source src="https://res.cloudinary.com/zapier-media/video/upload/q_auto:best/f_auto/v1726860621/Homepage%20%E2%80%94%20Sept%202024/sc01_HP_240917_Connect_v01_edm2pd.mp4" />
             </video>
           </CardHeader>
         </Card>

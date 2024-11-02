@@ -13,7 +13,7 @@ export async function newTrigger(): Promise<z.infer<typeof triggerSchema>> {
   }
 
   const res = await fetch(
-    `${env.NEXT_PUBLIC_ACTION_SERVICE_URL}/api/workspace/add`,
+    `${env.NEXT_PUBLIC_SERVER_URL}/api/workspace/add`,
     {
       method: "POST",
       body: JSON.stringify({ nodes: [] }),

@@ -14,36 +14,55 @@ import (
 
 	"trigger.com/trigger/internal/action/action"
 	"trigger.com/trigger/internal/action/workspace"
+	"trigger.com/trigger/internal/gmail"
 	"trigger.com/trigger/internal/session"
+	"trigger.com/trigger/internal/sync"
 	"trigger.com/trigger/internal/user"
+	"trigger.com/trigger/pkg/auth/oaclient"
 	"trigger.com/trigger/pkg/decode"
 	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
+	"trigger.com/trigger/pkg/middleware"
 )
 
 func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) error {
-	accessToken := ctx.Value(AccessTokenCtxKey)
+	accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
+	if !ok {
+		return errors.ErrAccessTokenCtx
+	}
+
+	session, _, err := session.GetSessionByAccessTokenRequest(accessToken)
+	if err != nil {
+		return err
+	}
+
+	syncModel, _, err := sync.GetSyncAccessTokenRequest(accessToken, session.UserId.Hex(), "google")
+	if err != nil {
+		return err
+	}
+
+	client, err := oaclient.New(ctx, gmail.Config(), syncModel)
+	if err != nil {
+		return err
+	}
 
 	watchBody := WatchBody{
 		LabelIds:  []string{"INBOX"},
 		TopicName: "projects/trigger-436310/topics/Trigger",
 	}
-
 	body, err := json.Marshal(watchBody)
-
 	if err != nil {
 		return err
 	}
 
 	res, err := fetch.Fetch(
-		http.DefaultClient,
+		client,
 		fetch.NewFetchRequest(
 			http.MethodPost,
 			"https://gmail.googleapis.com/gmail/v1/users/me/watch",
 			bytes.NewReader(body),
 			map[string]string{
-				"Authorization": fmt.Sprintf("%s", accessToken),
-				"Content-Type":  "application/json",
+				"Content-Type": "application/json",
 			},
 		),
 	)
@@ -57,19 +76,34 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 			return err
 		}
 		log.Printf("Watch body: %s", bodyBytes)
-		return errGmailWatch
+		return errors.ErrGmailWatch
 	}
 
-	log.Println(accessToken)
+	watchResponse, err := decode.Json[WatchResponse](res.Body)
+	if err != nil {
+		return err
+	}
+
+	watchCompleted := workspace.WatchCompletedModel{
+		ActionId: actionNode.ActionId,
+		NodeId:   actionNode.NodeId,
+		Output: map[string]string{
+			"historyId":  watchResponse.HistoryId,
+			"expiration": watchResponse.Expiration,
+		},
+	}
+	_, err = workspace.WatchCompletedRequest(accessToken, watchCompleted)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (m Model) Webhook(ctx context.Context) error {
 	event, ok := ctx.Value(GmailEventCtxKey).(Event)
 	if !ok {
-		return errEventCtx
+		return errors.ErrEventCtx
 	}
-	fmt.Printf("event: %v\n", event)
 
 	data := make([]byte, len(event.Message.Data))
 	_, err := base64.NewDecoder(base64.StdEncoding, strings.NewReader(event.Message.Data)).Read(data)
@@ -82,8 +116,6 @@ func (m Model) Webhook(ctx context.Context) error {
 		return err
 	}
 
-	fmt.Printf("eventData: %v\n", eventData)
-
 	user, _, err := user.GetUserByEmailRequest(os.Getenv("ADMIN_TOKEN"), eventData.EmailAddress)
 	if err != nil {
 		return err
@@ -94,51 +126,51 @@ func (m Model) Webhook(ctx context.Context) error {
 		return err
 	}
 
-	var googleSession *session.SessionModel = nil
-	for _, session := range userSessions {
-		if *session.ProviderName == "google" {
-			googleSession = &session
-			break
-		}
-	}
-	if googleSession == nil {
-		return errors.ErrSessionNotFound
-	}
-
-	action, _, err := action.GetActionByAction(googleSession.AccessToken, googleTriggerActionName)
-
+	action, _, err := action.GetByActionNameRequest(userSessions[0].AccessToken, googleWatchActionName)
 	if err != nil {
 		return err
 	}
 
 	update := workspace.ActionCompletedModel{
 		ActionId: action.Id,
-		UserId:   user.Id,
-		Output:   map[string]any{"hello": "world"},
+		Output:   map[string]string{},
 	}
-
-	_, err = workspace.ActionCompletedRequest(googleSession.AccessToken, update)
-
+	_, err = workspace.ActionCompletedRequest(userSessions[0].AccessToken, update)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
 func (m Model) Stop(ctx context.Context) error {
-	accessToken := ctx.Value(AccessTokenCtxKey)
+	accessToken, ok := ctx.Value(AccessTokenCtxKey).(string)
+	if !ok {
+		return errors.ErrAccessTokenCtx
+	}
 
-	fmt.Printf("Access token: %s", accessToken)
+	session, _, err := session.GetSessionByAccessTokenRequest(accessToken)
+	if err != nil {
+		return err
+	}
+
+	syncModel, _, err := sync.GetSyncAccessTokenRequest(accessToken, session.UserId.Hex(), "google")
+	if err != nil {
+		return err
+	}
+
+	client, err := oaclient.New(ctx, gmail.Config(), syncModel)
+	if err != nil {
+		return err
+	}
+
 	res, err := fetch.Fetch(
-		http.DefaultClient,
+		client,
 		fetch.NewFetchRequest(
 			http.MethodPost,
 			"https://gmail.googleapis.com/gmail/v1/users/me/stop",
 			nil,
 			map[string]string{
-				"Authorization": fmt.Sprintf("%s", accessToken),
-				"Content-Type":  "application/json",
+				"Content-Type": "application/json",
 			},
 		),
 	)
@@ -146,15 +178,15 @@ func (m Model) Stop(ctx context.Context) error {
 		return err
 	}
 	defer res.Body.Close()
+	if res.StatusCode == http.StatusUnauthorized {
+		return errors.ErrInvalidGoogleToken
+	}
 	if res.StatusCode != http.StatusOK {
 		bodyBytes, err := io.ReadAll(res.Body)
 		if err != nil {
 			return err
 		}
-		log.Printf("Stop body: %s", bodyBytes)
-		return errGmailStop
+		return fmt.Errorf("%v: %s", errors.ErrGmailStop, bodyBytes)
 	}
-
-	log.Println(accessToken)
 	return nil
 }

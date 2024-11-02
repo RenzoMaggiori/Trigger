@@ -1,12 +1,14 @@
 package authenticator
 
-import "context"
+import (
+	"net/http"
+)
 
 type AuthorizationCtx string
 
 const AuthorizationTokenCtxKey AuthorizationCtx = AuthorizationCtx("AuthorizationCtxKey")
 
 type Authenticator interface {
-	Login(ctx context.Context) (string, error)
-	Logout(ctx context.Context) (string, error)
+	Login(w http.ResponseWriter, r *http.Request) error
+	Logout(w http.ResponseWriter, r *http.Request) error
 }

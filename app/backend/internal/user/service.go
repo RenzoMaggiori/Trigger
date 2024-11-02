@@ -11,7 +11,7 @@ import (
 )
 
 func (m Model) Get() ([]UserModel, error) {
-	var users []UserModel
+	users := make([]UserModel, 0)
 	ctx := context.TODO()
 	filter := bson.M{}
 	cursor, err := m.Collection.Find(ctx, filter)
@@ -54,7 +54,7 @@ func (m Model) GetByEmail(email string) (*UserModel, error) {
 func (m Model) Add(add *AddUserModel) (*UserModel, error) {
 	userExists, err := m.GetByEmail(add.Email)
 	if userExists != nil {
-		return nil, fmt.Errorf("%w: %v", errUserAlreadyExists, err)
+		return nil, fmt.Errorf("%w: %s", errUserAlreadyExists, userExists.Id)
 	}
 
 	ctx := context.TODO()

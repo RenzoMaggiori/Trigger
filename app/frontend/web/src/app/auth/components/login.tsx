@@ -3,7 +3,7 @@
 import React from "react";
 import { FcGoogle } from "react-icons/fc";
 import { FiGithub } from "react-icons/fi";
-import { PiMicrosoftOutlookLogo } from "react-icons/pi";
+import { FaSpotify } from "react-icons/fa";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -112,11 +112,11 @@ export function Login() {
                   icon: <FiGithub className="mr-2" />,
                 },
                 {
-                  name: "outlook",
-                  text: "Continue with Outlook",
+                  name: "spotify",
+                  text: "Continue with Spotify",
                   className:
-                    "bg-sky-600 text-white hover:bg-sky-700 hover:text-white",
-                  icon: <PiMicrosoftOutlookLogo className="mr-2" />,
+                    "bg-green-600 text-white hover:bg-green-700 hover:text-white",
+                  icon: <FaSpotify className="mr-2" />,
                 },
               ]}
             />

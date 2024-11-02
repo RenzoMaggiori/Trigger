@@ -17,10 +17,14 @@ type Service interface {
 	Get(context.Context) ([]WorkspaceModel, error)
 	GetById(context.Context, primitive.ObjectID) (*WorkspaceModel, error)
 	GetByUserId(context.Context, primitive.ObjectID) ([]WorkspaceModel, error)
+	GetByActionId(context.Context, primitive.ObjectID) ([]WorkspaceModel, error)
 	Add(context.Context, *AddWorkspaceModel) (*WorkspaceModel, error)
-	ActionCompleted(context.Context, ActionCompletedModel) ([]WorkspaceModel, error)
 	UpdateById(context.Context, primitive.ObjectID, *UpdateWorkspaceModel) (*WorkspaceModel, error)
-	// DeleteById(context.Context, primitive.ObjectID) error
+	ActionCompleted(context.Context, ActionCompletedModel) error
+	WatchCompleted(context.Context, WatchCompletedModel) error
+	Start(context.Context, primitive.ObjectID) (*WorkspaceModel, error)
+	Stop(context.Context, primitive.ObjectID) (*WorkspaceModel, error)
+	DeleteById(context.Context, primitive.ObjectID) error
 }
 
 type Handler struct {
@@ -46,8 +50,8 @@ type WorkspaceModel struct {
 type ActionNodeModel struct {
 	NodeId   string             `json:"node_id" bson:"node_id"`
 	ActionId primitive.ObjectID `json:"action_id" bson:"action_id"`
-	Input    []any              `json:"input" bson:"fields"`
-	Output   []any              `json:"output" bson:"fields"`
+	Input    map[string]string  `json:"input" bson:"input"`
+	Output   map[string]string  `json:"output" bson:"output"`
 	Parents  []string           `json:"parents" bson:"parents"`
 	Children []string           `json:"children" bson:"children"`
 	Status   string             `json:"status" bson:"status"`
@@ -62,20 +66,21 @@ type AddWorkspaceModel struct {
 type AddActionNodeModel struct {
 	NodeId   string             `json:"node_id" bson:"node_id"`
 	ActionId primitive.ObjectID `json:"action_id" bson:"action_id"`
-	Input    []any              `json:"input" bson:"fields"`
-	Output   []any              `json:"output" bson:"fields"`
+	Input    map[string]string  `json:"input" bson:"input"`
 	Parents  []string           `json:"parents" bson:"parents"`
 	Children []string           `json:"children" bson:"children"`
 	XPos     float32            `json:"x_pos" bson:"x_pos"`
 	YPos     float32            `json:"y_pos" bson:"y_pos"`
 }
+
 type UpdateActionNodeModel struct {
-	NodeId   string   `json:"node_id" bson:"node_id"`
-	Fields   []any    `json:"fields" bson:"fields"`
-	Parents  []string `json:"parents" bson:"parents"`
-	Children []string `json:"children" bson:"children"`
-	XPos     float32  `json:"x_pos" bson:"x_pos"`
-	YPos     float32  `json:"y_pos" bson:"y_pos"`
+	NodeId   string              `json:"node_id" bson:"node_id"`
+	ActionId *primitive.ObjectID `json:"action_id,omitempty" bson:"action_id,omitempty"`
+	Input    map[string]string   `json:"input,omitempty" bson:"input,omitempty"`
+	Parents  []string            `json:"parents,omitempty" bson:"parents,omitempty"`
+	Children []string            `json:"children,omitempty" bson:"children,omitempty"`
+	XPos     float32             `json:"x_pos,omitempty" bson:"x_pos,omitempty"`
+	YPos     float32             `json:"y_pos,omitempty" bson:"y_pos,omitempty"`
 }
 
 type UpdateWorkspaceModel struct {
@@ -83,7 +88,15 @@ type UpdateWorkspaceModel struct {
 }
 
 type ActionCompletedModel struct {
+	ActionId    primitive.ObjectID  `json:"action_id"`
+	Output      map[string]string   `json:"output"`
+	WorkspaceId *primitive.ObjectID `json:"workspace_id"`
+	NodeId      *string             `json:"node_id,omitempty"`
+}
+
+type WatchCompletedModel struct {
+	NodeId   string             `json:"node_id"`
 	ActionId primitive.ObjectID `json:"action_id"`
-	UserId   primitive.ObjectID `json:"user_id"`
-	Output   map[string]any     `json:"output"`
+	Input    map[string]string  `json:"input"`
+	Output   map[string]string  `json:"output"`
 }

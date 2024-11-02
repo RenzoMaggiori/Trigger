@@ -4,9 +4,9 @@ import (
 	"context"
 	"log"
 
+	"trigger.com/trigger/internal/gmail"
 	"trigger.com/trigger/internal/gmail/reaction"
 	"trigger.com/trigger/internal/gmail/trigger"
-	"trigger.com/trigger/internal/user"
 	"trigger.com/trigger/pkg/arguments"
 	"trigger.com/trigger/pkg/middleware"
 	"trigger.com/trigger/pkg/router"
@@ -19,7 +19,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = user.Env(*args.EnvPath)
+	err = gmail.Env(*args.EnvPath)
 	if err != nil {
 		log.Fatal(err)
 	}

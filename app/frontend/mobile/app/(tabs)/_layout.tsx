@@ -8,6 +8,7 @@ import CommunityScreen from './CommunityScreen';
 import { Menu, Divider, Provider } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/Colors';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Tab = createBottomTabNavigator();
 
@@ -20,7 +21,10 @@ export default function TabLayout() {
 
   const router = useRouter();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    for (const key of await AsyncStorage.getAllKeys()) {
+      await AsyncStorage.removeItem(key);
+    }
     router.push('/LandingPage' as const);
   };
 
@@ -30,7 +34,7 @@ export default function TabLayout() {
   };
 
   const handleTriggersPress = (onPress: (e: GestureResponderEvent) => void) => (e: GestureResponderEvent) => {
-    setTriggersButtonColor(Colors.light.tintLight);
+    setTriggersButtonColor(Colors.light.tintDark);
     onPress(e);
   };
 
@@ -41,7 +45,7 @@ export default function TabLayout() {
   };
 
   const data = {
-    logo: require('../../assets/images/react-logo.png'),
+    logo: require('../../assets/images/logo.png'),
   };
 
   return (
@@ -150,8 +154,8 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   logo: {
-    width: 40,
-    height: 40,
+    resizeMode: 'contain',
+    height: 30,
   },
   triggersButton: {
     width: 70,

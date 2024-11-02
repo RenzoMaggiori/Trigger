@@ -1,11 +1,25 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Image, Modal, Pressable, TouchableNativeFeedback } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView, Image, Modal, Pressable, TouchableNativeFeedback, Linking, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import Button from '@/components/Button';
 import { MaterialIcons, Ionicons, FontAwesome, FontAwesome5 } from '@expo/vector-icons';
 import ButtonIcon from '@/components/ButtonIcon';
 import { CredentialsService } from '@/api/auth/credentials/service';
+import * as WebBrowser from 'expo-web-browser';
+import { WebView } from 'react-native-webview';
+import { ProvidersService } from '@/api/auth/providers/service';
+import { UserService } from '@/api/user/service';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+interface ProvidersProps {
+    providers: {
+        icon: React.JSX.Element;
+        name: string;
+        text: string;
+        className?: string;
+    }[];
+}
 
 export default function SignUp() {
     const [name, setName] = useState('');
@@ -20,12 +34,16 @@ export default function SignUp() {
     const router = useRouter();
 
     const handleSignUp = async () => {
-        await CredentialsService.register(email, password)
-            .then(() => router.push('/(tabs)/HomeScreen'))
-            .catch((error) => {
-                setErrorMessage(error.message + "\nPlease try again.");
-                setModalVisible(true);
-            });
+        try {
+            await CredentialsService.register(email, password);
+            let user = await UserService.getUser(email);
+            console.log('--[sign up] user: ', user);
+            await AsyncStorage.setItem('user', JSON.stringify(user));
+            router.push('/(tabs)/HomeScreen');
+        } catch (error) {
+            setErrorMessage((error as Error).message + "\nPlease try again.");
+            setModalVisible(true);
+        }
     };
 
     const handleDismissError = () => {
@@ -33,19 +51,25 @@ export default function SignUp() {
         setErrorMessage("");
     };
 
-    const handleSocialSignUp = (service: string) => {
-        router.push('/(tabs)/HomeScreen');
-        console.log(`Signing up with ${service}`);
+    const handleOpenAuth = async (providerName: string) => {
+        try {
+            await ProvidersService.handleOAuth(providerName);
+            router.push('/(tabs)/HomeScreen');
+        } catch (error) {
+            setErrorMessage((error as Error).message + "\nPlease try again.");
+            setModalVisible(true);
+        }
     };
 
-    const technologies = [
-        { name: 'Google', icon: <Ionicons name="logo-google" size={30} color={Colors.light.google} /> },
-        { name: 'Github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
-        { name: 'Outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.outlook} /> },
+    const providers = [
+        { name: 'google', icon: <Ionicons name="logo-google" size={30} color={Colors.light.google} /> },
+        { name: 'twitch', icon: <FontAwesome5 name="twitch" size={30} color={Colors.light.twitch} /> },
+        // { name: 'github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
+        // { name: 'outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.outlook} /> },
     ];
 
     const data = {
-        logo: require('../assets/images/react-logo.png'),
+        logo: require('../assets/images/logo.png'),
     };
 
     return (
@@ -87,6 +111,7 @@ export default function SignUp() {
                     onChangeText={setConfirmPassword}
                 />
                 <Button
+                    backgroundColor={Colors.light.tint}
                     onPress={handleSignUp}
                     title="SIGN UP"
                 />
@@ -95,10 +120,10 @@ export default function SignUp() {
                     <Text style={styles.orText}>or</Text>
                     <View style={styles.line} />
                 </View>
-                {technologies.map((tech, index) => (
+                {providers.map((tech, index) => (
                     <ButtonIcon
                         key={index}
-                        onPress={() => handleSocialSignUp(tech.name)}
+                        onPress={() => handleOpenAuth(tech.name)}
                         title={"Continue with " + tech.name}
                         icon={tech.icon}
                         backgroundColor="#FFFFFF"
@@ -140,10 +165,12 @@ const styles = StyleSheet.create({
     },
     navbar: {
         alignItems: 'center',
+        margin: 10,
+        marginBottom: 20,
     },
     logo: {
-        width: 80,
-        height: 80,
+        resizeMode: 'contain',
+        height: 30,
     },
     scrollContainer: {
         flexGrow: 1,

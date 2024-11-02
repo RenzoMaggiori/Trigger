@@ -6,9 +6,10 @@ import (
 )
 
 type Service interface {
-	GetById(primitive.ObjectID) (*SettingsModel, error)
-	GetByUserId(primitive.ObjectID) ([]SettingsModel, error)
-	Add(*AddSettingsModel) (error)
+	GetById(primitive.ObjectID) (*SettingsResponseModel, error)
+	GetByUserId(primitive.ObjectID) ([]SettingsResponseModel, error)
+	Add(*AddSettingsModel) error
+	Update(updateSettings *UpdateSettingsModel) error
 }
 
 type Handler struct {
@@ -23,17 +24,22 @@ type SettingsModel struct {
 	Id           primitive.ObjectID `json:"id" bson:"_id"`
 	UserId       primitive.ObjectID `json:"userId" bson:"userId"`
 	ProviderName *string            `json:"providerName,omitempty" bson:"providerName,omitempty"`
-	AccessToken  string             `json:"accessToken" bson:"accessToken"`
 	Active       bool               `json:"active" bson:"active"`
 }
 
 type AddSettingsModel struct {
 	UserId       primitive.ObjectID `json:"userId" bson:"userId"`
 	ProviderName *string            `json:"providerName,omitempty" bson:"providerName,omitempty"`
-	AccessToken  string             `json:"accessToken" bson:"accessToken"`
 	Active       bool               `json:"active" bson:"active"`
 }
 
 type UpdateSettingsModel struct {
+	UserId       primitive.ObjectID `json:"userId" bson:"userId"`
+	ProviderName *string            `json:"providerName,omitempty" bson:"providerName,omitempty"`
 	Active       bool               `json:"active" bson:"active"`
+}
+
+type SettingsResponseModel struct {
+	ProviderName *string `json:"providerName,omitempty" bson:"providerName,omitempty"`
+	Active       bool    `json:"active" bson:"active"`
 }

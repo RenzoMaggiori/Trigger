@@ -5,7 +5,7 @@ import (
 	"trigger.com/trigger/pkg/action"
 )
 
-const googleTriggerActionName = "watch"
+const googleWatchActionName = "watch"
 
 type WorkspaceCtx string
 
@@ -52,6 +52,11 @@ type HistoryList struct {
 	History       []History `json:"history"`
 	NextPageToken string    `json:"nextPageToken"`
 	HistoryId     string    `json:"historyId"`
+}
+
+type WatchResponse struct {
+	HistoryId  string `json:"historyId"`
+	Expiration string `json:"expiration"`
 }
 
 type History struct {

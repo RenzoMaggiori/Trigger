@@ -5,23 +5,23 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-docker compose build mobile
+docker compose build client_mobile
 if [ $? -ne 0 ]; then
-    echo "Error: 'docker compose build mobile' failed."
+    echo "Error: 'docker compose build client_mobile' failed."
     docker compose down
     exit 1
 fi
 
-docker compose up --no-start mobile
+docker compose up --no-start client_mobile
 if [ $? -ne 0 ]; then
-    echo "Error: 'docker compose up --no-start mobile' failed."
+    echo "Error: 'docker compose up --no-start client_mobile' failed."
     docker compose down
     exit 1
 fi
 
-docker compose start mobile
+docker compose start client_mobile
 if [ $? -ne 0 ]; then
-    echo "Error: 'docker compose start mobile' failed."
+    echo "Error: 'docker compose start client_mobile' failed."
     docker compose down
     exit 1
 fi

@@ -1,7 +1,6 @@
 package reaction
 
 import (
-	"go.mongodb.org/mongo-driver/mongo"
 	"trigger.com/trigger/pkg/action"
 )
 
@@ -10,15 +9,24 @@ type GmailReactionCtx string
 const AccessTokenCtxKey GmailReactionCtx = GmailReactionCtx("AuthorizationCtxKey")
 
 type Service interface {
-	action.Reaction
+	action.MultipleReactions
 }
 
 type Handler struct {
-	Service
+	Service Service
 }
 
 type Model struct {
-	Collection *mongo.Collection
+}
+
+type GoogleUser struct {
+	Sub           string `json:"sub"`
+	Name          string `json:"name"`
+	GivenName     string `json:"given_name"`
+	FamilyName    string `json:"family_name"`
+	Picture       string `json:"picture"`
+	Email         string `json:"email"`
+	EmailVerified bool   `json:"email_verified"`
 }
 
 type WatchBody struct {

@@ -1,21 +1,31 @@
-
 package workspace
 
 import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
+	"strings"
 	"sync"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"trigger.com/trigger/internal/action/action"
 	"trigger.com/trigger/internal/session"
+	"trigger.com/trigger/internal/user"
 	"trigger.com/trigger/pkg/errors"
+	"trigger.com/trigger/pkg/middleware"
 )
 
+type fnIsNodeReady func(ActionNodeModel) bool
+
+/* -----------------------------------------------------------------------
+   ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+                               Workspace Retrieval
+   ----------------------------------------------------------------------- */
+
 func (m Model) Get(ctx context.Context) ([]WorkspaceModel, error) {
-	var workspaces []WorkspaceModel
+	workspaces := make([]WorkspaceModel, 0)
 	filter := bson.M{}
 	cursor, err := m.Collection.Find(ctx, filter)
 
@@ -32,23 +42,24 @@ func (m Model) Get(ctx context.Context) ([]WorkspaceModel, error) {
 
 func (m Model) GetById(ctx context.Context, id primitive.ObjectID) (*WorkspaceModel, error) {
 	var workspace WorkspaceModel
+	workspace.Nodes = make([]ActionNodeModel, 0)
 	filter := bson.M{"_id": id}
 	err := m.Collection.FindOne(ctx, filter).Decode(&workspace)
 
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errWorkspaceNotFound, err)
+		return nil, fmt.Errorf("%w: %v", errors.ErrWorkspaceNotFound, err)
 	}
 	return &workspace, nil
 }
 
 func (m Model) GetByUserId(ctx context.Context, userId primitive.ObjectID) ([]WorkspaceModel, error) {
-	var workspaces []WorkspaceModel
+	workspaces := make([]WorkspaceModel, 0)
 
 	filter := bson.M{"user_id": userId}
 	cursor, err := m.Collection.Find(ctx, filter)
 
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errWorkspaceNotFound, err)
+		return nil, fmt.Errorf("%w: %v", errors.ErrWorkspaceNotFound, err)
 	}
 	defer cursor.Close(ctx)
 
@@ -59,59 +70,197 @@ func (m Model) GetByUserId(ctx context.Context, userId primitive.ObjectID) ([]Wo
 	return workspaces, nil
 }
 
-// initWorkspaceActions initializes the actions for the nodes in the given workspace.
-// It iterates through the nodes in the workspace and starts actions for nodes with a "pending" status.
-// If an action is successfully started, the node's status is updated to "active".
-//
-// Parameters:
-//   - workspace: The WorkspaceModel containing the nodes to be initialized.
-//   - accessToken: The access token used for authentication in action requests.
-// Returns:
-//   - A pointer to the updated WorkspaceModel
-//   - An error if there is any error.
+func (m Model) GetByActionId(ctx context.Context, actionId primitive.ObjectID) ([]WorkspaceModel, error) {
+	workspaces := make([]WorkspaceModel, 0)
 
-func initAction(actionNode ActionNodeModel, accessToken string) error {
+	filter := bson.M{
+		"nodes": bson.M{
+			"$elemMatch": bson.M{
+				"action_id": actionId,
+			},
+		},
+	}
 
-	action, _, err := action.GetActionByIdRequest(accessToken, actionNode.ActionId.Hex())
+	cursor, err := m.Collection.Find(ctx, filter)
 
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", errors.ErrWorkspaceNotFound, err)
+	}
+	defer cursor.Close(ctx)
+
+	if err = cursor.All(ctx, &workspaces); err != nil {
+		return nil, err
+	}
+
+	return workspaces, nil
+}
+
+/* -----------------------------------------------------------------------
+   ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+                               Node and Workspace Modification
+   ----------------------------------------------------------------------- */
+
+func (m Model) updateNodesStatus(userId primitive.ObjectID, actionId primitive.ObjectID, status string) error {
+	filter := bson.M{
+		"user_id": userId,
+		"nodes": bson.M{
+			"$elemMatch": bson.M{
+				"action_id": actionId,
+			},
+		},
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"nodes.$.status": status,
+		},
+	}
+
+	res, err := m.Collection.UpdateMany(context.TODO(), filter, update)
 	if err != nil {
 		return err
 	}
 
-	_, err = StartActionRequest(accessToken, actionNode, *action)
-	if err != nil {
-		return err
+	if res.MatchedCount == 0 {
+		return errors.ErrWorkspaceNotFound
 	}
+
 	return nil
 }
 
-// nodeStatus determines the status of a node based on its parent nodes.
-// If the node has no parents, it returns "pending". Otherwise, it returns "inactive".
-func isNodeActive(parents []string) bool {
-	if len(parents) == 0 {
-		return true
+func (m Model) updateNodeById(ctx context.Context, workspaceId primitive.ObjectID, node UpdateActionNodeModel) (*WorkspaceModel, error) {
+	filter := bson.M{
+		"_id": workspaceId,
+		"nodes": bson.M{
+			"$elemMatch": bson.M{
+				"node_id": node.NodeId,
+			},
+		},
 	}
-	return false
+
+	nodeUpdate := bson.M{
+		"$set": bson.M{
+			"nodes.$.parents":  node.Parents,
+			"nodes.$.children": node.Children,
+			"nodes.$.x_pos":    node.XPos,
+			"nodes.$.y_pos":    node.YPos,
+		},
+	}
+
+	if node.ActionId != nil {
+		nodeUpdate["$set"] = bson.M{"nodes.$.action_id": node.ActionId}
+	}
+
+	for k, v := range node.Input {
+		nodeUpdate["$set"].(bson.M)[fmt.Sprintf("nodes.$.input.%s", k)] = v
+	}
+
+	// Execute the update operation for the current node
+	res, err := m.Collection.UpdateOne(ctx, filter, nodeUpdate)
+	if err != nil {
+		return nil, fmt.Errorf("error updating workspace node: %w", err)
+	}
+	if res.MatchedCount == 0 {
+		return nil, errors.ErrNodeNotFound
+	}
+
+	var workspace WorkspaceModel
+
+	err = m.Collection.FindOne(ctx, filter).Decode(&workspace)
+
+	if err != nil {
+		return nil, errors.ErrWorkspaceNotFound
+	}
+
+	return &workspace, nil
 }
 
-// Add adds a new workspace to the collection based on the provided AddWorkspaceModel.
-// initializes the workspace with the provided nodes, and inserts the new workspace into the collection.
-//
-// Parameters:
-//   - ctx: The context for the request, which should contain the access token
-//   - add: A pointer to the AddWorkspaceModel containing the details of the workspace to be added
-//
-// Returns:
-//   - A pointer to the newly created WorkspaceModel
-//   - An error if the access token is not found in the context, if there is an error fetching the session,
-//     or if there is an error creating the workspace
+func (m Model) UpdateById(ctx context.Context, workspaceId primitive.ObjectID, update *UpdateWorkspaceModel) (*WorkspaceModel, error) {
+
+	for _, node := range update.Nodes {
+		_, err := m.updateNodeById(ctx, workspaceId, node)
+
+		if err == nil {
+			continue
+		}
+
+		if err != errors.ErrNodeNotFound {
+			// Something went wrong; node could not be updated nor created
+			log.Printf("Node could not be updated: %s\n", err)
+			continue
+		}
+		_, err = m.AddNode(ctx, workspaceId, node)
+
+		if err != nil {
+			log.Printf("Node could not be created: %s\n", err)
+		}
+	}
+
+	var workspace WorkspaceModel
+	// Retrieve the updated workspace document
+	err := m.Collection.FindOne(ctx, bson.M{"_id": workspaceId}).Decode(&workspace)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving updated workspace: %w", err)
+	}
+
+	return &workspace, nil
+}
+
+func (m Model) AddNode(ctx context.Context, workspaceId primitive.ObjectID, node UpdateActionNodeModel) (*WorkspaceModel, error) {
+	filter := bson.M{
+		"_id": workspaceId,
+	}
+
+	if node.ActionId == nil {
+		return nil, fmt.Errorf("cannot create node if actionId is nil")
+	}
+
+	addNode := ActionNodeModel{
+		NodeId:   node.NodeId,
+		Input:    node.Input,
+		Output:   make(map[string]string),
+		ActionId: *node.ActionId,
+		Parents:  node.Parents,
+		Children: node.Children,
+		Status:   "inactive",
+		XPos:     node.XPos,
+		YPos:     node.YPos,
+	}
+
+	nodeUpdate := bson.M{
+		"$push": bson.M{
+			"nodes": addNode,
+		},
+	}
+
+	res, err := m.Collection.UpdateOne(ctx, filter, nodeUpdate)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if res.MatchedCount == 0 {
+		return nil, errors.ErrCreatingNode
+	}
+
+	var workspace WorkspaceModel
+
+	err = m.Collection.FindOne(ctx, filter).Decode(&workspace)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &workspace, nil
+}
+
 func (m Model) Add(ctx context.Context, add *AddWorkspaceModel) (*WorkspaceModel, error) {
-	accessToken, ok := ctx.Value(AccessTokenCtxKey).(string)
+	accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
 
 	if !ok {
-		return nil, errors.ErrAccessTokenCtxKey
+		return nil, errors.ErrAccessTokenCtx
 	}
-	session, _, err := session.GetSessionByTokenRequest(accessToken)
+	session, _, err := session.GetSessionByAccessTokenRequest(accessToken)
 
 	if err != nil {
 		return nil, err
@@ -120,148 +269,155 @@ func (m Model) Add(ctx context.Context, add *AddWorkspaceModel) (*WorkspaceModel
 	newWorkspace := WorkspaceModel{
 		Id:     primitive.NewObjectID(),
 		UserId: session.UserId,
-		Nodes:  []ActionNodeModel{},
+		Nodes:  make([]ActionNodeModel, 0),
 	}
 
 	for _, node := range add.Nodes {
-		func() {
-			isActive := isNodeActive(node.Parents)
-			node := ActionNodeModel{
-				NodeId:   node.NodeId,
-				ActionId: node.ActionId,
-				Input:    node.Input,
-				Output:   node.Output,
-				Parents:  node.Parents,
-				Status:   "inactive",
-				Children: node.Children,
-				XPos:     node.XPos,
-				YPos:     node.YPos,
-			}
-			defer func() {
-				newWorkspace.Nodes = append(newWorkspace.Nodes, node)
-			}()
-
-			if !isActive {
-				return
-			}
-			err = initAction(node, accessToken)
-			if err == nil {
-				log.Printf("Error while starting Action with id: %s", node.ActionId.Hex())
-				node.Status = "active"
-				return
-			}
-			log.Printf("Started Action with id: %s", node.ActionId.Hex())
-		}()
+		node := ActionNodeModel{
+			NodeId:   node.NodeId,
+			ActionId: node.ActionId,
+			Input:    node.Input,
+			Output:   make(map[string]string),
+			Parents:  node.Parents,
+			Status:   "inactive",
+			Children: node.Children,
+			XPos:     node.XPos,
+			YPos:     node.YPos,
+		}
+		newWorkspace.Nodes = append(newWorkspace.Nodes, node)
 	}
-
-	if err != nil {
-		return nil, err
-	}
-
+	// Insert the blank workspace
 	_, err = m.Collection.InsertOne(ctx, newWorkspace)
 	if err != nil {
-		return nil, errCreatingWorkspace
+		return nil, errors.ErrCreatingWorkspace
 	}
 
 	return &newWorkspace, nil
 }
 
-// ActionCompleted updates the workspaces based on the provided action completion details.
-//
-// This method performs the following steps:
-// 1. Retrieves the access token from the context.
-// 2. Fetches the workspaces associated with the user ID from the updateActionCompleted model.
-// 3. Concurrently processes each workspace to run actions and update the workspace nodes.
-// 4. Updates the workspace in the database and collects the updated workspaces.
-//
-// Parameters:
-// - ctx: The context for the request, which should contain the access token.
-// - updateActionCompleted: The model containing the details of the action completion.
-//
-// Returns:
-// - A slice of updated WorkspaceModel objects.
-// - An error if any step in the process fails.
-func (m Model) ActionCompleted(ctx context.Context, updateActionCompleted ActionCompletedModel) ([]WorkspaceModel, error) {
-	accessToken, ok := ctx.Value(AccessTokenCtxKey).(string)
-	if !ok {
-		return nil, fmt.Errorf("access token missing or invalid")
+/* -----------------------------------------------------------------------
+   ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+                               Action initialization
+   ----------------------------------------------------------------------- */
+
+func assignInputToAction(action *ActionNodeModel, workspaceNodes []ActionNodeModel) {
+	for key, value := range action.Input {
+		for _, node := range workspaceNodes {
+			prefix := fmt.Sprintf("$%s$.", node.NodeId)
+			if strings.Contains(value, prefix) {
+				action.Input[key] = node.Output[strings.ReplaceAll(value, prefix, "")]
+			}
+		}
 	}
-	workspaces, err := m.GetByUserId(ctx, updateActionCompleted.UserId)
+}
+
+func (m Model) initAction(ctx context.Context, workspace WorkspaceModel, actionNode ActionNodeModel, accessToken string) error {
+
+	action, _, err := action.GetByIdRequest(accessToken, actionNode.ActionId.Hex())
+
 	if err != nil {
-		return nil, err
-	}
-	var (
-		wg                sync.WaitGroup
-		mu                sync.Mutex
-		updatedWorkspaces []WorkspaceModel
-		errChan           = make(chan error, len(workspaces))
-	)
-
-	processWorkspace := func(workspace WorkspaceModel) {
-		defer wg.Done()
-		updatedWorkspace, err := processWorkspaceActions(workspace, updateActionCompleted, accessToken)
-		if err != nil {
-			errChan <- err
-			return
-		}
-		filter := bson.M{"_id": workspace.Id}
-		update := bson.M{
-			"$set": bson.M{"nodes": updatedWorkspace.Nodes},
-		}
-		updateResult, err := m.Collection.UpdateOne(ctx, filter, update)
-		if err != nil {
-			errChan <- err
-			return
-		}
-		if updateResult.MatchedCount == 0 {
-			errChan <- errWorkspaceNotFound
-			return
-		}
-		mu.Lock()
-		updatedWorkspaces = append(updatedWorkspaces, updatedWorkspace)
-		mu.Unlock()
+		return err
 	}
 
-	for _, workspace := range workspaces {
-		wg.Add(1)
-		go processWorkspace(workspace)
+	actionCompleted, status, err := StartActionRequest(accessToken, actionNode, *action)
+	if err != nil {
+		return err
 	}
 
-	wg.Wait()
-	close(errChan)
+	if status != http.StatusOK {
+		return errors.ErrSettingAction
+	}
 
-	for err := range errChan {
-		if err != nil {
-			return nil, err
+	err = m.updateNodesStatus(workspace.UserId, actionNode.ActionId, "active")
+
+	if err != nil {
+		return err
+	}
+
+	if action.Type == "reaction" {
+		if actionCompleted != nil {
+			m.ActionCompleted(ctx, *actionCompleted)
+		} else {
+			m.ActionCompleted(ctx, ActionCompletedModel{
+				ActionId: action.Id,
+				Output:   make(map[string]string),
+			})
 		}
 	}
 
-	return updatedWorkspaces, nil
+	return nil
 }
 
-// isNodeCompleted checks if a given node is completed based on its status and action ID.
-// It returns true if the node's status is "active" and its action ID matches the actionCompleted's action ID.
-//
-// Parameters:
-//   - node: An ActionNodeModel representing the node to be checked.
-//   - actionCompleted: An ActionCompletedModel containing the completed action's details. parent nodes are
-//   - bool: true if the node is completed, false otherwise.
-func isNodeCompleted(node ActionNodeModel, actionCompleted ActionCompletedModel) bool {
-	return node.Status == "active" && node.ActionId == actionCompleted.ActionId
+func (m Model) initWorkspace(ctx context.Context, workspace *WorkspaceModel, accessToken string, isNodeReady fnIsNodeReady) error {
+	for _, node := range workspace.Nodes {
+		if isNodeReady(node) {
+			assignInputToAction(&node, workspace.Nodes)
+			err := m.initAction(ctx, *workspace, node, accessToken)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
-// isChildNodeReady checks if all parent nodes of a given node are in a "completed" status within a workspace.
-// It iterates through the parents of the node and verifies their status in the workspace nodes.
-// If any parent node is not in the "completed" status, it returns false. Otherwise, it returns true.
-//
-// Parameters:
-// - node: The ActionNodeModel representing the node whose parents' statuses are being checked.
-// - workspace: The WorkspaceModel containing the nodes and their statuses.
-//
-// Returns:
-// - bool: True if all parent nodes are in the "completed" status, false otherwise.
-func isChildNodeReady(child ActionNodeModel, workspace WorkspaceModel) bool {
-	for _, parent := range child.Parents {
+/* -----------------------------------------------------------------------
+   ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+                               Action -> Workspace Communication
+   ----------------------------------------------------------------------- */
+
+func (m Model) WatchCompleted(ctx context.Context, watchCompleted WatchCompletedModel) error {
+	accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
+	if !ok {
+		return errors.ErrAccessTokenCtx
+	}
+
+	session, _, err := session.GetSessionByAccessTokenRequest(accessToken)
+
+	if err != nil {
+		return err
+	}
+
+	user, _, err := user.GetUserByIdRequest(accessToken, session.UserId.Hex())
+
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{
+		"user_id": user.Id,
+		"nodes": bson.M{
+			"$elemMatch": bson.M{
+				"action_id": watchCompleted.ActionId,
+				"node_id":   watchCompleted.NodeId,
+			},
+		},
+	}
+
+	update := bson.M{"$set": bson.M{}}
+
+	for k, v := range watchCompleted.Input {
+		update["$set"].(bson.M)[fmt.Sprintf("nodes.$.input.%s", k)] = v
+	}
+
+	res, err := m.Collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	if res.MatchedCount == 0 {
+		return errors.ErrWorkspaceNotFound
+	}
+
+	return nil
+}
+
+func isNodeReadyToStart(node ActionNodeModel, workspace WorkspaceModel) bool {
+	if node.Status != "inactive" {
+		return false
+	}
+
+	for _, parent := range node.Parents {
 		for _, workspaceNode := range workspace.Nodes {
 			if workspaceNode.NodeId == parent && workspaceNode.Status != "completed" {
 				return false
@@ -271,67 +427,231 @@ func isChildNodeReady(child ActionNodeModel, workspace WorkspaceModel) bool {
 	return true
 }
 
-// processWorkspaceActions processes the actions for a given workspace based on the completed action and updates the workspace status accordingly.
-// It iterates through the nodes of the workspace, marking nodes as completed if they match the completed actions and setting their children to pending if they are ready.
-// Finally, it initializes the workspace actions and returns the updated workspace.
-//
-// Parameters:
-//   - workspace: The WorkspaceModel containing the nodes to be processed.
-//   - actionCompleted: The ActionCompletedModel containing the action that has been completed.
-//   - accessToken: A string representing the access token for initializing workspace actions.
-//
-// Returns:
-//   - WorkspaceModel: The updated workspace model after processing the actions.
-//   - error: An error if any occurred during the processing of the workspace actions.
-func processWorkspaceActions(workspace WorkspaceModel, actionCompleted ActionCompletedModel, accessToken string) (WorkspaceModel, error) {
-	for i, node := range workspace.Nodes {
-		if isNodeCompleted(node, actionCompleted) {
-			workspace.Nodes[i].Status = "completed"
-			for j := range node.Children {
-				if isChildNodeReady(workspace.Nodes[j], workspace) {
-					err := initAction(workspace.Nodes[j], accessToken)
-					if err == nil {
-						log.Printf("Starting Action with id: %s", workspace.Nodes[j].ActionId.Hex())
-						workspace.Nodes[j].Status = "active"
-					} else {
-						log.Printf("Error while starting Action with id: %s", workspace.Nodes[j].ActionId.Hex())
-					}
-				}
+func (m Model) restartWorkspaces(ctx context.Context, workspaces []WorkspaceModel) {
+	isWorkspaceCompleted := true
+
+	for _, w := range workspaces {
+		for _, node := range w.Nodes {
+			if node.Status != "completed" {
+				isWorkspaceCompleted = false
+				break
 			}
+		}
+		if isWorkspaceCompleted {
+			log.Printf("Restarting workspace: %s", w.Id.Hex())
+			_, err := m.Start(ctx, w.Id)
+			if err != nil {
+				log.Printf("Error restarting workspace: %s", w.Id.Hex())
+			}
+		} else {
+			isWorkspaceCompleted = true
+		}
+	}
+}
+
+func (m Model) processWorkspace(ctx context.Context, workspace WorkspaceModel, actionCompleted ActionCompletedModel, accessToken string) error {
+
+	filter := bson.M{
+		"_id": workspace.Id,
+		"nodes": bson.M{
+			"$elemMatch": bson.M{
+				"action_id": actionCompleted.ActionId,
+			},
+		},
+	}
+
+	if actionCompleted.NodeId != nil {
+		filter["nodes"].(bson.M)["$elemMatch.node_id"] = actionCompleted.NodeId
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"nodes.$.status": "completed",
+		},
+	}
+
+	for key, value := range actionCompleted.Output {
+		update["$set"].(bson.M)[fmt.Sprintf("nodes.$.output.%s", key)] = value
+	}
+
+	result, err := m.Collection.UpdateMany(context.TODO(), filter, update)
+	if err != nil {
+		return fmt.Errorf("%w: %v ", errors.ErrUpdatingWorkspace, err)
+	}
+
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("%w: %s ", errors.ErrUpdatingWorkspace, "matched count is 0")
+	}
+
+	updatedResult, err := m.GetById(context.TODO(), workspace.Id)
+
+	if err != nil {
+		return err
+	}
+
+	m.initWorkspace(
+		ctx,
+		updatedResult,
+		accessToken,
+		func(node ActionNodeModel) bool {
+			return isNodeReadyToStart(node, *updatedResult)
+		},
+	)
+
+	return nil
+}
+
+func (m Model) processUserWorkspaces(ctx context.Context, workspaces []WorkspaceModel, actionCompleted ActionCompletedModel, accessToken string) error {
+	var (
+		wg      sync.WaitGroup
+		errChan = make(chan error, len(workspaces))
+	)
+
+	for _, workspace := range workspaces {
+		wg.Add(1)
+		go func(ws WorkspaceModel) {
+			defer wg.Done()
+			if err := m.processWorkspace(ctx, ws, actionCompleted, accessToken); err != nil {
+				errChan <- err
+			}
+		}(workspace)
+	}
+
+	wg.Wait()
+	close(errChan)
+
+	for err := range errChan {
+		if err != nil {
+			return err
 		}
 	}
 
-	return workspace, nil
+	return nil
 }
 
-func (m Model) UpdateById(ctx context.Context, id primitive.ObjectID, update *UpdateWorkspaceModel) (*WorkspaceModel, error) {
-	filter := bson.M{"_id": id}
-	updateData := bson.M{"$set": update}
-
-	_, err := m.Collection.UpdateOne(ctx, filter, updateData)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errWorkspaceNotFound, err)
+func (m Model) ActionCompleted(ctx context.Context, actionCompleted ActionCompletedModel) error {
+	accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
+	if !ok {
+		return errors.ErrAccessTokenCtx
 	}
 
-	var updatedUserAction WorkspaceModel
-	err = m.Collection.FindOne(ctx, filter).Decode(&updatedUserAction)
+	session, _, err := session.GetSessionByAccessTokenRequest(accessToken)
+
+	if err != nil {
+		return err
+	}
+	user, _, err := user.GetUserByIdRequest(accessToken, session.UserId.Hex())
+
+	if err != nil {
+		return err
+	}
+
+	getWorkspaces := func() ([]WorkspaceModel, error) {
+		userWorkspaces := make([]WorkspaceModel, 0)
+
+		if actionCompleted.WorkspaceId != nil {
+			w, err := m.GetById(ctx, *actionCompleted.WorkspaceId)
+			if err != nil {
+				return nil, err
+			}
+			userWorkspaces = append(userWorkspaces, *w)
+		} else {
+			userWorkspaces, err = m.GetByUserId(ctx, user.Id)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return userWorkspaces, nil
+	}
+
+	userWorkspaces, err := getWorkspaces()
+	// Iterate over all user workspaces and update them in case they have any actions that are completed
+	err = m.processUserWorkspaces(ctx, userWorkspaces, actionCompleted, accessToken)
+
+	if err != nil {
+		return nil
+	}
+
+	userWorkspaces, err = getWorkspaces()
+
+	m.restartWorkspaces(ctx, userWorkspaces)
+
+	return nil
+}
+
+func (m Model) Start(ctx context.Context, id primitive.ObjectID) (*WorkspaceModel, error) {
+	accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
+	if !ok {
+		return nil, errors.ErrAccessTokenCtx
+	}
+
+	workspace, err := m.Stop(ctx, id)
 
 	if err != nil {
 		return nil, err
 	}
-	return &updatedUserAction, nil
 
+	err = m.initWorkspace(ctx, workspace, accessToken, func(node ActionNodeModel) bool { return len(node.Parents) == 0 })
+
+	if err != nil {
+		return nil, err
+	}
+	err = m.Collection.FindOne(ctx, bson.M{"_id": id}).Decode(&workspace)
+	if err != nil {
+		return nil, err
+	}
+
+	return workspace, err
 }
 
-// func (m Model) DeleteById(ctx context.Context, id primitive.ObjectID) error {
-// 	filter := bson.M{"_id": id}
-// 	result, err := m.Collection.DeleteOne(ctx, filter)
+func (m Model) Stop(ctx context.Context, id primitive.ObjectID) (*WorkspaceModel, error) {
+	filter := bson.M{
+		"_id": id,
+	}
 
-// 	if err != nil {
-// 		return fmt.Errorf("%w: %v", errUserActionNotFound, err)
-// 	}
-// 	if result.DeletedCount == 0 {
-// 		return mongo.ErrNoDocuments
-// 	}
-// 	return nil
-// }
+	update := bson.M{
+		"$set": bson.M{
+			"nodes.$[].status": "inactive",
+		},
+	}
+
+	res, err := m.Collection.UpdateOne(ctx, filter, update)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if res.MatchedCount == 0 {
+		return nil, errors.ErrWorkspaceNotFound
+	}
+
+	var workspace WorkspaceModel
+
+	err = m.Collection.FindOne(ctx, filter).Decode(&workspace)
+
+	if err != nil {
+		return nil, err
+	}
+
+	//	TODO: call action stop functions
+	return &workspace, nil
+}
+
+func (m Model) DeleteById(ctx context.Context, id primitive.ObjectID) error {
+	filter := bson.M{
+		"_id": id,
+	}
+
+	res, err := m.Collection.DeleteOne(ctx, filter)
+
+	if err != nil {
+		return err
+	}
+
+	if res.DeletedCount == 0 {
+		return errors.ErrWorkspaceNotFound
+	}
+
+	//	TODO: call action stop functions
+	return nil
+}
