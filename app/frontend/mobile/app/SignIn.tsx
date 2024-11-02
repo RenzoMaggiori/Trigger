@@ -3,7 +3,7 @@ import { View, Text, TextInput, StyleSheet, SafeAreaView, ScrollView, Image, Mod
 import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import Button from '@/components/Button';
-import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import ButtonIcon from '@/components/ButtonIcon';
 import { CredentialsService } from '@/api/auth/credentials/service';
 import { ProvidersService } from '@/api/auth/providers/service';
@@ -48,8 +48,10 @@ export default function SignIn() {
 
     const technologies = [
         { name: 'google', icon: <Ionicons name="logo-google" size={30} color={Colors.light.google} />},
-        { name: 'github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
-        { name: 'outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.outlook} /> },
+        { name: 'twitch', icon: <Ionicons name="logo-twitch" size={30} color={Colors.light.twitch} /> },
+        { name: 'spotify', icon: <FontAwesome5 name="spotify" size={30} color={Colors.light.spotify} /> },
+        // { name: 'github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
+        // { name: 'outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.outlook} /> },
     ];
 
     const data = {

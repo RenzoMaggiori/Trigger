@@ -92,3 +92,17 @@ func (h *Handler) Add(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 }
+
+func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
+	var update UpdateSettingsModel
+	if err := json.NewDecoder(r.Body).Decode(&update); err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+
+	if err := h.Service.Update(&update); err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+
+}

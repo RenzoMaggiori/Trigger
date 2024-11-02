@@ -3,6 +3,7 @@ package credentials
 import (
 	"net/http"
 	"os"
+	"time"
 
 	customerror "trigger.com/trigger/pkg/custom-error"
 	"trigger.com/trigger/pkg/decode"
@@ -96,4 +97,22 @@ func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
 		customerror.Send(w, err, errCodes)
 		return
 	}
+}
+
+func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
+	if err := h.Service.Logout(r.Context()); err != nil {
+		customerror.Send(w, err, errCodes)
+		return
+	}
+
+	cookie := &http.Cookie{
+		Name:     authCookieName,
+		Value:    "",
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+		Secure:   false, // TODO: true when in production
+		Expires:  time.Now().Add(-1 * time.Hour),
+	}
+	http.SetCookie(w, cookie)
 }
