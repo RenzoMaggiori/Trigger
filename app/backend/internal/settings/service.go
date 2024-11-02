@@ -56,13 +56,25 @@ func (m Model) Add(addSettings *AddSettingsModel) error {
 		Id:           primitive.NewObjectID(),
 		UserId:       addSettings.UserId,
 		ProviderName: addSettings.ProviderName,
-		// AccessToken:  addSettings.AccessToken,
 		Active: addSettings.Active,
 	}
 
 	_, err := m.Collection.InsertOne(context.TODO(), newSeetings)
 	if err != nil {
 		return fmt.Errorf("%s %v", "could not add new setting", err)
+	}
+
+	return nil
+}
+
+func (m Model) Update(updateSettings *UpdateSettingsModel) error {
+	ctx := context.TODO()
+	filter := bson.M{"user_id": updateSettings.UserId, "providerName": updateSettings.ProviderName}
+	update := bson.M{"$set": bson.M{"active": updateSettings.Active}}
+	_, err := m.Collection.UpdateOne(ctx, filter, update)
+
+	if err != nil {
+		return fmt.Errorf("%s %v", "could not update setting", err)
 	}
 
 	return nil

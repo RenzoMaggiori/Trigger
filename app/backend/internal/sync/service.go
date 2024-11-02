@@ -149,3 +149,45 @@ func (m Model) ByUserId(userId primitive.ObjectID, provider string) (*SyncModel,
 	}
 	return &sync, nil
 }
+
+func (m Model) DeleteSync(userId primitive.ObjectID, provider string) error {
+	ctx := context.TODO()
+	filter := bson.M{"userId": userId, "providerName": provider}
+	_, err := m.Collection.DeleteOne(ctx, filter)
+	if err != nil {
+		return fmt.Errorf("%s %v", "could not delete sync", err)
+	}
+
+	update := settings.UpdateSettingsModel{
+		UserId:       userId,
+		ProviderName: &provider,
+		Active:       false,
+	}
+
+	body, err := json.Marshal(update)
+	if err != nil {
+		return errors.ErrSessionNotFound
+	}
+
+	res, err := fetch.Fetch(
+		http.DefaultClient,
+		fetch.NewFetchRequest(
+			http.MethodPost,
+			fmt.Sprintf("%s/api/settings/update", os.Getenv("SETTINGS_SERVICE_BASE_URL")),
+			bytes.NewReader(body),
+			map[string]string{
+				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
+			},
+		),
+	)
+
+	if err != nil {
+		return err
+	}
+
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusCreated {
+		return fmt.Errorf("%s %v", "could not update setting", err)
+	}
+	return nil
+}

@@ -82,5 +82,6 @@ func Router(ctx context.Context) (*router.Router, error) {
 	server.Handle("GET /sync-with", http.HandlerFunc(handler.SyncWith))
 	server.Handle("GET /callback", http.HandlerFunc(handler.Callback))
 	server.Handle("GET /{user_id}/{provider}", middlewares(http.HandlerFunc(handler.GetByUserId)))
+	server.Handle("DELETE /{provider}", middlewares(http.HandlerFunc(handler.DeleteSync)))
 	return router.NewRouter("/api/sync", server), nil
 }
