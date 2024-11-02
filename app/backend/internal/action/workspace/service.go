@@ -374,10 +374,10 @@ func (m Model) WatchCompleted(ctx context.Context, watchCompleted WatchCompleted
 		},
 	}
 
-	update := bson.M{
-		"$set": bson.M{
-			"nodes.$.output": watchCompleted.Output,
-		},
+	update := bson.M{"$set": bson.M{}}
+
+	for k, v := range watchCompleted.Input {
+		update["$set"].(bson.M)[fmt.Sprintf("nodes.$.input.%s", k)] = v
 	}
 
 	// Perform the update

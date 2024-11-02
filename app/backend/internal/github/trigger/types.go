@@ -4,6 +4,12 @@ import (
 	"trigger.com/trigger/pkg/action"
 )
 
+type GithubWorkspaceCtx string
+
+const GithubCommitCtxKey GithubWorkspaceCtx = GithubWorkspaceCtx("GithubCommitCtxKey")
+
+const userIdCtxKey GithubWorkspaceCtx = GithubWorkspaceCtx("userIdCtxKey")
+
 type Service interface {
 	action.Trigger
 }
@@ -13,10 +19,4 @@ type Handler struct {
 }
 
 type Model struct {
-}
-
-type StopModel struct {
-	Owner  string `json:"owner"`
-	Repo   string `json:"repo"`
-	HookId string `json:"hookId"`
 }
