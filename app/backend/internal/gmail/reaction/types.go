@@ -19,6 +19,16 @@ type Handler struct {
 type Model struct {
 }
 
+type GoogleUser struct {
+	Sub           string `json:"sub"`
+	Name          string `json:"name"`
+	GivenName     string `json:"given_name"`
+	FamilyName    string `json:"family_name"`
+	Picture       string `json:"picture"`
+	Email         string `json:"email"`
+	EmailVerified bool   `json:"email_verified"`
+}
+
 type WatchBody struct {
 	LabelIds  []string `json:"labelIds"`
 	TopicName string   `json:"topicName"`

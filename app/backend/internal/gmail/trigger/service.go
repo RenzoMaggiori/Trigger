@@ -126,18 +126,7 @@ func (m Model) Webhook(ctx context.Context) error {
 		return err
 	}
 
-	var googleSession *session.SessionModel = nil
-	for _, session := range userSessions {
-		if *session.ProviderName == "google" {
-			googleSession = &session
-			break
-		}
-	}
-	if googleSession == nil {
-		return errors.ErrSessionNotFound
-	}
-
-	action, _, err := action.GetByActionNameRequest(googleSession.AccessToken, googleWatchActionName)
+	action, _, err := action.GetByActionNameRequest(userSessions[0].AccessToken, googleWatchActionName)
 	if err != nil {
 		return err
 	}
@@ -146,7 +135,7 @@ func (m Model) Webhook(ctx context.Context) error {
 		ActionId: action.Id,
 		Output:   map[string]string{},
 	}
-	_, err = workspace.ActionCompletedRequest(googleSession.AccessToken, update)
+	_, err = workspace.ActionCompletedRequest(userSessions[0].AccessToken, update)
 	if err != nil {
 		return err
 	}

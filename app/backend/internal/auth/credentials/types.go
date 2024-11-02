@@ -1,6 +1,8 @@
 package credentials
 
 import (
+	"context"
+
 	"trigger.com/trigger/internal/user"
 )
 
@@ -8,6 +10,7 @@ type Service interface {
 	Login(CredentialsModel) (string, error)
 	Register(RegisterModel) (string, error)
 	VerifyToken(string) error
+	Logout(ctx context.Context) error
 }
 
 type Handler struct {

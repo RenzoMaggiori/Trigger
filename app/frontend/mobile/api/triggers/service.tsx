@@ -3,13 +3,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export class TriggersService {
     static async getBaseUrl() {
-        return `http://${Env.IPV4}:${Env.ACTION_PORT}/api/action`;
+        return `http://${Env.IPV4}:${Env.ACTION_PORT}/api`;
     }
 
     static async getActions() {
         try {
             const baseUrl = await this.getBaseUrl();
-            const response = await  fetch (`${baseUrl}/`, {
+            const response = await  fetch (`${baseUrl}/action`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
@@ -64,19 +64,19 @@ export class TriggersService {
 
     static async addTrigger(trigger: any) {
         try {
-            const baseUrl = await this.getBaseUrl();
-            const response = await fetch(`${baseUrl}/create`, {
+            const baseUrl = this.getBaseUrl();
+            const token = await AsyncStorage.getItem('token');
+            const response = await fetch(`${baseUrl}/workspace/add`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(trigger),
             });
-
-            if (response.status !== 201) {
+            if (response.status !== 201 && response.status !== 200) {
                 console.log('add trigger failed', response.status);
-                throw new Error('Failed to add trigger');
+                throw new Error(`Failed to add trigger. Status: ${response.status}`);
             }
             const data = await response.json();
             console.log('[add trigger] success:', data);

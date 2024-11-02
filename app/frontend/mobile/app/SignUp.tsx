@@ -61,10 +61,11 @@ export default function SignUp() {
         }
     };
 
-    const technologies = [
+    const providers = [
         { name: 'google', icon: <Ionicons name="logo-google" size={30} color={Colors.light.google} /> },
-        { name: 'github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
-        { name: 'outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.outlook} /> },
+        { name: 'twitch', icon: <FontAwesome5 name="twitch" size={30} color={Colors.light.twitch} /> },
+        // { name: 'github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
+        // { name: 'outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.outlook} /> },
     ];
 
     const data = {
@@ -119,7 +120,7 @@ export default function SignUp() {
                     <Text style={styles.orText}>or</Text>
                     <View style={styles.line} />
                 </View>
-                {technologies.map((tech, index) => (
+                {providers.map((tech, index) => (
                     <ButtonIcon
                         key={index}
                         onPress={() => handleOpenAuth(tech.name)}

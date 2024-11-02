@@ -14,6 +14,7 @@ type Service interface {
 	SyncWith(gothUser goth.User, access_token string) (error)
 	Callback(gothUser goth.User, access_token string) (error)
 	ByUserId(userId primitive.ObjectID, provider string) (*SyncModel, error)
+	DeleteSync(userId primitive.ObjectID, provider string) error
 }
 
 type CtxKey string
