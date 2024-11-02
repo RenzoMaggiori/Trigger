@@ -19,10 +19,12 @@ type Service interface {
 	GetByUserId(context.Context, primitive.ObjectID) ([]WorkspaceModel, error)
 	GetByActionId(context.Context, primitive.ObjectID) ([]WorkspaceModel, error)
 	Add(context.Context, *AddWorkspaceModel) (*WorkspaceModel, error)
-	ActionCompleted(context.Context, ActionCompletedModel) ([]WorkspaceModel, error)
 	UpdateById(context.Context, primitive.ObjectID, *UpdateWorkspaceModel) (*WorkspaceModel, error)
-	WatchCompleted(context.Context, WatchCompletedModel) ([]WorkspaceModel, error)
-	// DeleteById(context.Context, primitive.ObjectID) error
+	ActionCompleted(context.Context, ActionCompletedModel) error
+	WatchCompleted(context.Context, WatchCompletedModel) error
+	Start(context.Context, primitive.ObjectID) (*WorkspaceModel, error)
+	Stop(context.Context, primitive.ObjectID) (*WorkspaceModel, error)
+	DeleteById(context.Context, primitive.ObjectID) error
 }
 
 type Handler struct {
@@ -93,7 +95,8 @@ type ActionCompletedModel struct {
 }
 
 type WatchCompletedModel struct {
-	UserId   primitive.ObjectID `json:"user_id"`
+	NodeId   string             `json:"node_id"`
 	ActionId primitive.ObjectID `json:"action_id"`
 	Input    map[string]string  `json:"input"`
+	Output   map[string]string  `json:"output"`
 }
