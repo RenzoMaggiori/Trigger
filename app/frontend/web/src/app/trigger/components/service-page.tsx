@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react";
 import { useMenu } from "@/app/trigger/components/MenuProvider";
 import { useMutation } from "@tanstack/react-query";
 import { send_workspace } from "@/app/trigger/lib/send-workspace";
+import { toast } from "sonner";
 
 interface ServicesProps {
   services: Service[];
@@ -22,7 +23,7 @@ export const ServicesComponent: React.FC<ServicesProps> = ({
   handleDragStart,
 }) => {
   const [loading, setLoading] = React.useState<boolean>(false);
-  const {triggerWorkspace, setTriggerWorkspace} = useMenu();
+  const { triggerWorkspace, setTriggerWorkspace } = useMenu();
 
   const mutation = useMutation({
     mutationFn: send_workspace,
@@ -41,7 +42,40 @@ export const ServicesComponent: React.FC<ServicesProps> = ({
       }
       setTriggerWorkspace({ id: data.id, nodes });
       setLoading(false);
+      toast("Workspace saved successfully", {
+        description: new Date().toLocaleString("en-US", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "numeric",
+          minute: "numeric",
+          hour12: true,
+        }),
+        action: {
+          label: "Undo",
+          onClick: () => console.log("Undo"),
+        },
+      })
     },
+    onError: () => {
+      setLoading(false);
+      toast("Error while saving the workspace", {
+        description: new Date().toLocaleString("en-US", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "numeric",
+          minute: "numeric",
+          hour12: true,
+        }),
+        action: {
+          label: "Undo",
+          onClick: () => console.log("Undo"),
+        },
+      })
+    }
   });
 
   const handleOnClick = () => {
@@ -56,10 +90,10 @@ export const ServicesComponent: React.FC<ServicesProps> = ({
 
           {services.map((item, key) => (
             <div
-            key={key}
-            draggable
-            onDragStart={(e) => handleDragStart(e, item)}
-            className="cursor-move"
+              key={key}
+              draggable
+              onDragStart={(e) => handleDragStart(e, item)}
+              className="cursor-move"
             >
               <TriggerDraggable service={item} className="w-[200px]" />
             </div>
@@ -73,7 +107,7 @@ export const ServicesComponent: React.FC<ServicesProps> = ({
             disabled={loading}
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Deploy Trigger
+            Save Trigger
           </Button>
         </CardContent>
       </Card>
