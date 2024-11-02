@@ -7,7 +7,6 @@ import (
 	"trigger.com/trigger/internal/github"
 	"trigger.com/trigger/internal/github/reaction"
 	"trigger.com/trigger/internal/github/trigger"
-	"trigger.com/trigger/internal/github/worker"
 	"trigger.com/trigger/pkg/arguments"
 	"trigger.com/trigger/pkg/middleware"
 	"trigger.com/trigger/pkg/router"
@@ -47,9 +46,6 @@ func main() {
 	}
 
 	go server.Start()
-	worker := worker.New(context.Background())
-	worker.Start()
 
 	server.Stop()
-	worker.Stop()
 }
