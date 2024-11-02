@@ -3,6 +3,7 @@ package sync
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -33,7 +34,7 @@ func Router(ctx context.Context) (*router.Router, error) {
 		},
 	}
 
-	callback := os.Getenv("SYNC_CALLBACK_URL")
+	callback := fmt.Sprintf("%s/api/sync/callback", os.Getenv("SERVER_BASE_URL"))
 	CreateProvider(
 		google.New(
 			os.Getenv("GOOGLE_CLIENT_ID"),
@@ -49,6 +50,8 @@ func Router(ctx context.Context) (*router.Router, error) {
 			os.Getenv("GITHUB_KEY"),
 			os.Getenv("GITHUB_SECRET"),
 			callback,
+			"repo",
+			"write:repo_hook",
 		),
 		discord.New(
 			os.Getenv("DISCORD_KEY"),
