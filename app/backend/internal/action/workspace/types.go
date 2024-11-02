@@ -86,9 +86,10 @@ type UpdateWorkspaceModel struct {
 }
 
 type ActionCompletedModel struct {
-	ActionId primitive.ObjectID `json:"action_id"`
-	UserId   primitive.ObjectID `json:"user_id"`
-	Output   map[string]string  `json:"output"`
+	ActionId    primitive.ObjectID  `json:"action_id"`
+	Output      map[string]string   `json:"output"`
+	WorkspaceId *primitive.ObjectID `json:"workspace_id"`
+	NodeId      *string             `json:"node_id,omitempty"`
 }
 
 type WatchCompletedModel struct {
