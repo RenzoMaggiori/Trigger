@@ -33,7 +33,7 @@ var (
 		"WEB_PORT",
 		"DISCORD_KEY",
 		"DISCORD_SECRET",
-		"AUTH_CALLBACK_URL",
+		"SERVER_BASE_URL",
 	}
 )
 

@@ -1,11 +1,9 @@
 package reaction
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"fmt"
-	"net/http"
+
+	githubClient "github.com/google/go-github/v66/github"
 
 	"trigger.com/trigger/internal/action/workspace"
 	"trigger.com/trigger/internal/github"
@@ -14,7 +12,6 @@ import (
 
 	"trigger.com/trigger/pkg/auth/oaclient"
 	"trigger.com/trigger/pkg/errors"
-	"trigger.com/trigger/pkg/fetch"
 	"trigger.com/trigger/pkg/middleware"
 )
 
@@ -43,37 +40,36 @@ func (m Model) Reaction(ctx context.Context, actionNode workspace.ActionNodeMode
 		return err
 	}
 
-	owner := actionNode.Input["owner"]
-	repo := actionNode.Input["repo"]
-	body, err := json.Marshal(map[string]any{
-		"title":     "Reaction Title",
-		"body":      "Reaction Body",
-		"assignees": []string{owner},
-		"milestone": 1,
-		"labels":    []string{"bug"},
-	})
+	ghClient := githubClient.NewClient(client)
+	githubUser, _, err := ghClient.Users.Get(ctx, "")
 	if err != nil {
 		return err
 	}
 
-	res, err := fetch.Fetch(
-		client,
-		fetch.NewFetchRequest(
-			http.MethodPost,
-			fmt.Sprintf("%s/repos/%s/%s/issues", githuBaseUrl, owner, repo),
-			bytes.NewReader(body),
-			map[string]string{
-				"Accept":               "application/vnd.github+json",
-				"X-GitHub-Api-Version": "2022-11-28",
-			},
-		),
-	)
+	owner := *githubUser.Login
+	repo, ok := actionNode.Input["repo"]
+	if !ok {
+		return errors.ErrInvalidReactionInput
+	}
+
+	title, ok := actionNode.Input["title"]
+	if !ok {
+		return errors.ErrInvalidReactionInput
+	}
+
+	body, ok := actionNode.Input["description"]
+	if !ok {
+		return errors.ErrInvalidReactionInput
+	}
+
+	labels := []string{"bug"}
+	_, _, err = ghClient.Issues.Create(ctx, owner, repo, &githubClient.IssueRequest{
+		Title:  &title,
+		Body:   &body,
+		Labels: &labels,
+	})
 	if err != nil {
 		return err
-	}
-	defer res.Body.Close()
-	if res.StatusCode >= 400 {
-		return fmt.Errorf("%w: received %s", errors.ErrInvalidGithubStatus, res.Status)
 	}
 	return nil
 }

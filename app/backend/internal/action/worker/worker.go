@@ -37,7 +37,7 @@ var (
 			Provider: "github",
 			Type:     "reaction",
 			Action:   "create_issue",
-			Input:    []string{"owner", "repo", "title", "description"},
+			Input:    []string{"repo", "title", "description"},
 			Output:   []string{},
 		},
 		{
@@ -87,6 +87,20 @@ var (
 			Type:     "reaction",
 			Action:   "send_chat_message",
 			Input:    []string{},
+			Output:   []string{},
+		},
+		{
+			Provider: "discord",
+			Type:     "trigger",
+			Action:   "watch_channel_message",
+			Input:    []string{"channel_id"},
+			Output:   []string{"content", "author_id", "author_username"},
+		},
+		{
+			Provider: "discord",
+			Type:     "reaction",
+			Action:   "send_channel_message",
+			Input:    []string{"channel_id", "content"},
 			Output:   []string{},
 		},
 	}

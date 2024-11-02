@@ -1,4 +1,4 @@
-package action
+package discord
 
 import (
 	"fmt"
@@ -8,28 +8,26 @@ import (
 )
 
 /*
-** This defines the expected enviroment variables for the User Service
+** This defines the expected enviroment variables for the Discord Service
  */
 
 var (
-	errEnvNotFound      string     = "Enviroment argument %s not found"
-	enviromentArguments [16]string = [...]string{
+	errEnvNotFound      string    = "Enviroment argument %s not found"
+	enviromentArguments [14]string = [...]string{
 		"MONGO_INITDB_ROOT_USERNAME",
 		"MONGO_INITDB_ROOT_PASSWORD",
 		"MONGO_PORT",
 		"MONGO_HOST",
 		"MONGO_DB",
-		"AUTH_SERVICE_BASE_URL",
-		"USER_SERVICE_BASE_URL",
 		"SESSION_SERVICE_BASE_URL",
-		"GMAIL_SERVICE_BASE_URL",
 		"SYNC_SERVICE_BASE_URL",
-		"GITHUB_SERVICE_BASE_URL",
-		"SPOTIFY_SERVICE_BASE_URL",
-		"TWITCH_SERVICE_BASE_URL",
-		"TIMER_SERVICE_BASE_URL",
-		"DISCORD_SERVICE_BASE_URL",
+		"USER_SERVICE_BASE_URL",
 		"ACTION_SERVICE_BASE_URL",
+		"ADMIN_TOKEN",
+		"DISCORD_KEY",
+		"DISCORD_SECRET",
+		"BOT_TOKEN",
+		"AUTH_SERVICE_BASE_URL",
 	}
 )
 
