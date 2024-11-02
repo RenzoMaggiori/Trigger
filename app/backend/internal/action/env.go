@@ -13,7 +13,7 @@ import (
 
 var (
 	errEnvNotFound      string     = "Enviroment argument %s not found"
-	enviromentArguments [15]string = [...]string{
+	enviromentArguments [16]string = [...]string{
 		"MONGO_INITDB_ROOT_USERNAME",
 		"MONGO_INITDB_ROOT_PASSWORD",
 		"MONGO_PORT",
@@ -29,6 +29,7 @@ var (
 		"TWITCH_SERVICE_BASE_URL",
 		"TIMER_SERVICE_BASE_URL",
 		"DISCORD_SERVICE_BASE_URL",
+		"ACTION_SERVICE_BASE_URL",
 	}
 )
 

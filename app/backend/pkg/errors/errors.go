@@ -17,7 +17,8 @@ var (
 	ErrNodeNotFound                error = errors.New("action node not found")
 	ErrAuthorizationHeaderNotFound error = errors.New("authorization header not found")
 	ErrSyncNotFound             error = errors.New("sync not found")
-
+	ErrCollectionNotFound          error = errors.New("collection not found")
+  
 	// Bad Request Errors
 	ErrBadWorkspaceId        error = errors.New("bad workspace id")
 	ErrBadUserId             error = errors.New("bad user id")
@@ -102,7 +103,13 @@ var (
 	// State
 	ErrMalformedState error = errors.New("malformed state")
 
-	ErrCodes map[error]customerror.CustomError = map[error]customerror.CustomError{
+	//Github
+	ErrGithubUserInfo       error                             = errors.New("could not get github user info")
+	ErrGithubCommitInfo     error                             = errors.New("could not get github commit info")
+	ErrGithubSendingWebhook error                             = errors.New("error while sending github webhook")
+	ErrGithubCommitData     error                             = errors.New("error getting github commit data")
+ 
+	ErrCodes                map[error]customerror.CustomError = map[error]customerror.CustomError{
 		ErrWorkspaceNotFound: {
 			Message: ErrWorkspaceNotFound.Error(),
 			Code:    http.StatusNotFound,
@@ -361,6 +368,25 @@ var (
 		},
 		ErrDeleteDiscordSession: {
 			Message: ErrDeleteDiscordSession.Error(),
+    }
+		ErrCollectionNotFound: {
+			Message: ErrCollectionNotFound.Error(),
+			Code:    http.StatusNotFound,
+		},
+		ErrGithubUserInfo: {
+			Message: ErrGithubUserInfo.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrGithubCommitInfo: {
+			Message: ErrGithubCommitInfo.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrGithubSendingWebhook: {
+			Message: ErrGithubSendingWebhook.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrGithubCommitData: {
+			Message: ErrGithubCommitData.Error(),
 			Code:    http.StatusInternalServerError,
 		},
 	}

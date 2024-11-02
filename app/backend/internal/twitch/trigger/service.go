@@ -54,7 +54,7 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 		},
 		Transport: ChannelFollowTransport{
 			Method:   "webhook",
-			Callback: fmt.Sprintf("%s/api/twitch/trigger/webhook?userId=%s", os.Getenv("TWITCH_BASE_URL"), triggerUser.Id.String()),
+			Callback: fmt.Sprintf("%s/api/twitch/trigger/webhook?userId=%s", os.Getenv("SERVER_BASE_URL"), triggerUser.Id.String()),
 			Secret:   os.Getenv("TWITCH_CLIENT_SECRET"),
 		},
 	}

@@ -37,7 +37,7 @@ var (
 			Provider: "github",
 			Type:     "reaction",
 			Action:   "create_issue",
-			Input:    []string{"owner", "repo", "title", "description"},
+			Input:    []string{"repo", "title", "description"},
 			Output:   []string{},
 		},
 		{
