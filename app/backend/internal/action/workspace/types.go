@@ -98,4 +98,5 @@ type WatchCompletedModel struct {
 	NodeId   string             `json:"node_id"`
 	ActionId primitive.ObjectID `json:"action_id"`
 	Input    map[string]string  `json:"input"`
+	Output   map[string]string  `json:"output"`
 }
