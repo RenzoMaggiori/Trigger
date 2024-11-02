@@ -9,9 +9,11 @@ import (
 
 	"github.com/markbates/goth/gothic"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"trigger.com/trigger/internal/session"
 	customerror "trigger.com/trigger/pkg/custom-error"
 	"trigger.com/trigger/pkg/encode"
 	"trigger.com/trigger/pkg/errors"
+	"trigger.com/trigger/pkg/middleware"
 )
 
 func (h *Handler) SyncWith(w http.ResponseWriter, r *http.Request) {
@@ -60,6 +62,11 @@ func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if user.Provider == "discord" {
+		guildID := r.URL.Query().Get("guild_id")
+		user.RawData["guild_id"] = guildID
+	}
+
 	err = h.Service.Callback(user, access_token)
 	if err != nil {
 		log.Println(err)
@@ -90,4 +97,26 @@ func (h *Handler) GetByUserId(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+}
+
+func (h *Handler) DeleteSync(w http.ResponseWriter, r *http.Request) {
+	provider := r.PathValue("provider")
+	token, ok := r.Context().Value(middleware.TokenCtxKey).(string)
+	if !ok {
+		customerror.Send(w, errors.ErrAccessTokenCtx, errors.ErrCodes)
+		return
+	}
+
+	s, _, err := session.GetSessionByAccessTokenRequest(token)
+	if err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+
+
+	err = h.Service.DeleteSync(s.UserId, provider)
+	if err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
 }

@@ -99,7 +99,6 @@ export default function TriggerScreen() {
     const saveTrigger = (actionIndex: number) => {
         const flowItem = flow[actionIndex];
         const formattedData = transformFlowItemToApiFormat(flowItem);
-        console.log("Trigger:", JSON.stringify(formattedData, null, 2));
         TriggersService.addTrigger(formattedData);
         removeAction(actionIndex);
     };

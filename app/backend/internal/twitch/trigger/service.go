@@ -81,22 +81,9 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 	}
 	defer res.Body.Close()
 	if res.StatusCode >= 400 {
-		return errors.ErrGmailWatch
+		return errors.ErrTwitchWatch
 	}
 
-	session, _, err := session.GetSessionByAccessTokenRequest(accessToken)
-	if err != nil {
-		return err
-	}
-
-	watchCompleted := workspace.WatchCompletedModel{
-		ActionId: actionNode.ActionId,
-		UserId:   session.UserId,
-	}
-	_, _, err = workspace.WatchCompletedRequest(accessToken, watchCompleted)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 

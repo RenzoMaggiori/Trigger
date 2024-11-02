@@ -1,4 +1,4 @@
-# Use Node.js 18 with Debian Bullseye as the base image for amd64
+# Use Node.js 18 with Debian Bullseye as the base image
 FROM node:18-bullseye
 
 # Set environment variables for Android SDK
@@ -10,13 +10,14 @@ ENV PATH=${PATH}:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT
 RUN apt-get update && apt-get install -y openjdk-17-jdk wget unzip
 
 # Create directories for Android SDK
-RUN mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools/latest
+RUN mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools
 
 # Download and extract Android command-line tools
 RUN wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O /tmp/commandlinetools.zip \
-    && unzip /tmp/commandlinetools.zip -d /tmp/ \
-    && mv /tmp/cmdline-tools/* ${ANDROID_SDK_ROOT}/cmdline-tools/latest/ \
-    && rm -rf /tmp/cmdline-tools /tmp/commandlinetools.zip
+    && unzip /tmp/commandlinetools.zip -d /tmp/android-sdk-tmp \
+    && rm /tmp/commandlinetools.zip \
+    && mv /tmp/android-sdk-tmp/cmdline-tools ${ANDROID_SDK_ROOT}/cmdline-tools/latest \
+    && rm -rf /tmp/android-sdk-tmp
 
 # Accept Android SDK licenses
 RUN yes | sdkmanager --licenses
@@ -34,30 +35,19 @@ COPY ./frontend/mobile/ /app
 # Install project dependencies
 RUN npm install
 
-# Set environment variables
-# ENV GRADLE_OPTS="-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8"
-
 # Ensure gradlew has execute permissions
-# RUN chmod +x /app/android/gradlew
+RUN chmod +x /app/android/gradlew
 
-# Clean the project before building
-# RUN cd android && ./gradlew clean
+# Build the APK
+RUN cd android && ./gradlew assembleRelease
 
-# Build the APK with detailed logs and disable parallel execution
-# RUN cd android && ./gradlew assembleRelease --no-daemon --no-parallel --stacktrace --info
+RUN mkdir -p /shared
 
-# To generate all the Android and IOS files
-RUN npx expo prebuild
+# Copy the generated APK to the shared directory
+RUN cp android/app/build/outputs/apk/release/app-release.apk /shared/client.apk
 
-# If you want to sign the APK and publish to Google Play Store.
-RUN npx react-native build-android --mode=release
+# Declare a shared volume (placed after copying)
+VOLUME ["/shared"]
 
-# Create a directory to store the built APK and copy it there
-RUN mkdir -p /app/dist
-RUN cp /app/android/app/build/outputs/apk/release/app-release.apk /app/dist/
-
-# Install a simple HTTP server to serve the APK
-RUN npm install -g http-server
-
+# Keep the container running
 CMD ["tail", "-f", "/dev/null"]
-

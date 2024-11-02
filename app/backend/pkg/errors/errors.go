@@ -16,7 +16,9 @@ var (
 	ErrGithubStopModelNotFound     error = errors.New("github stop model not found")
 	ErrNodeNotFound                error = errors.New("action node not found")
 	ErrAuthorizationHeaderNotFound error = errors.New("authorization header not found")
+	ErrSyncNotFound                error = errors.New("sync not found")
 	ErrCollectionNotFound          error = errors.New("collection not found")
+
 	// Bad Request Errors
 	ErrBadWorkspaceId        error = errors.New("bad workspace id")
 	ErrBadUserId             error = errors.New("bad user id")
@@ -26,12 +28,14 @@ var (
 	ErrInvalidReactionInput  error = errors.New("invalid reaction input")
 	ErrInvalidReactionOutput error = errors.New("invalid reaction output")
 	ErrNoTokenInRequest      error = errors.New("token could not be found in the request")
+
 	// Decyphering Errors
 	ErrActionTypeNone       error = errors.New("could not decypher action type")
 	ErrActionNodeTypeNone   error = errors.New("could not decypher action node type")
 	ErrUserTypeNone         error = errors.New("could not decypher user type")
 	ErrGmailHistoryTypeNone error = errors.New("could not decypher gmail history type")
 	ErrHistoryInt           error = errors.New("error converting historyto a number")
+
 	// Context Errors
 	ErrAccessTokenCtx error = errors.New("could not retrieve access token from context")
 	ErrEventCtx       error = errors.New("could not retrieve event")
@@ -40,6 +44,8 @@ var (
 	ErrCreatingWorkspace error = errors.New("error while creating workspace")
 	ErrCreatingSession   error = errors.New("error while creating session")
 	ErrCreatingEmail     error = errors.New("failed to create raw email")
+	ErrCreatingSync      error = errors.New("failed to create a new sync")
+	ErrCreatingSetting   error = errors.New("failed to create a new setting")
 	ErrCreatingNode      error = errors.New("failed to create workspace node")
 
 	// Updating Errors
@@ -49,10 +55,11 @@ var (
 	ErrSettingAction         error = errors.New("error while setting trigger or reaction")
 	ErrCompletingAction      error = errors.New("error while completing action")
 	ErrCompletingWatchAction error = errors.New("error while completing watch action")
-
+	ErrStopingWorkspace      error = errors.New("error while stopping workspace")
 	// Retrieval/Fetching Errors
 	ErrFetchingSession        error = errors.New("error while retrieving session")
 	ErrFetchingActions        error = errors.New("error while retrieving actions")
+	ErrFetchingSync           error = errors.New("error while retrieving sync")
 	ErrActionProviderNotFound error = errors.New("could not find action provider")
 
 	// Email Errors
@@ -69,6 +76,8 @@ var (
 	ErrTwitchAppAccessToken   error = errors.New("error while fetching twitch app access token")
 	ErrTwitchSendMessage      error = errors.New("error while sending twitch channel message")
 	ErrWebhookVerificationCtx error = errors.New("could not find webhook verification in ctx")
+	ErrTwitchWatch            error = errors.New("error while watching twitch")
+
 	// Sync Errors
 	ErrSyncAccessTokenNotFound error = errors.New("error could not find sync access token")
 	ErrSyncModelTypeNone       error = errors.New("error could not decode sync model")
@@ -79,15 +88,33 @@ var (
 	// Webhook
 	ErrBadWebhookData error = errors.New("could not parse the webhook data")
 
+	// DATA
+	ErrMarshalData error = errors.New("could not marshal data")
+	ErrDecodeData  error = errors.New("could not decode data")
+
+	// Discord
+	ErrDiscordGuilds              error = errors.New("could not retrieve guilds")
+	ErrDiscordMe                  error = errors.New("could not retrieve user/@me data")
+	ErrCreateDiscordGoSession     error = errors.New("could not create discord session")
+	ErrOpeningDiscordConnection   error = errors.New("error opening discord connection")
+	ErrBotAlreadyRunning          error = errors.New("bot is already running for this user")
+	ErrBotNotRunning              error = errors.New("bot is not running for this user")
+	ErrDiscordUserSessionNotFound error = errors.New("discord user session not found")
+	ErrGuildIdNotFound            error = errors.New("guild id not found")
+	ErrAddDiscordSession          error = errors.New("error storing discord session in db")
+	ErrUpdateDiscordSession       error = errors.New("error updating discord session in db")
+	ErrDeleteDiscordSession       error = errors.New("error deleting discord session in db")
+
 	// State
 	ErrMalformedState error = errors.New("malformed state")
 
 	//Github
-	ErrGithubUserInfo       error                             = errors.New("could not get github user info")
-	ErrGithubCommitInfo     error                             = errors.New("could not get github commit info")
-	ErrGithubSendingWebhook error                             = errors.New("error while sending github webhook")
-	ErrGithubCommitData     error                             = errors.New("error getting github commit data")
-	ErrCodes                map[error]customerror.CustomError = map[error]customerror.CustomError{
+	ErrGithubUserInfo       error = errors.New("could not get github user info")
+	ErrGithubCommitInfo     error = errors.New("could not get github commit info")
+	ErrGithubSendingWebhook error = errors.New("error while sending github webhook")
+	ErrGithubCommitData     error = errors.New("error getting github commit data")
+
+	ErrCodes map[error]customerror.CustomError = map[error]customerror.CustomError{
 		ErrWorkspaceNotFound: {
 			Message: ErrWorkspaceNotFound.Error(),
 			Code:    http.StatusNotFound,
@@ -276,6 +303,78 @@ var (
 			Message: ErrActionProviderNotFound.Error(),
 			Code:    http.StatusNotFound,
 		},
+		ErrSyncNotFound: {
+			Message: ErrSyncNotFound.Error(),
+			Code:    http.StatusNotFound,
+		},
+		ErrCreatingSync: {
+			Message: ErrCreatingSync.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrFetchingSync: {
+			Message: ErrFetchingSync.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrMarshalData: {
+			Message: ErrMarshalData.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrCreatingSetting: {
+			Message: ErrCreatingSetting.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrMarshalData: {
+			Message: ErrMarshalData.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrDecodeData: {
+			Message: ErrDecodeData.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrDiscordGuilds: {
+			Message: ErrDiscordGuilds.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrDiscordMe: {
+			Message: ErrDiscordMe.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrGuildIdNotFound: {
+			Message: ErrGuildIdNotFound.Error(),
+			Code:    http.StatusNotFound,
+		},
+		ErrCreateDiscordGoSession: {
+			Message: ErrCreateDiscordGoSession.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrOpeningDiscordConnection: {
+			Message: ErrOpeningDiscordConnection.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrBotAlreadyRunning: {
+			Message: ErrBotAlreadyRunning.Error(),
+			Code:    http.StatusConflict,
+		},
+		ErrBotNotRunning: {
+			Message: ErrBotNotRunning.Error(),
+			Code:    http.StatusConflict,
+		},
+		ErrDiscordUserSessionNotFound: {
+			Message: ErrDiscordUserSessionNotFound.Error(),
+			Code:    http.StatusNotFound,
+		},
+		ErrAddDiscordSession: {
+			Message: ErrAddDiscordSession.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrUpdateDiscordSession: {
+			Message: ErrUpdateDiscordSession.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrDeleteDiscordSession: {
+			Message: ErrDeleteDiscordSession.Error(),
+			Code:    http.StatusInternalServerError,
+		},
 		ErrCollectionNotFound: {
 			Message: ErrCollectionNotFound.Error(),
 			Code:    http.StatusNotFound,
@@ -294,6 +393,14 @@ var (
 		},
 		ErrGithubCommitData: {
 			Message: ErrGithubCommitData.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrStopingWorkspace: {
+			Message: ErrStopingWorkspace.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrTwitchWatch: {
+			Message: ErrTwitchWatch.Error(),
 			Code:    http.StatusInternalServerError,
 		},
 	}

@@ -80,6 +80,11 @@ func (m Model) Callback(gothUser goth.User, access_token string) error {
 		}
 	}
 
+	dd := &DiscordData{}
+	if gothUser.Provider == "discord" {
+		dd.GuildId = gothUser.RawData["guild_id"].(string)
+	}
+
 	newSync := SyncModel{
 		Id:           primitive.NewObjectID(),
 		UserId:       user.Id,
@@ -88,6 +93,7 @@ func (m Model) Callback(gothUser goth.User, access_token string) error {
 		RefreshToken: &gothUser.RefreshToken,
 		Expiry:       gothUser.ExpiresAt,
 		IdToken:      &gothUser.IDToken,
+		DiscordData:  dd,
 	}
 
 	ctx := context.TODO()
@@ -135,11 +141,53 @@ func (m Model) Callback(gothUser goth.User, access_token string) error {
 	return nil
 }
 
-func (m Model) ByUserId(userId primitive.ObjectID, provider string) (SyncModel, error) {
+func (m Model) ByUserId(userId primitive.ObjectID, provider string) (*SyncModel, error) {
 	var sync SyncModel
 	err := m.Collection.FindOne(context.TODO(), bson.M{"userId": userId, "providerName": provider}).Decode(&sync)
 	if err != nil {
-		return sync, fmt.Errorf("%s %v", "could not find sync", err)
+		return nil, fmt.Errorf("%s %v", "could not find sync", err)
 	}
-	return sync, nil
+	return &sync, nil
+}
+
+func (m Model) DeleteSync(userId primitive.ObjectID, provider string) error {
+	ctx := context.TODO()
+	filter := bson.M{"userId": userId, "providerName": provider}
+	_, err := m.Collection.DeleteOne(ctx, filter)
+	if err != nil {
+		return fmt.Errorf("%s %v", "could not delete sync", err)
+	}
+
+	update := settings.UpdateSettingsModel{
+		UserId:       userId,
+		ProviderName: &provider,
+		Active:       false,
+	}
+
+	body, err := json.Marshal(update)
+	if err != nil {
+		return errors.ErrSessionNotFound
+	}
+
+	res, err := fetch.Fetch(
+		http.DefaultClient,
+		fetch.NewFetchRequest(
+			http.MethodPost,
+			fmt.Sprintf("%s/api/settings/update", os.Getenv("SETTINGS_SERVICE_BASE_URL")),
+			bytes.NewReader(body),
+			map[string]string{
+				"Authorization": fmt.Sprintf("Bearer %s", os.Getenv("ADMIN_TOKEN")),
+			},
+		),
+	)
+
+	if err != nil {
+		return err
+	}
+
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusCreated {
+		return fmt.Errorf("%s %v", "could not update setting", err)
+	}
+	return nil
 }

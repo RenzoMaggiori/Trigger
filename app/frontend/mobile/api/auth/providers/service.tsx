@@ -28,7 +28,7 @@ export class ProvidersService {
                 const session = await SessionService.getSessionByAccessToken(token);
                 const user = await UserService.getUserById(session.user_id);
                 await AsyncStorage.setItem('user', JSON.stringify(user));
-
+                await AsyncStorage.setItem(provider, 'true');
             } else if (result.type === 'cancel') {
                 throw new Error('Browser Canceled');
             } else if (result.type === 'dismiss') {

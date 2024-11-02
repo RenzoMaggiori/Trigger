@@ -8,7 +8,8 @@ import (
 type Service interface {
 	GetById(primitive.ObjectID) (*SettingsResponseModel, error)
 	GetByUserId(primitive.ObjectID) ([]SettingsResponseModel, error)
-	Add(*AddSettingsModel) (error)
+	Add(*AddSettingsModel) error
+	Update(updateSettings *UpdateSettingsModel) error
 }
 
 type Handler struct {
@@ -33,10 +34,12 @@ type AddSettingsModel struct {
 }
 
 type UpdateSettingsModel struct {
+	UserId       primitive.ObjectID `json:"userId" bson:"userId"`
+	ProviderName *string            `json:"providerName,omitempty" bson:"providerName,omitempty"`
 	Active       bool               `json:"active" bson:"active"`
 }
 
 type SettingsResponseModel struct {
-	ProviderName *string            `json:"providerName,omitempty" bson:"providerName,omitempty"`
-	Active       bool               `json:"active" bson:"active"`
+	ProviderName *string `json:"providerName,omitempty" bson:"providerName,omitempty"`
+	Active       bool    `json:"active" bson:"active"`
 }
