@@ -176,6 +176,16 @@ func (m Model) updateNodeById(ctx context.Context, workspaceId primitive.ObjectI
 }
 
 func (m Model) UpdateById(ctx context.Context, workspaceId primitive.ObjectID, update *UpdateWorkspaceModel) (*WorkspaceModel, error) {
+	if update.Name != nil {
+		_, err := m.Collection.UpdateOne(ctx, bson.M{"_id": workspaceId}, bson.M{
+			"$set": bson.M{
+				"name": *update.Name,
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	for _, node := range update.Nodes {
 		_, err := m.updateNodeById(ctx, workspaceId, node)
@@ -269,6 +279,7 @@ func (m Model) Add(ctx context.Context, add *AddWorkspaceModel) (*WorkspaceModel
 	newWorkspace := WorkspaceModel{
 		Id:     primitive.NewObjectID(),
 		UserId: session.UserId,
+		Name:   add.Name,
 		Nodes:  make([]ActionNodeModel, 0),
 	}
 
