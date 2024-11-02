@@ -7,7 +7,6 @@ import (
 	"github.com/mitchellh/mapstructure"
 	"trigger.com/trigger/internal/action/action"
 	"trigger.com/trigger/internal/action/workspace"
-	"trigger.com/trigger/internal/user"
 	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/middleware"
 )
@@ -27,11 +26,6 @@ func (m Model) Webhook(ctx context.Context) error {
 		return errors.ErrEventCtx
 	}
 
-	user, _, err := user.GetUserByAccesstokenRequest(token)
-	if err != nil {
-		return err
-	}
-
 	action, _, err := action.GetByActionNameRequest(token, event.Type)
 	if err != nil {
 		return err
@@ -49,7 +43,6 @@ func (m Model) Webhook(ctx context.Context) error {
 		}
 
 		_, err := workspace.ActionCompletedRequest(token, workspace.ActionCompletedModel{
-			UserId:   user.Id,
 			ActionId: action.Id,
 			Output: map[string]string{
 				"followerCount": strconv.Itoa(followers.Followers),

@@ -6,7 +6,6 @@ import (
 
 	"trigger.com/trigger/internal/action/action"
 	"trigger.com/trigger/internal/action/workspace"
-	"trigger.com/trigger/internal/user"
 	"trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/middleware"
 )
@@ -26,18 +25,12 @@ func (m Model) Webhook(ctx context.Context) error {
 		return errors.ErrEventCtx
 	}
 
-	user, _, err := user.GetUserByAccesstokenRequest(token)
-	if err != nil {
-		return err
-	}
-
 	action, _, err := action.GetByActionNameRequest(token, event.Name)
 	if err != nil {
 		return err
 	}
 
 	_, err = workspace.ActionCompletedRequest(token, workspace.ActionCompletedModel{
-		UserId:   user.Id,
 		ActionId: action.Id,
 		Output: map[string]string{
 			"datetime": event.DateTime.Format(time.RFC850),

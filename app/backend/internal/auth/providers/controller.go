@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"net/http"
 	"time"
+	"fmt"
 
 	"github.com/markbates/goth/gothic"
 	customerror "trigger.com/trigger/pkg/custom-error"
@@ -68,8 +69,9 @@ func (h *Handler) Callback(w http.ResponseWriter, r *http.Request) {
 		Secure:   false, // TODO: true when in production
 		Expires:  time.Now().Add(24 * time.Hour),
 	}
+	redirectWithToken := fmt.Sprintf("%s?token=%s", redirectUrl, accessToken)
 	http.SetCookie(w, cookie)
-	http.Redirect(w, r, redirectUrl, http.StatusPermanentRedirect)
+	http.Redirect(w, r, redirectWithToken, http.StatusPermanentRedirect)
 }
 
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
