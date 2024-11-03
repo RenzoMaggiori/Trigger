@@ -50,6 +50,7 @@ export default function SignIn() {
         { name: 'google', icon: <Ionicons name="logo-google" size={30} color={Colors.light.google} />},
         { name: 'twitch', icon: <Ionicons name="logo-twitch" size={30} color={Colors.light.twitch} /> },
         { name: 'spotify', icon: <FontAwesome5 name="spotify" size={30} color={Colors.light.spotify} /> },
+        { name: 'discord', icon: <FontAwesome5 name="discord" size={30} color={Colors.light.discord} /> },
         // { name: 'github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
         // { name: 'outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.outlook} /> },
     ];

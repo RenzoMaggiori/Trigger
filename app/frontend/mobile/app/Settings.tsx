@@ -14,6 +14,7 @@ const providers = [
     { name: 'discord', icon: <FontAwesome5 name="discord" size={30} color={Colors.light.discord} /> },
     { name: 'spotify', icon: <FontAwesome5 name="spotify" size={30} color={Colors.light.spotify} /> },
     { name: 'github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
+    { name: 'bitbucket', icon: <FontAwesome5 name="bitbucket" size={30} color={Colors.light.bitbucket} /> },
 ];
 
 export default function Settings() {

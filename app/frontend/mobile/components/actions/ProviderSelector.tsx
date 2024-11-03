@@ -12,8 +12,10 @@ const providers = [
     { name: 'gmail', icon: <MaterialCommunityIcons name="gmail" size={30} color={Colors.light.google} /> },
     { name: 'github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
     { name: 'spotify', icon: <FontAwesome5 name="spotify" size={30} color={Colors.light.spotify} /> },
+    { name: 'timer', icon: <MaterialCommunityIcons name="timer" size={30} color={Colors.light.timer} /> },
     { name: 'twitch', icon: <Ionicons name="logo-twitch" size={30} color={Colors.light.twitch} /> },
     { name: 'discord', icon: <FontAwesome5 name="discord" size={30} color={Colors.light.discord} /> },
+    { name: 'bitbucket', icon: <FontAwesome5 name="bitbucket" size={30} color={Colors.light.bitbucket} /> },
 ];
 
 export default function ProviderSelector({ onProviderSelect }: ProviderSelectorProps) {
