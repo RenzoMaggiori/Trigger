@@ -10,5 +10,5 @@ export async function sync(provider: string) {
     throw new Error("could not get access token");
   }
 
-  return `${env.NEXT_PUBLIC_SYNC_SERVICE_URL}/api/sync/sync-with?provider=${provider}&redirect=${redirect}&token=${accessToken}`
+  return `${env.NEXT_PUBLIC_SERVER_URL}/api/sync/sync-with?provider=${provider}&redirect=${redirect}&token=${accessToken}`
 }

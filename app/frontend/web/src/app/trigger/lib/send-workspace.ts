@@ -8,9 +8,8 @@ import { triggerSchema } from "@/app/home/lib/types";
 export async function send_workspace(triggerWorkspace: TriggerWorkspace) {
   const access_token = cookies().get("Authorization")?.value;
 
-  console.log(triggerWorkspace.id)
   const res = await fetch(
-    `${env.NEXT_PUBLIC_ACTION_SERVICE_URL}/api/workspace/id/${triggerWorkspace.id}`,
+    `${env.NEXT_PUBLIC_SERVER_URL}/api/workspace/id/${triggerWorkspace.id}`,
     {
       method: "PATCH",
       headers: {
@@ -35,7 +34,6 @@ export async function send_workspace(triggerWorkspace: TriggerWorkspace) {
   }
 
   const body = await res.json()
-  console.log(body)
   const { data, error } = triggerSchema.safeParse(body);
   if (error) {
     console.error(error);

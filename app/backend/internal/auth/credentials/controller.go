@@ -2,7 +2,6 @@ package credentials
 
 import (
 	"net/http"
-	"os"
 	"time"
 
 	customerror "trigger.com/trigger/pkg/custom-error"
@@ -27,25 +26,26 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expires, err := jwt.Expiry(
+	w.Header().Set("Authorization", accessToken)
+	/* expires, err := jwt.Expiry(
 		accessToken,
 		os.Getenv("TOKEN_SECRET"),
 	)
 	if err != nil {
 		customerror.Send(w, err, errCodes)
 		return
-	}
+	} */
 
-	cookie := &http.Cookie{
+	/* cookie := &http.Cookie{
 		Name:     authCookieName,
 		Value:    accessToken,
-		HttpOnly: true,
+		HttpOnly: false,
 		SameSite: http.SameSiteLaxMode,
 		Path:     "/",
 		Secure:   false, // TODO: true when in production
 		Expires:  expires,
 	}
-	http.SetCookie(w, cookie)
+	http.SetCookie(w, cookie) */
 }
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
@@ -65,7 +65,9 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expires, err := jwt.Expiry(
+	w.Header().Set("Authorization", accessToken)
+
+	/* expires, err := jwt.Expiry(
 		accessToken,
 		os.Getenv("TOKEN_SECRET"),
 	)
@@ -77,13 +79,13 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	cookie := &http.Cookie{
 		Name:     authCookieName,
 		Value:    accessToken,
-		HttpOnly: true,
+		HttpOnly: false,
 		SameSite: http.SameSiteLaxMode,
 		Path:     "/",
 		Secure:   false, // TODO: true when in production
 		Expires:  expires,
 	}
-	http.SetCookie(w, cookie)
+	http.SetCookie(w, cookie) */
 }
 
 func (h *Handler) Verify(w http.ResponseWriter, r *http.Request) {
@@ -116,3 +118,4 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 	http.SetCookie(w, cookie)
 }
+

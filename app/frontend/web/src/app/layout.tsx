@@ -3,6 +3,7 @@ import "./globals.css";
 
 import { Navbar } from "@/components/ui/navbar";
 import { Provider } from "@/lib/providers";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "Trigger",
@@ -19,6 +20,7 @@ export default function RootLayout({
       <body className="flex flex-col h-screen bg-gray-200 dark:bg-zinc-900">
         <Navbar />
         <Provider>{children}</Provider>
+        <Toaster />
       </body>
     </html>
   );

@@ -38,6 +38,8 @@ RUN npm install
 # Ensure gradlew has execute permissions
 RUN chmod +x /app/android/gradlew
 
+ENV NODE_ENV="production"
+
 # Build the APK
 RUN cd android && ./gradlew assembleRelease
 
