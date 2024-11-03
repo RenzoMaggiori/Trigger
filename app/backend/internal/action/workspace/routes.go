@@ -42,6 +42,7 @@ func Router(ctx context.Context) (*router.Router, error) {
 	server.Handle("PATCH /action_completed", middlewares(http.HandlerFunc(handler.ActionCompleted)))
 	server.Handle("PATCH /watch_completed", middlewares(http.HandlerFunc(handler.WatchCompleted)))
 	server.Handle("DELETE /id/{id}", middlewares(http.HandlerFunc(handler.DeleteById)))
+	server.Handle("GET /templates", middlewares(http.HandlerFunc(handler.GetTemplates)))
 
 	return router.NewRouter("/api/workspace", server), nil
 }
