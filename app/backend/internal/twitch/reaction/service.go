@@ -32,12 +32,12 @@ func (m Model) SendChatMessage(ctx context.Context, actionNode workspace.ActionN
 		return errors.ErrAccessTokenCtx
 	}
 
-	triggerUser, _, err := session.GetSessionByAccessTokenRequest(accessToken)
+	session, _, err := session.GetSessionByAccessTokenRequest(accessToken)
 	if err != nil {
 		return err
 	}
 
-	syncModel, _, err := sync.GetSyncAccessTokenRequest(accessToken, triggerUser.Id.Hex(), "twitch")
+	syncModel, _, err := sync.GetSyncAccessTokenRequest(accessToken, session.UserId.Hex(), "twitch")
 	if err != nil {
 		return err
 	}
