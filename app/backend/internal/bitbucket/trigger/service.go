@@ -56,7 +56,7 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 			session.UserId.Hex()),
 		Active: true,
 		Secret: os.Getenv("BITBUCKET_SECRET"),
-		Events: []string{"issue:created", "repo:push"},
+		Events: []string{"issue:created", "repo:push", "pullrequest:created"},
 	}
 
 	body, err := json.Marshal(watchBody)
@@ -86,6 +86,35 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 	return nil
 }
 
+func pullRequestCreatedWebhook(accessToken string, webhookRequest WebhookRequest) (*workspace.ActionCompletedModel, error) {
+	action, _, err := action.GetByActionNameRequest(accessToken, "watch_pull_request_created")
+	if err != nil {
+		return nil, err
+	}
+
+	update := workspace.ActionCompletedModel{
+		ActionId: action.Id,
+		Output: map[string]string{
+			"title":   webhookRequest.PullRequest.Title,
+			"content": webhookRequest.PullRequest.Description,
+		},
+	}
+	return &update, nil
+}
+
+func pushWebhook(accessToken string, webhookRequest WebhookRequest) (*workspace.ActionCompletedModel, error) {
+	action, _, err := action.GetByActionNameRequest(accessToken, "watch_repo_push")
+	if err != nil {
+		return nil, err
+	}
+
+	update := workspace.ActionCompletedModel{
+		ActionId: action.Id,
+		Output:   map[string]string{},
+	}
+	return &update, nil
+}
+
 func (m Model) Webhook(ctx context.Context) error {
 	userId, ok := ctx.Value(userIdCtxKey).(string)
 	if !ok {
@@ -105,20 +134,26 @@ func (m Model) Webhook(ctx context.Context) error {
 	if len(session) == 0 {
 		return errors.ErrSessionNotFound
 	}
+	var update *workspace.ActionCompletedModel
 
-	action, _, err := action.GetByActionNameRequest(session[0].AccessToken, "watch_issue_created")
-	if err != nil {
-		return err
+	if webhookRequest.PullRequest != nil {
+		update, err = pullRequestCreatedWebhook(session[0].AccessToken, webhookRequest)
+		if err != nil {
+			return err
+		}
+	}
+	if webhookRequest.Push != nil {
+		update, err = pushWebhook(session[0].AccessToken, webhookRequest)
+		if err != nil {
+			return err
+		}
 	}
 
-	update := workspace.ActionCompletedModel{
-		ActionId: action.Id,
-		Output: map[string]string{
-			"title":   webhookRequest.Issue.Title,
-			"content": webhookRequest.Issue.Content.Raw,
-		},
+	if update == nil {
+		return errors.ErrBadWebhookData
 	}
-	_, err = workspace.ActionCompletedRequest(session[0].AccessToken, update)
+
+	_, err = workspace.ActionCompletedRequest(session[0].AccessToken, *update)
 	if err != nil {
 		return err
 	}

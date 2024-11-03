@@ -106,9 +106,16 @@ var (
 		{
 			Provider: "bitbucket",
 			Type:     "trigger",
-			Action:   "watch_issue_created",
+			Action:   "watch_pull_request_created",
 			Input:    []string{"workspace", "repository"},
 			Output:   []string{"title", "content"},
+		},
+		{
+			Provider: "bitbucket",
+			Type:     "trigger",
+			Action:   "watch_repo_push",
+			Input:    []string{"workspace", "repository"},
+			Output:   []string{},
 		},
 		{
 			Provider: "bitbucket",
