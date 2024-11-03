@@ -690,9 +690,7 @@ func (m Model) Templates(ctx context.Context) ([]AddWorkspaceModel, error) {
 			{
 				NodeId:   "Gmail-0",
 				ActionId: gmailWatch.Id,
-				Input: map[string]string{
-					"type": "trigger",
-				},
+				Input:    map[string]string{},
 				Parents:  make([]string, 0),
 				Children: []string{"Gmail-1"},
 				XPos:     100,
@@ -701,9 +699,7 @@ func (m Model) Templates(ctx context.Context) ([]AddWorkspaceModel, error) {
 			{
 				NodeId:   "Gmail-1",
 				ActionId: gmailSend.Id,
-				Input: map[string]string{
-					"type": "reaction",
-				},
+				Input:    map[string]string{},
 				Parents:  []string{"Gmail-0"},
 				Children: make([]string, 0),
 				XPos:     100,
