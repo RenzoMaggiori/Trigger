@@ -20,6 +20,7 @@ import {
   TwitchSettings,
 } from "@/app/trigger/components/service-settings";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 export type ConfigMenuType = {
   menu: keyof typeof settingsComponentMap;
@@ -56,25 +57,42 @@ const configOptions = [
   },
 ];
 
-export function ConfigMenu({ menu, parentNodes, node, actions }: ConfigMenuType) {
+export function ConfigMenu({
+  menu,
+  parentNodes,
+  node,
+  actions,
+}: ConfigMenuType) {
   const { triggerWorkspace } = useMenu();
   const nodeItem = triggerWorkspace?.nodes[node?.id || ""];
 
-  const [nodeConfig, setNodeConfig] = React.useState(() => new Map<string, { configType: "trigger" | "reaction"; configState: Record<string, unknown> }>());
+  const [nodeConfig, setNodeConfig] = React.useState(
+    () =>
+      new Map<
+        string,
+        {
+          configType: "trigger" | "reaction";
+          configState: Record<string, unknown>;
+        }
+      >(),
+  );
 
   if (!node) return <div>{"custom node doesn't exist"}</div>;
   if (!nodeItem) return <div>could not find node</div>;
 
   // Initialize config for the node if not already set
   if (!nodeConfig.has(node.id)) {
-    nodeConfig.set(node.id, { configType: "trigger", configState: { trigger: "Personalized" } });
+    nodeConfig.set(node.id, {
+      configType: "trigger",
+      configState: { trigger: "Personalized" },
+    });
   }
 
   const { configType, configState } = nodeConfig.get(node.id)!;
 
   const handleStatusChange = (
     status: Status | null,
-    selectedConfigType: "trigger" | "reaction"
+    selectedConfigType: "trigger" | "reaction",
   ) => {
     const newStatus = status?.value || "Personalized";
     setNodeConfig((prevConfig) => {
@@ -90,7 +108,9 @@ export function ConfigMenu({ menu, parentNodes, node, actions }: ConfigMenuType)
     });
   };
 
-  const handleConfigTypeChange = (selectedConfigType: "trigger" | "reaction") => {
+  const handleConfigTypeChange = (
+    selectedConfigType: "trigger" | "reaction",
+  ) => {
     setNodeConfig((prevConfig) => {
       const updatedConfig = new Map(prevConfig);
       updatedConfig.set(node.id, {
@@ -98,7 +118,9 @@ export function ConfigMenu({ menu, parentNodes, node, actions }: ConfigMenuType)
         configType: selectedConfigType,
         configState: {
           ...updatedConfig.get(node.id)!.configState,
-          [selectedConfigType]: updatedConfig.get(node.id)!.configState[selectedConfigType] || "Personalized",
+          [selectedConfigType]:
+            updatedConfig.get(node.id)!.configState[selectedConfigType] ||
+            "Personalized",
         },
       });
       return updatedConfig;
@@ -125,13 +147,24 @@ export function ConfigMenu({ menu, parentNodes, node, actions }: ConfigMenuType)
     <Card className="h-full w-[500px]">
       <CardHeader>
         <CardTitle className="flex items-center justify-between text-xl font-bold">
-          <p className="flex flex-row items-center text-center"> {node?.data?.label} Settings</p>
+          <p className="flex flex-row items-center text-center">
+            {" "}
+            {node?.data?.label} Settings
+          </p>
           <Badge
-            className={`${nodeItem.status === "completed" ? "bg-green-500 hover:bg-green-600" : "bg-violet-500 hover:bg-violet-600"} rounded-full text-sm`}>
-              {nodeItem.status === "completed" ? nodeItem.status : "in progress"}
+            className={cn(
+              "rounded-full text-sm",
+              nodeItem.status === "completed"
+                ? "bg-green-500 hover:bg-green-600"
+                : "bg-violet-500 hover:bg-violet-600",
+            )}
+          >
+            {nodeItem.status === "completed" ? nodeItem.status : "in progress"}
           </Badge>
         </CardTitle>
-        <CardDescription className="ml-2 text-md">ID: {node?.id}</CardDescription>
+        <CardDescription className="ml-2 text-md">
+          ID: {node?.id}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex justify-between items-center">
@@ -145,10 +178,13 @@ export function ConfigMenu({ menu, parentNodes, node, actions }: ConfigMenuType)
             <Combox
               statuses={configOptions}
               setSelectedStatus={(selected) =>
-                handleConfigTypeChange(selected?.value === "trigger" ? "trigger" : "reaction")
+                handleConfigTypeChange(
+                  selected?.value === "trigger" ? "trigger" : "reaction",
+                )
               }
               selectedStatus={
-                configOptions.find((option) => option.value === configType) || null
+                configOptions.find((option) => option.value === configType) ||
+                null
               }
               label="info"
               icon={<SiGooglegemini className="mr-2" />}
@@ -169,7 +205,7 @@ export function ConfigMenu({ menu, parentNodes, node, actions }: ConfigMenuType)
               }
               selectedStatus={
                 combinedStatuses.find(
-                  (status) => status.value === configState[configType]
+                  (status) => status.value === configState[configType],
                 ) || combinedStatuses[0]
               }
               label="info"
@@ -181,7 +217,8 @@ export function ConfigMenu({ menu, parentNodes, node, actions }: ConfigMenuType)
         {configState[configType] === "Personalized" && (
           <div className="p-4 border border-gray-300 rounded-md">
             <h4 className="text-lg font-bold mb-2">
-              Personalized {configType === "trigger" ? "Trigger" : "Reaction"} Settings
+              Personalized {configType === "trigger" ? "Trigger" : "Reaction"}{" "}
+              Settings
             </h4>
             <SettingsComponent
               key={configType}

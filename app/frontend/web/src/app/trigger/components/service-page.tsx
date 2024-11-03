@@ -61,25 +61,25 @@ export const ServicesComponent: React.FC<ServicesProps> = ({
       }
       setTriggerWorkspace({ id: data.id, nodes });
       setLoading(false);
-      toast("Workspace saved successfully", action)
+      toast("Workspace saved successfully", action);
     },
     onError: () => {
       setLoading(false);
-      toast("Error while saving the workspace", action)
-    }
+      toast("Error while saving the workspace", action);
+    },
   });
 
   const deployWorkspaceMutation = useMutation({
     mutationFn: deployWorkspace,
     onSuccess: () => {
       setLoadingDeploy(false);
-      window.location.href = "/home"
+      window.location.href = "/home";
     },
     onError: () => {
       setLoading(false);
-      toast("Error while deploying the workspace", action)
-    }
-  })
+      toast("Error while deploying the workspace", action);
+    },
+  });
 
   const handleOnClick = () => {
     if (!triggerWorkspace) return;
@@ -88,15 +88,14 @@ export const ServicesComponent: React.FC<ServicesProps> = ({
 
   const handleDeploy = () => {
     if (!triggerWorkspace) return;
-    deployWorkspaceMutation.mutate({id: triggerWorkspace.id});
-  }
+    deployWorkspaceMutation.mutate({ id: triggerWorkspace.id });
+  };
 
   return (
     <div className="w-auto p-5">
       <Card className="h-full overflow-hidden">
         <p className="font-bold text-2xl p-3">Services</p>
         <CardContent className="flex flex-col items-center justify-start h-full py-5 gap-4">
-
           {services.map((item, key) => (
             <div
               key={key}
