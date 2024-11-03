@@ -474,7 +474,7 @@ func (m Model) processWorkspace(ctx context.Context, workspace WorkspaceModel, a
 	}
 
 	if actionCompleted.NodeId != nil {
-		filter["nodes"].(bson.M)["$elemMatch.node_id"] = actionCompleted.NodeId
+		filter["nodes"].(bson.M)["$elemMatch"].(bson.M)["node_id"] = actionCompleted.NodeId
 	}
 
 	update := bson.M{

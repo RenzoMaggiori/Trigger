@@ -17,7 +17,7 @@ func Router(ctx context.Context) (*router.Router, error) {
 		Service: Model{},
 	}
 
-	server.Handle("POST /send_channel_message", middlewares(http.HandlerFunc(handler.SendChannelMessage)))
+	server.Handle("POST /send_chat_message", middlewares(http.HandlerFunc(handler.SendChatMessage)))
 
 	return router.NewRouter("/api/twitch/reaction", server), nil
 }
