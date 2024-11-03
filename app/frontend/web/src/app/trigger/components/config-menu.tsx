@@ -144,6 +144,12 @@ export function ConfigMenu({
     })),
   ];
 
+  const nodeStatus: Record<string, string> = {
+    "completed": "bg-green-500 hover:bg-green-600",
+    "active": "bg-violet-500 hover:bg-violet-600",
+    "inactive": "bg-white border-black text-black hover:bg-zinc-200",
+  }
+
   const SettingsComponent = settingsComponentMap[menu];
   return (
     <Card className="h-full w-[500px]">
@@ -156,12 +162,10 @@ export function ConfigMenu({
           <Badge
             className={cn(
               "rounded-full text-sm",
-              nodeItem.status === "completed"
-                ? "bg-green-500 hover:bg-green-600"
-                : "bg-violet-500 hover:bg-violet-600",
+              nodeStatus[nodeItem.status]
             )}
           >
-            {nodeItem.status === "completed" ? nodeItem.status : "in progress"}
+            {nodeItem.status === "active" ? "in progress" : nodeItem.status}
           </Badge>
         </CardTitle>
         <CardDescription className="ml-2 text-md">
