@@ -32,17 +32,11 @@ export class CredentialsService {
                 throw new Error('Something went wrong.');
             }
             console.log('successful register');
-            const cookieHeader = response.headers.get('set-cookie');
-            if (cookieHeader) {
-                const tokenMatch = cookieHeader.match(/Authorization=([^;]+)/);
-                if (tokenMatch) {
-                    const token = tokenMatch[1];
-                    await AsyncStorage.setItem('token', token);
-                } else {
-                    console.error('No token found in cookie header:', cookieHeader);
-                }
+            const token = response.headers.get('Authorization');
+            if (token) {
+                await AsyncStorage.setItem('token', token);
             } else {
-                console.error('No cookie header found in response:', response.headers);
+                console.error('No token found in response:');
             }
             return;
         } catch (error) {
@@ -71,18 +65,11 @@ export class CredentialsService {
                 throw new Error('Incorrect username or password.');
             }
             console.log('successful login');
-
-            const cookieHeader = response.headers.get('set-cookie');
-            if (cookieHeader) {
-                const tokenMatch = cookieHeader.match(/Authorization=([^;]+)/);
-                if (tokenMatch) {
-                    const token = tokenMatch[1];
-                    await AsyncStorage.setItem('token', token);
-                } else {
-                    console.error('No token found in cookie header:', cookieHeader);
-                }
+            const token = response.headers.get('Authorization');
+            if (token) {
+                await AsyncStorage.setItem('token', token);
             } else {
-                console.error('No cookie header found in response:', response.headers);
+                console.error('No token found in response:');
             }
             return;
         } catch (error) {
