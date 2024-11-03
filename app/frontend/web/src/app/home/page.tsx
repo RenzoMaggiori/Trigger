@@ -44,12 +44,12 @@ export default function Page() {
 
   const handleClick = () => {
     setLoading(true)
-    mutation.mutate(`Workspace ${workspaces.length}`);
+    mutation.mutate({name: `Workspace ${workspaces.length}`, nodes: []});
   };
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
-      <SideMenu />
+      <SideMenu workspaceLen={workspaces.length}/>
       <div className="flex flex-col w-full p-5 overflow-x-auto">
         <Card className="py-6 h-full">
           <CardContent>

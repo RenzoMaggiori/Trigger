@@ -5,8 +5,9 @@ import { z } from "zod";
 
 import { env } from "@/lib/env";
 import { triggerSchema } from "@/app/home/lib/types";
+import { TemplatesType } from "@/app/templates/lib/types";
 
-export async function newTrigger(workspaceName: string): Promise<z.infer<typeof triggerSchema>> {
+export async function newTrigger(workspace: TemplatesType): Promise<z.infer<typeof triggerSchema>> {
   const accessToken = cookies().get("Authorization")?.value;
   if (!accessToken) {
     throw new Error("could not get access token");
@@ -16,7 +17,7 @@ export async function newTrigger(workspaceName: string): Promise<z.infer<typeof 
     `${env.NEXT_PUBLIC_SERVER_URL}/api/workspace/add`,
     {
       method: "POST",
-      body: JSON.stringify({ name: workspaceName, nodes: [] }),
+      body: JSON.stringify({ name: workspace.name, nodes: workspace.nodes || [] }),
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
