@@ -102,7 +102,7 @@ export class TriggersService {
                 throw new Error('Something went wrong.');
             }
             const data = await response.json();
-            console.log('[get triggers] success: ', data);
+            // console.log('[get triggers] success: ', data);
             return data;
         } catch (error) {
             console.error("Catched Get Triggers Error:", error);

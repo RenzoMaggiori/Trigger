@@ -13,6 +13,7 @@ function transformFlowItemToApiFormat(flowItem: {
     action: { id: string, name: string },
     reactions: { id: string, provider: string, name: string }[]
 }) {
+    const nodeNames = [];
     const nodes = [];
 
     // trigger node
@@ -27,6 +28,7 @@ function transformFlowItemToApiFormat(flowItem: {
         x_pos: 10,
         y_pos: 10,
     });
+    nodeNames.push(flowItem.action.name);
 
     // reaction nodes
     flowItem.reactions.forEach((reaction, index) => {
@@ -43,9 +45,11 @@ function transformFlowItemToApiFormat(flowItem: {
             x_pos: 10,
             y_pos: 10 * nodeIndex,
         });
+        nodeNames.push(reaction.name);
     });
+    const name = nodeNames.join(' > ');
 
-    return { nodes };
+    return { name, nodes };
 }
 
 export default function TriggerScreen() {

@@ -81,6 +81,7 @@ function PromoItem() {
 interface Workspace {
     id: string;
     user_id: string;
+    name: string;
     nodes: {
         node_id: string;
         action_id: string;
@@ -151,7 +152,8 @@ function TriggerList({ workspaces, setWorkspaces }: { workspaces: Workspace[], s
             {workspaces.length > 0 ? (
                 workspaces.map((workspace) => (
                     <View key={workspace.id} style={styles.workspaceCard}>
-                        <Text style={styles.workspaceTitle}>Trigger ID: {workspace.id}</Text>
+                        {/* <Text style={styles.workspaceTitle}>Trigger ID: {workspace.id}</Text> */}
+                        <Text style={styles.workspaceTitle}>{workspace.name}</Text>
                         <View style={styles.nodesContainer}>
                             {workspace.nodes.map((node) => {
                                 const isTrigger = node.actionDetails?.type === 'trigger';
