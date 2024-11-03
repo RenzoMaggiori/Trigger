@@ -16,6 +16,7 @@ import { ReactFlowComponent } from "@/app/trigger/components/react-flow";
 import { getWorkspace } from "@/app/trigger/lib/get-workspace";
 import { getActions } from "../lib/get-actions";
 import { IoMdStopwatch } from "react-icons/io";
+import { FaBitbucket } from "react-icons/fa6";
 
 const services: Service[] = [
   {
@@ -42,6 +43,11 @@ const services: Service[] = [
     icon: <FaTwitch className="w-5 h-5 mr-2 text-violet-500" />,
     name: "Twitch",
     settings: "twitch",
+  },
+  {
+    icon: <FaBitbucket className="w-5 h-5 mr-2 text-blue-500" />,
+    name: "Bitbucket",
+    settings: "bitbucket",
   },
   {
     icon: <IoMdStopwatch className="w-5 h-5 mr-2" />,

@@ -8,6 +8,8 @@ import { useMenu } from "@/app/trigger/components/MenuProvider";
 import { ActionType, NodeItem } from "@/app/trigger/lib/types";
 import { Combox, Status } from "@/components/ui/combox";
 import { BsHourglassTop, BsHourglassBottom, BsHourglassSplit } from "react-icons/bs";
+import { AiOutlineIssuesClose } from "react-icons/ai";
+import { FaCodeCommit } from "react-icons/fa6";
 
 function GithubSettings({ node, type, actions }: { node: NodeItem, type: string, actions: ActionType }) {
   const { setFields, setNodes } = useMenu();
@@ -292,6 +294,106 @@ function DiscordSettings({ node, type, actions }: { node: NodeItem, type: string
   );
 }
 
+const bitbucketStatuses = [
+  {
+    label:
+      <div className="flex flex-row">
+        <AiOutlineIssuesClose className="mr-2 w-5 h-5" />
+        <p className="font-bold">New issue</p>
+      </div>,
+    value: "new_issue"
+  },
+  {
+    label:
+      <div className="flex flex-row">
+        <FaCodeCommit className="mr-2 w-5 h-5" />
+        <p className="font-bold">New commit</p>
+      </div>,
+    value: "new_commit"
+  },
+];
+
+function BitBucketSettings({ node, type, actions }: { node: NodeItem, type: string, actions: ActionType }) {
+  const [messageType, setMessageType] = React.useState<Status | null>(bitbucketStatuses[0]);
+  const { setFields, setNodes } = useMenu();
+
+  React.useEffect(() => {
+    const bitbucketTriggerAction = actions.find(
+      (action) => action.provider === "bitbucket" && action.type === type
+    );
+
+    if (!bitbucketTriggerAction) return;
+
+    if (node.action_id !== bitbucketTriggerAction.id) {
+      setNodes({
+        [node.id]: { ...node, action_id: bitbucketTriggerAction.id },
+      });
+    }
+
+    if (node.fields?.type !== type)
+      setFields(node.id, { ...node.fields, type });
+  }, [type, actions, node, setNodes, setFields]);
+
+  const handleFieldChange = (fieldType: string, index: string, value: string) => {
+    setFields(node.id, { ...node.fields, [index]: value, type: fieldType });
+  };
+
+  const inputs = [
+    { label: "Workspace", json: "workspace", placeholder: "Example workspace" },
+    { label: "Repository", json: "repository", placeholder: "Example repo" },
+    { label: "Title", json: "title", placeholder: "Example title" },
+    { label: "Source Branch", json: "source_branch", placeholder: "Example branch" },
+    { label: "Destination Branch", json: "destination_branch", placeholder: "Example branch" },
+  ];
+
+  const inputsTrigger = [
+    { label: "Workspace", json: "workspace", placeholder: "Example workspace" },
+    { label: "Repository", json: "repository", placeholder: "Example repo" },
+  ];
+
+  if (!node) return <div>No node found</div>;
+
+  return (
+    <>
+      {type === "reaction" ? (
+        <div className="flex flex-col gap-y-4">
+          <p className="text-zinc-500">Creates a pull request.</p>
+          {inputs.map((item, key) => (
+            <div key={`${node.id}-${key}`}>
+              <Label>{item.label}</Label>
+              <Input
+                placeholder={item.placeholder}
+                onChange={(e) => handleFieldChange(type, item.json, e.target.value)}
+                value={(node.fields[item.json] as string | number | undefined) || ""}
+              />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-y-4">
+          <p className="text-zinc-500">Waits for a commit to happen.</p>
+          <Combox
+            statuses={bitbucketStatuses}
+            selectedStatus={messageType}
+            setSelectedStatus={setMessageType}
+            label="Select type trigger"
+          />
+          {inputsTrigger.map((item, key) => (
+            <div key={`${node.id}-${key}`}>
+              <Label>{item.label}</Label>
+              <Input
+                placeholder={item.placeholder}
+                onChange={(e) => handleFieldChange(type, item.json, e.target.value)}
+                value={(node.fields[item.json] as string | number | undefined) || ""}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
 const timerStatuses = [
   {
     label:
@@ -365,5 +467,5 @@ function TimerSettings({ node, type, actions }: { node: NodeItem, type: string, 
   );
 }
 
-export { EmailSettings, DiscordSettings, GithubSettings, SpotifySettings, TwitchSettings, TimerSettings };
+export { EmailSettings, DiscordSettings, GithubSettings, SpotifySettings, TwitchSettings, TimerSettings, BitBucketSettings };
 

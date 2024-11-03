@@ -9,6 +9,7 @@ import { FaDiscord } from "react-icons/fa";
 import { IoLogoGithub } from "react-icons/io";
 import { FaSpotify } from "react-icons/fa";
 import { FaTwitch } from "react-icons/fa";
+import { FaBitbucket } from "react-icons/fa6";
 
 import { FaCircle } from "react-icons/fa6";
 // import { env } from "@/lib/env";
@@ -30,10 +31,11 @@ import { sync } from "./lib/sync";
 
 const services = {
   "Google": <FcGoogle className="w-5 h-5" />,
-  "Discord": <FaDiscord className="w-5 h-5 text-blue-500" />,
+  "Discord": <FaDiscord className="w-5 h-5 text-blue-600" />,
   "Github": <IoLogoGithub className="w-5 h-5" />,
   "Spotify": <FaSpotify className="w-5 h-5 text-green-500" />,
   "Twitch": <FaTwitch className="w-5 h-5 text-violet-500" />,
+  "BitBucket": <FaBitbucket className="w-5 h-5 text-blue-500" />
 } as const;
 
 export default function Page() {

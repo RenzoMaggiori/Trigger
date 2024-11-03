@@ -41,9 +41,9 @@ export default function Page() {
     const mutation = useMutation({
         mutationFn: newTrigger,
         onSuccess: (trigger) => {
-          window.location.href = `/trigger/${trigger.id}`;
+            window.location.href = `/trigger/${trigger.id}`;
         },
-      });
+    });
 
     if (isPending) return <div>Loading...</div>
     if (error) return <div>Could not get templates.</div>
@@ -71,31 +71,32 @@ export default function Page() {
                                 </Card>
                             </div>
                             <p className="text-3xl font-bold p-5">Templates</p>
-                            {templates.map((t, index) => (
-                                <div key={index}>
-                                    <Card
-                                        className="flex flex-col bg-zinc-100 shadow-md rounded-lg w-[200px]"
-                                        key={index}
-                                        onClick={() => handleCardClick(t)}
-                                    >
-                                        <CardHeader className="p-4 border-b">
-                                            <CardTitle className="text-xl font-bold">
-                                                <Image
-                                                    src="https://fakeimg.pl/300x200"
-                                                    alt={t.name}
-                                                    width={500}
-                                                    height={500}
-                                                    layout="responsive"
-                                                />
-                                            </CardTitle>
-                                        </CardHeader>
-                                    </Card>
-                                    <p className="font-bold text-md text-start p-1">
-                                        {t.name}
-                                    </p>
-                                </div>
-                            ))}
-
+                            <div className="flex flex-row flex-wrap gap-4 p-5 items-center justify-start">
+                                {templates.map((t, index) => (
+                                    <div key={index}>
+                                        <Card
+                                            className="flex flex-col bg-zinc-100 shadow-md rounded-lg w-[200px]"
+                                            key={index}
+                                            onClick={() => handleCardClick(t)}
+                                        >
+                                            <CardHeader className="p-4 border-b">
+                                                <CardTitle className="text-xl font-bold">
+                                                    <Image
+                                                        src="https://fakeimg.pl/300x200"
+                                                        alt={t.name}
+                                                        width={500}
+                                                        height={500}
+                                                        layout="responsive"
+                                                    />
+                                                </CardTitle>
+                                            </CardHeader>
+                                        </Card>
+                                        <p className="font-bold text-md text-start p-1">
+                                            {t.name}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
                         </ScrollArea>
                     </CardContent>
                 </Card>
