@@ -58,7 +58,6 @@ func (m *Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel)
 		UserId:    userId,
 		ChannelId: channel_id,
 		ActionId:  actionId,
-		Token:     session.AccessToken,
 		DiscordData: discord_me,
 		NodeId:     actionNode.NodeId,
 	}
@@ -152,7 +151,6 @@ func (m *Model) AddSession(data *DiscordSessionModel) error {
 		UserId:    data.UserId,
 		ChannelId: data.ChannelId,
 		ActionId:  data.ActionId,
-		Token: 	data.Token,
 		DiscordData: data.DiscordData,
 	}
 
