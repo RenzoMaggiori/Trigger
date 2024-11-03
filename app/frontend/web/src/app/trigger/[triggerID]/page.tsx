@@ -93,6 +93,7 @@ export default function Page({ params }: { params: { triggerID: string } }) {
           fields: n.input || {},
           parent_ids: n.parents || [],
           child_ids: n.children || [],
+          status: n.status,
           x_pos: n.x_pos || 0,
           y_pos: n.y_pos || 0,
         };
@@ -123,7 +124,12 @@ export default function Page({ params }: { params: { triggerID: string } }) {
           ),
           settings: service?.settings,
         },
-        style: { border: "1px solid #ccc", padding: 10 },
+        style: {
+          border: `1px solid ${
+            n.status === "completed" ? "#90ee90" : n.status === "active" ? "purple" : "#ccc"
+          }`,
+          padding: 10
+        },
         parents: n.parents || [],
         children: n.children || [],
       };

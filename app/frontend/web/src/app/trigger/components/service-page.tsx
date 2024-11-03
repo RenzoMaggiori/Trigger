@@ -54,6 +54,7 @@ export const ServicesComponent: React.FC<ServicesProps> = ({
           fields: n.input || {},
           parent_ids: n.parents,
           child_ids: n.children,
+          status: n.status,
           x_pos: n.x_pos,
           y_pos: n.y_pos,
         };

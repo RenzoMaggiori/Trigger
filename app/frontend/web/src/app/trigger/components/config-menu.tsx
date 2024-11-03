@@ -19,6 +19,7 @@ import {
   TimerSettings,
   TwitchSettings,
 } from "@/app/trigger/components/service-settings";
+import { Badge } from "@/components/ui/badge";
 
 export type ConfigMenuType = {
   menu: keyof typeof settingsComponentMap;
@@ -123,8 +124,12 @@ export function ConfigMenu({ menu, parentNodes, node, actions }: ConfigMenuType)
   return (
     <Card className="h-full w-[500px]">
       <CardHeader>
-        <CardTitle className="flex items-center text-xl font-bold">
-          {node?.data?.label} Settings
+        <CardTitle className="flex items-center justify-between text-xl font-bold">
+          <p className="flex flex-row items-center text-center"> {node?.data?.label} Settings</p>
+          <Badge
+            className={`${nodeItem.status === "completed" ? "bg-green-500 hover:bg-green-600" : "bg-violet-500 hover:bg-violet-600"} rounded-full text-sm`}>
+              {nodeItem.status === "completed" ? nodeItem.status : "in progress"}
+          </Badge>
         </CardTitle>
         <CardDescription className="ml-2 text-md">ID: {node?.id}</CardDescription>
       </CardHeader>

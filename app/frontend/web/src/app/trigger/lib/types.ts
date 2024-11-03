@@ -26,6 +26,7 @@ export type NodeItem = {
   fields: Record<string, unknown>;
   parent_ids: Array<string>;
   child_ids: Array<string>;
+  status: string,
   x_pos: number;
   y_pos: number;
 };
