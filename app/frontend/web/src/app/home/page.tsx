@@ -44,7 +44,7 @@ export default function Page() {
 
   const handleClick = () => {
     setLoading(true)
-    mutation.mutate();
+    mutation.mutate(`Workspace ${workspaces.length}`);
   };
 
   return (
@@ -88,7 +88,7 @@ export default function Page() {
                         </CardHeader>
                       </Card>
                       <p className="font-bold text-md text-start p-1">
-                        Workspace{" "}{index}
+                        {trigger.name}
                       </p>
                     </Link>
                   </div>

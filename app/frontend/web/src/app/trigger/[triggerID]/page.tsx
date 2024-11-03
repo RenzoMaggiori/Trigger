@@ -86,6 +86,7 @@ export default function Page({ params }: { params: { triggerID: string } }) {
 
     setTriggerWorkspace({
       id: data.workspace.id,
+      name: data.workspace.name,
       nodes: data.workspace.nodes.reduce((acc, n) => {
         acc[n.node_id] = {
           id: n.node_id,
@@ -156,7 +157,7 @@ export default function Page({ params }: { params: { triggerID: string } }) {
     setParentNodes(parentNodes);
   };
 
-  const handleNodeClick = (event: React.MouseEvent, node: CustomNode) => {
+  const handleNodeClick = (_event: React.MouseEvent, node: CustomNode) => {
     if (node.data?.settings) {
       setSettings(node.data.settings);
       updateParentNodes(node.id);

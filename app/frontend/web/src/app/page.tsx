@@ -58,7 +58,7 @@ export default function Home() {
             asChild
           >
             <Link
-              href={`${env.NEXT_PUBLIC_SERVER_URL}/api/oauth2/login?provider=google&redirect=${env.NEXT_PUBLIC_WEB_URL}/home`}
+              href={`${env.NEXT_PUBLIC_SERVER_URL}/api/oauth2/login?provider=google&redirect=${env.NEXT_PUBLIC_WEB_URL}/auth/token`}
               className="flex items-center"
             >
               <FcGoogle className="mr-2 text-2xl" /> Start with Google

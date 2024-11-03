@@ -10,6 +10,7 @@ import { useMutation } from "@tanstack/react-query";
 import { send_workspace } from "@/app/trigger/lib/send-workspace";
 import { toast } from "sonner";
 import { deployWorkspace } from "../lib/deploy-workspace";
+import { Input } from "@/components/ui/input";
 
 interface ServicesProps {
   services: Service[];
@@ -59,7 +60,7 @@ export const ServicesComponent: React.FC<ServicesProps> = ({
           y_pos: n.y_pos,
         };
       }
-      setTriggerWorkspace({ id: data.id, nodes });
+      setTriggerWorkspace({ id: data.id, name: data.name, nodes });
       setLoading(false);
       toast("Workspace saved successfully", action);
     },
@@ -91,8 +92,16 @@ export const ServicesComponent: React.FC<ServicesProps> = ({
     deployWorkspaceMutation.mutate({ id: triggerWorkspace.id });
   };
 
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!triggerWorkspace) return
+    setTriggerWorkspace({ ...triggerWorkspace, name: e.target.value });
+  };
+
   return (
-    <div className="w-auto p-5">
+    <div className="flex flex-col w-auto p-5 gap-y-2">
+      <Card className="flex items-center justify-center">
+          <Input placeholder="workspace name" value={triggerWorkspace?.name} onChange={handleNameChange}/>
+      </Card>
       <Card className="h-full overflow-hidden">
         <p className="font-bold text-2xl p-3">Services</p>
         <CardContent className="flex flex-col items-center justify-start h-full py-5 gap-4">
