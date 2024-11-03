@@ -1,0 +1,2831 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "TRIGGER API DOCUMENTATION",
+    "description": "TRIGGER API DOCUMENTATION\n[ base url: localhost:8080 ]\n",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://virtserver.swaggerhub.com/diana.andrades/TRIGGER/1.0.0",
+      "description": "SwaggerHub API Auto Mocking"
+    },
+    {
+      "url": "http://localhost:8080",
+      "description": "Local server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "auth",
+      "description": "Everything about your authentication"
+    },
+    {
+      "name": "session",
+      "description": "Access to session-related endpoints"
+    },
+    {
+      "name": "sync",
+      "description": "Operations about user synchronization"
+    },
+    {
+      "name": "user",
+      "description": "Operations about user"
+    },
+    {
+      "name": "settings",
+      "description": "Operations about user synchronization status"
+    },
+    {
+      "name": "workspace",
+      "description": "Operations about workspace"
+    },
+    {
+      "name": "action",
+      "description": "Operations about actions"
+    },
+    {
+      "name": "info",
+      "description": "Operations about getting information"
+    }
+  ],
+  "paths": {
+    "/api/auth/verify": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Verify user session or token",
+        "description": "Verifies the user's session or token for authentication purposes.",
+        "responses": {
+          "200": {
+            "description": "Successful verification"
+          },
+          "400": {
+            "description": "Bad request, invalid token"
+          },
+          "401": {
+            "description": "Unauthorized, token verification failed"
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "User login",
+        "description": "Authenticate a user and return a token.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/auth_login_body"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful login",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/inline_response_200"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request, missing parameters"
+          },
+          "401": {
+            "description": "Unauthorized, invalid credentials"
+          }
+        }
+      }
+    },
+    "/api/oauth2/login": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "User login using OAuth2",
+        "description": "Authenticate a user using OAuth2 and return a token.",
+        "responses": {
+          "200": {
+            "description": "Successful login",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/inline_response_200"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request, missing parameters"
+          },
+          "401": {
+            "description": "Unauthorized, invalid credentials"
+          }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "User registration",
+        "description": "Register a new user account.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/auth_register_body"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful registration"
+          },
+          "400": {
+            "description": "Bad request, missing or invalid parameters"
+          },
+          "409": {
+            "description": "Conflict, user already exists"
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "delete": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "User logout",
+        "description": "Invalidate the user's session by removing the session conse.",
+        "responses": {
+          "200": {
+            "description": "Successful logout"
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "403": {
+            "description": "Forbidden, token not provided"
+          },
+          "404": {
+            "description": "Token not found or already logged out"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/oauth2/logout": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "User logout using OAuth2",
+        "description": "Invalidate the user's session by removing the token.",
+        "responses": {
+          "200": {
+            "description": "Successful logout"
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "403": {
+            "description": "Forbidden, token not provided"
+          },
+          "404": {
+            "description": "Token not found or already logged out"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/session": {
+      "get": {
+        "tags": [
+          "session"
+        ],
+        "summary": "Get session user details",
+        "description": "Retrieve the session details of the currently authenticated users.",
+        "responses": {
+          "200": {
+            "description": "Successful retrieval of user details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/SessionModel"
+                      },
+                      {
+                        "$ref": "#/components/schemas/SessionModel"
+                      },
+                      {
+                        "$ref": "#/components/schemas/SessionModel"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "403": {
+            "description": "Forbidden, token not provided"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/session/add": {
+      "post": {
+        "tags": [
+          "session"
+        ],
+        "summary": "Add a new session",
+        "description": "Create a new session for a user.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddSessionModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successfully created session"
+          },
+          "400": {
+            "description": "Bad request, missing or invalid parameters"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/session/id/{id}": {
+      "get": {
+        "tags": [
+          "session"
+        ],
+        "summary": "Get session by ID",
+        "description": "Retrieve session details by session ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the session to retrieve.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string",
+              "format": "objectId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful retrieval of session details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "404": {
+            "description": "Session not found"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "session"
+        ],
+        "summary": "Delete session by ID",
+        "description": "Delete a specific session by ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the session to delete.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string",
+              "format": "objectId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully deleted session"
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "404": {
+            "description": "Session not found"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "session"
+        ],
+        "summary": "Update session by ID",
+        "description": "Update details of a specific session by ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the session to update.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string",
+              "format": "objectId"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSessionModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully updated session"
+          },
+          "400": {
+            "description": "Bad request, missing or invalid parameters"
+          },
+          "404": {
+            "description": "Session not found"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/session/user/{userId}": {
+      "get": {
+        "tags": [
+          "session"
+        ],
+        "summary": "Get session by user ID",
+        "description": "Retrieve session details by user ID.",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "The ID of the user to retrieve the session for.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string",
+              "format": "objectId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful retrieval of session details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "404": {
+            "description": "Session not found"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/session/access_token/{access_token}": {
+      "get": {
+        "tags": [
+          "session"
+        ],
+        "summary": "Get session by access token",
+        "description": "Retrieve session details by access token.",
+        "parameters": [
+          {
+            "name": "access_token",
+            "in": "path",
+            "description": "The access token to retrieve the session for.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful retrieval of session details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "404": {
+            "description": "Session not found"
+          }
+        }
+      }
+    },
+    "/api/session/token_id/{token_id}": {
+      "get": {
+        "tags": [
+          "session"
+        ],
+        "summary": "Get session by token ID",
+        "description": "Retrieve session details by token ID.",
+        "parameters": [
+          {
+            "name": "token_id",
+            "in": "path",
+            "description": "The token id to retrieve the session for.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful retrieval of session details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "404": {
+            "description": "Session not found"
+          }
+        }
+      }
+    },
+    "/api/sync/sync-with": {
+      "get": {
+        "tags": [
+          "sync"
+        ],
+        "summary": "Start sync process with external providers",
+        "description": "Initiate the sync process with an external provider.",
+        "responses": {
+          "200": {
+            "description": "Sync started successfully"
+          },
+          "400": {
+            "description": "Bad request, invalid parameters"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/sync/callback": {
+      "get": {
+        "tags": [
+          "sync"
+        ],
+        "summary": "Callback endpoint for external provider",
+        "description": "Handles the callback from the external provider after the sync process is initiated.",
+        "responses": {
+          "200": {
+            "description": "Callback handled successfully"
+          },
+          "400": {
+            "description": "Bad request, invalid callback data"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/sync/{user_id}/{provider}": {
+      "get": {
+        "tags": [
+          "sync"
+        ],
+        "summary": "Get sync data by user ID and provider",
+        "description": "Retrieve synchronization data for a specified user and provider.",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "description": "The user ID for which to retrieve sync data.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string",
+              "format": "objectId"
+            }
+          },
+          {
+            "name": "provider",
+            "in": "path",
+            "description": "The name of the provider (e.g., Discord).",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sync data retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request, invalid parameters"
+          },
+          "404": {
+            "description": "Sync data not found"
+          }
+        }
+      }
+    },
+    "/apy/sync/{provider}": {
+      "delete": {
+        "tags": [
+          "sync"
+        ],
+        "summary": "Delete sync data by provider",
+        "description": "Remove synchronization data for a specified provider.",
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "path",
+            "description": "The name of the provider (e.g., Discord).",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sync data deleted successfully"
+          },
+          "400": {
+            "description": "Bad request, invalid parameters"
+          },
+          "404": {
+            "description": "Sync data not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/user": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Get user details",
+        "description": "Retrieve the details of the currently authenticated user.",
+        "responses": {
+          "200": {
+            "description": "Successful retrieval of user details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/UserModel"
+                      },
+                      {
+                        "$ref": "#/components/schemas/UserModel"
+                      },
+                      {
+                        "$ref": "#/components/schemas/UserModel"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "403": {
+            "description": "Forbidden, token not provided"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/user/id/{id}": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Get user details by ID",
+        "description": "Retrieve the details of a specific user by user ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique identifier of the user.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string",
+              "format": "objectId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful retrieval of user details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "403": {
+            "description": "Forbidden, token not provided"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Delete user by ID",
+        "description": "Deletes a specific user using their user ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique identifier of the user.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string",
+              "format": "objectId"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted successfully, no content"
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "403": {
+            "description": "Forbidden, token not provided"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Update user details by ID",
+        "description": "Update user password or other details using user ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique identifier of the user.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string",
+              "format": "objectId"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "User details updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request, invalid data provided"
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "403": {
+            "description": "Forbidden, token not provided"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/user/add": {
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Add a new user",
+        "description": "Creates a new user with provided email and password.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddUserModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request, invalid data provided"
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "403": {
+            "description": "Forbidden, token not provided"
+          },
+          "409": {
+            "description": "Conflict, user already exists"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/user/email/{email}": {
+      "get": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Get user details by email",
+        "description": "Retrieve the details of a specific user by email.",
+        "parameters": [
+          {
+            "name": "email",
+            "in": "path",
+            "description": "The email address of the user.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful retrieval of user details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "403": {
+            "description": "Forbidden, token not provided"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Delete user by email",
+        "description": "Deletes a specific user using their email.",
+        "parameters": [
+          {
+            "name": "email",
+            "in": "path",
+            "description": "The email address of the user.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted successfully, no content"
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "403": {
+            "description": "Forbidden, token not provided"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "user"
+        ],
+        "summary": "Update user details by email",
+        "description": "Update user password or other details using email.",
+        "parameters": [
+          {
+            "name": "email",
+            "in": "path",
+            "description": "The email address of the user.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "User details updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request, invalid data provided"
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "403": {
+            "description": "Forbidden, token not provided"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/settings/me": {
+      "get": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Get settings of the current user",
+        "description": "Retrieve the settings for the authenticated user.",
+        "responses": {
+          "200": {
+            "description": "User settings retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsResponseModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/settings/id/{id}": {
+      "get": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Get settings by ID",
+        "description": "Retrieve settings based on a specific settings ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique identifier of the settings record.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Settings retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsResponseModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "404": {
+            "description": "Settings not found"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/settings/add": {
+      "post": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Add new settings",
+        "description": "Creates a new settings record for a user.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddSettingsModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Settings created successfully"
+          },
+          "400": {
+            "description": "Bad request, invalid data provided"
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/settings/user_id/{id}": {
+      "get": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Get settings by user ID",
+        "description": "Retrieve settings for a specific user based on their user ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique identifier of the user.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Settings retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsResponseModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "404": {
+            "description": "Settings not found"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/settings/update": {
+      "patch": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Update settings",
+        "description": "Update the settings of the authenticated user.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSettingsModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Settings updated successfully"
+          },
+          "400": {
+            "description": "Bad request, invalid data provided"
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "404": {
+            "description": "Settings not found"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/workspace": {
+      "get": {
+        "tags": [
+          "workspace"
+        ],
+        "summary": "Get all workspaces",
+        "description": "Retrieve a list of all workspaces.",
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved workspaces",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/WorkspaceModel"
+                      },
+                      {
+                        "$ref": "#/components/schemas/WorkspaceModel"
+                      },
+                      {
+                        "$ref": "#/components/schemas/WorkspaceModel"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/workspace/me": {
+      "get": {
+        "tags": [
+          "workspace"
+        ],
+        "summary": "Get workspace by access token",
+        "description": "Retrieve the workspace associated with the currently authenticated user.",
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/WorkspaceModel"
+                      },
+                      {
+                        "$ref": "#/components/schemas/WorkspaceModel"
+                      },
+                      {
+                        "$ref": "#/components/schemas/WorkspaceModel"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/workspace/id/{id}": {
+      "get": {
+        "tags": [
+          "workspace"
+        ],
+        "summary": "Get workspace by ID",
+        "description": "Retrieve a workspace based on its unique ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique identifier of the workspace.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "404": {
+            "description": "Workspace not found"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "workspace"
+        ],
+        "summary": "Delete workspace by ID",
+        "description": "Deletes a workspace based on its unique ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique identifier of the workspace.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workspace deleted successfully"
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "404": {
+            "description": "Workspace not found"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "workspace"
+        ],
+        "summary": "Update a workspace by ID",
+        "description": "Updates the specified workspace's nodes.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique identifier of the workspace.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWorkspaceModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Workspace updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "404": {
+            "description": "Workspace not found"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/workspace/user_id/{user_id}": {
+      "get": {
+        "tags": [
+          "workspace"
+        ],
+        "summary": "Get workspace by user ID",
+        "description": "Retrieve a workspace based on the user ID.",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "description": "The unique identifier of the user.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "404": {
+            "description": "Workspace not found"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/workspace/action_id/{action_id}": {
+      "get": {
+        "tags": [
+          "workspace"
+        ],
+        "summary": "Get workspace by action ID",
+        "description": "Retrieve a workspace based on an action ID.",
+        "parameters": [
+          {
+            "name": "action_id",
+            "in": "path",
+            "description": "The unique identifier of the action.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "404": {
+            "description": "Workspace not found"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/workspace/add": {
+      "post": {
+        "tags": [
+          "workspace"
+        ],
+        "summary": "Add a new workspace",
+        "description": "Creates a new workspace with the provided nodes.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddWorkspaceModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Workspace created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request, invalid data provided"
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/workspace/start/id/{id}": {
+      "patch": {
+        "tags": [
+          "workspace"
+        ],
+        "summary": "Start an action node in the workspace",
+        "description": "Starts a specified action node.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique identifier of the action node.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Action node started successfully"
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "404": {
+            "description": "Action node not found"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/workspace/stop/id/{id}": {
+      "patch": {
+        "tags": [
+          "workspace"
+        ],
+        "summary": "Stop an action node in the workspace",
+        "description": "Stops a specified action node.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique identifier of the action node.",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Action node stopped successfully"
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "404": {
+            "description": "Action node not found"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/workspace/action_completed": {
+      "patch": {
+        "tags": [
+          "workspace"
+        ],
+        "summary": "Mark action as completed",
+        "description": "Updates the status of the specified action to completed.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActionCompletedModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Action marked as completed successfully"
+          },
+          "400": {
+            "description": "Bad request, invalid data provided"
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/workspace/watch_completed": {
+      "patch": {
+        "tags": [
+          "workspace"
+        ],
+        "summary": "Mark watch as completed",
+        "description": "Updates the status of the specified watch to completed.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WatchCompletedModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Watch marked as completed successfully"
+          },
+          "400": {
+            "description": "Bad request, invalid data provided"
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/workspace/templates": {
+      "get": {
+        "tags": [
+          "workspace"
+        ],
+        "summary": "Get workspace templates",
+        "description": "Retrieve workspace templates as examples",
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved templates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/WorkspaceModel"
+                      },
+                      {
+                        "$ref": "#/components/schemas/WorkspaceModel"
+                      },
+                      {
+                        "$ref": "#/components/schemas/WorkspaceModel"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized, invalid token"
+          },
+          "404": {
+            "description": "Templates not found"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/about.json": {
+      "get": {
+        "tags": [
+          "info"
+        ],
+        "summary": "Get about information",
+        "description": "Retrieve information about the client and server.",
+        "responses": {
+          "200": {
+            "description": "About information retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AboutModel"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/action/": {
+      "get": {
+        "tags": [
+          "action"
+        ],
+        "summary": "Get all actions",
+        "description": "Retrieve a list of all available actions.",
+        "responses": {
+          "200": {
+            "description": "Actions retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/ActionModel"
+                      },
+                      {
+                        "$ref": "#/components/schemas/ActionModel"
+                      },
+                      {
+                        "$ref": "#/components/schemas/ActionModel"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/action/id/{id}": {
+      "get": {
+        "tags": [
+          "action"
+        ],
+        "summary": "Get action by ID",
+        "description": "Retrieve a specific action by its unique identifier.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The unique identifier of the action",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Action retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionModel"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Action not found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/action/provider/{provider}": {
+      "get": {
+        "tags": [
+          "action"
+        ],
+        "summary": "Get actions by provider",
+        "description": "Retrieve a list of actions filtered by the specified provider.",
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "path",
+            "description": "The provider to filter actions by",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Actions retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ActionModel"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/action/action/{action}": {
+      "get": {
+        "tags": [
+          "action"
+        ],
+        "summary": "Get action by action name",
+        "description": "Retrieve a specific action by its name.",
+        "parameters": [
+          {
+            "name": "action",
+            "in": "path",
+            "description": "The name of the action",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Action retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionModel"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Action not found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/action/add": {
+      "post": {
+        "tags": [
+          "action"
+        ],
+        "summary": "Add a new action",
+        "description": "Create a new action in the system.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddActionModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Action created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request, invalid data provided"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SessionModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "objectId",
+            "example": "60d5ec49e3e12b0e4c8e4c8d"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "objectId",
+            "example": "60d5ec49e3e12b0e4c8e4c8e"
+          },
+          "provider_name": {
+            "type": "string",
+            "example": "google"
+          },
+          "access_token": {
+            "type": "string",
+            "example": "ya29.a0ARrdakjnu7wen0SWq3v"
+          },
+          "refresh_token": {
+            "type": "string",
+            "example": "1//0gD..."
+          },
+          "expiry": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-11-02T14:00:00Z"
+          },
+          "id_token": {
+            "type": "string",
+            "example": "eyJhbGciOiJSUzI1NiIsInR"
+          }
+        }
+      },
+      "AddSessionModel": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "objectId",
+            "example": "60d5ec49e3e12b0e4c8e4c8e"
+          },
+          "provider_name": {
+            "type": "string",
+            "example": "google"
+          },
+          "access_token": {
+            "type": "string",
+            "example": "ya29.a0ARrdakjnu7wen0SWq3v"
+          },
+          "refresh_token": {
+            "type": "string",
+            "example": "1//0gD..."
+          },
+          "expiry": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-11-02T14:00:00Z"
+          },
+          "id_token": {
+            "type": "string",
+            "example": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9"
+          }
+        }
+      },
+      "UpdateSessionModel": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "example": "ya29.a0ARrdakjnu7wen0SWq3v"
+          },
+          "refresh_token": {
+            "type": "string",
+            "example": "1//0gD..."
+          },
+          "expiry": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-11-02T14:00:00Z"
+          },
+          "id_token": {
+            "type": "string",
+            "example": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9"
+          }
+        }
+      },
+      "SyncModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "providerName": {
+            "type": "string",
+            "nullable": true
+          },
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string",
+            "nullable": true
+          },
+          "expiry": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "idToken": {
+            "type": "string",
+            "nullable": true
+          },
+          "discordData": {
+            "$ref": "#/components/schemas/SyncModel_discordData"
+          }
+        }
+      },
+      "DiscordData": {
+        "type": "object",
+        "properties": {
+          "guildId": {
+            "type": "string",
+            "example": "123456789012345678"
+          }
+        }
+      },
+      "AddSyncModel": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "Unique identifier for the user",
+            "format": "objectId"
+          },
+          "providerName": {
+            "type": "string",
+            "description": "The name of the provider, e.g., Discord",
+            "nullable": true
+          },
+          "accessToken": {
+            "type": "string",
+            "description": "Access token for the provider"
+          },
+          "refreshToken": {
+            "type": "string",
+            "description": "Refresh token for the provider",
+            "nullable": true
+          },
+          "expiry": {
+            "type": "string",
+            "description": "Expiration time of the access token",
+            "format": "date-time"
+          },
+          "idToken": {
+            "type": "string",
+            "description": "ID token for the provider, if available",
+            "nullable": true
+          }
+        }
+      },
+      "UpdateSyncModel": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "New access token for the provider",
+            "nullable": true
+          },
+          "refreshToken": {
+            "type": "string",
+            "description": "New refresh token for the provider",
+            "nullable": true
+          },
+          "expiry": {
+            "type": "string",
+            "description": "New expiration time for the access token",
+            "format": "date-time",
+            "nullable": true
+          },
+          "idToken": {
+            "type": "string",
+            "description": "New ID token for the provider, if available",
+            "nullable": true
+          }
+        }
+      },
+      "UserModel": {
+        "required": [
+          "email",
+          "id",
+          "role"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the user",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "description": "The user's email address",
+            "format": "email",
+            "example": "user@example.com"
+          },
+          "password": {
+            "type": "string",
+            "description": "The user's password (stored as a hashed string) if registration is via email/password",
+            "nullable": true,
+            "example": "hashed_password_value"
+          },
+          "role": {
+            "type": "string",
+            "description": "Role of the user, e.g., \"admin\" or \"user\"",
+            "example": "user"
+          }
+        }
+      },
+      "AddUserModel": {
+        "required": [
+          "email"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "The user's email address",
+            "format": "email",
+            "example": "user@example.com"
+          },
+          "password": {
+            "type": "string",
+            "description": "The user's password (stored as a hashed string)",
+            "nullable": true,
+            "example": "hashed_password_value"
+          }
+        }
+      },
+      "UpdateUserModel": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string",
+            "description": "The new password for the user (stored as a hashed string)",
+            "nullable": true,
+            "example": "new_hashed_password_value"
+          }
+        }
+      },
+      "SettingsModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The unique identifier for the settings"
+          },
+          "userId": {
+            "type": "string",
+            "description": "The ID of the user to whom these settings belong"
+          },
+          "providerName": {
+            "type": "string",
+            "description": "The name of the provider associated with the settings",
+            "nullable": true
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Indicates if the settings are active"
+          }
+        }
+      },
+      "AddSettingsModel": {
+        "required": [
+          "userId"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "The ID of the user for whom settings are being created"
+          },
+          "providerName": {
+            "type": "string",
+            "description": "The name of the provider associated with the settings",
+            "nullable": true
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Indicates if the settings are active"
+          }
+        }
+      },
+      "UpdateSettingsModel": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "The ID of the user for whom settings are being updated"
+          },
+          "providerName": {
+            "type": "string",
+            "description": "The name of the provider associated with the settings",
+            "nullable": true
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Indicates if the settings are active"
+          }
+        }
+      },
+      "SettingsResponseModel": {
+        "type": "object",
+        "properties": {
+          "providerName": {
+            "type": "string",
+            "description": "The name of the provider associated with the settings",
+            "nullable": true
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Indicates if the settings are active"
+          }
+        }
+      },
+      "WorkspaceModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The unique identifier for the workspace"
+          },
+          "user_id": {
+            "type": "string",
+            "description": "The ID of the user associated with the workspace"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the workspace"
+          },
+          "nodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActionNodeModel"
+            }
+          }
+        }
+      },
+      "ActionNodeModel": {
+        "type": "object",
+        "properties": {
+          "node_id": {
+            "type": "string",
+            "description": "The unique identifier of the action node"
+          },
+          "action_id": {
+            "type": "string",
+            "description": "The ID of the action associated with this node"
+          },
+          "input": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Input data for the action node"
+          },
+          "parents": {
+            "type": "array",
+            "description": "List of parent node IDs",
+            "items": {
+              "type": "string"
+            }
+          },
+          "children": {
+            "type": "array",
+            "description": "List of child node IDs",
+            "items": {
+              "type": "string"
+            }
+          },
+          "x_pos": {
+            "type": "number",
+            "description": "X position of the action node",
+            "format": "float"
+          },
+          "y_pos": {
+            "type": "number",
+            "description": "Y position of the action node",
+            "format": "float"
+          }
+        }
+      },
+      "AddWorkspaceModel": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the workspace"
+          },
+          "nodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AddActionNodeModel"
+            }
+          }
+        }
+      },
+      "AddActionNodeModel": {
+        "type": "object",
+        "properties": {
+          "node_id": {
+            "type": "string",
+            "description": "The unique identifier of the action node"
+          },
+          "action_id": {
+            "type": "string",
+            "description": "The ID of the action associated with this node"
+          },
+          "input": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Input data for the action node"
+          },
+          "parents": {
+            "type": "array",
+            "description": "List of parent node IDs",
+            "items": {
+              "type": "string"
+            }
+          },
+          "children": {
+            "type": "array",
+            "description": "List of child node IDs",
+            "items": {
+              "type": "string"
+            }
+          },
+          "x_pos": {
+            "type": "number",
+            "description": "X position of the action node",
+            "format": "float"
+          },
+          "y_pos": {
+            "type": "number",
+            "description": "Y position of the action node",
+            "format": "float"
+          }
+        }
+      },
+      "UpdateActionNodeModel": {
+        "type": "object",
+        "properties": {
+          "node_id": {
+            "type": "string",
+            "description": "The unique identifier of the action node"
+          },
+          "action_id": {
+            "type": "string",
+            "description": "The ID of the action associated with this node (optional)"
+          },
+          "input": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Input data for the action node (optional)"
+          },
+          "parents": {
+            "type": "array",
+            "description": "List of parent node IDs (optional)",
+            "items": {
+              "type": "string"
+            }
+          },
+          "children": {
+            "type": "array",
+            "description": "List of child node IDs (optional)",
+            "items": {
+              "type": "string"
+            }
+          },
+          "x_pos": {
+            "type": "number",
+            "description": "X position of the action node (optional)",
+            "format": "float"
+          },
+          "y_pos": {
+            "type": "number",
+            "description": "Y position of the action node (optional)",
+            "format": "float"
+          }
+        }
+      },
+      "ActionCompletedModel": {
+        "required": [
+          "action_id",
+          "output",
+          "workspace_id"
+        ],
+        "type": "object",
+        "properties": {
+          "action_id": {
+            "type": "string",
+            "description": "The unique identifier of the action that was completed"
+          },
+          "output": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Output data generated by the action"
+          },
+          "workspace_id": {
+            "type": "string",
+            "description": "The ID of the workspace where the action was completed (optional)"
+          },
+          "node_id": {
+            "type": "string",
+            "description": "The unique identifier of the node where the action was completed (optional)"
+          }
+        }
+      },
+      "WatchCompletedModel": {
+        "required": [
+          "action_id",
+          "input",
+          "node_id",
+          "output"
+        ],
+        "type": "object",
+        "properties": {
+          "node_id": {
+            "type": "string",
+            "description": "The unique identifier of the node that was watched"
+          },
+          "action_id": {
+            "type": "string",
+            "description": "The unique identifier of the action associated with the node"
+          },
+          "input": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Input data provided to the action node"
+          },
+          "output": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Output data generated by the action node"
+          }
+        }
+      },
+      "UpdateWorkspaceModel": {
+        "required": [
+          "name",
+          "nodes"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the workspace"
+          },
+          "nodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UpdateActionNodeModel"
+            }
+          }
+        }
+      },
+      "AboutModel": {
+        "required": [
+          "client",
+          "server"
+        ],
+        "type": "object",
+        "properties": {
+          "client": {
+            "$ref": "#/components/schemas/ClientModel"
+          },
+          "server": {
+            "$ref": "#/components/schemas/ServerModel"
+          }
+        }
+      },
+      "ClientModel": {
+        "required": [
+          "host"
+        ],
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string",
+            "description": "The host address of the client"
+          }
+        }
+      },
+      "ServerModel": {
+        "required": [
+          "current_time",
+          "services"
+        ],
+        "type": "object",
+        "properties": {
+          "current_time": {
+            "type": "integer",
+            "description": "The current server time in epoch format"
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ServiceModel"
+            }
+          }
+        }
+      },
+      "ServiceModel": {
+        "required": [
+          "actions",
+          "name",
+          "reactions"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the service"
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AreaModel"
+            }
+          },
+          "reactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AreaModel"
+            }
+          }
+        }
+      },
+      "AreaModel": {
+        "required": [
+          "description",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the area"
+          },
+          "description": {
+            "type": "string",
+            "description": "A brief description of the area"
+          }
+        }
+      },
+      "ActionModel": {
+        "required": [
+          "action",
+          "id",
+          "input",
+          "output",
+          "provider",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The unique identifier of the action"
+          },
+          "input": {
+            "type": "array",
+            "description": "The input parameters required for the action",
+            "items": {
+              "type": "string"
+            }
+          },
+          "output": {
+            "type": "array",
+            "description": "The output parameters generated by the action",
+            "items": {
+              "type": "string"
+            }
+          },
+          "provider": {
+            "type": "string",
+            "description": "The name of the provider (e.g., Gmail, Discord)"
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of the action (e.g., \"trigger\" or \"reaction\")"
+          },
+          "action": {
+            "type": "string",
+            "description": "A description of what the action does (e.g., \"send-email\")"
+          }
+        }
+      },
+      "AddActionModel": {
+        "required": [
+          "action",
+          "input",
+          "output",
+          "provider",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "description": "The name of the provider"
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of the action"
+          },
+          "action": {
+            "type": "string",
+            "description": "The action to perform"
+          },
+          "input": {
+            "type": "array",
+            "description": "The input parameters for the action",
+            "items": {
+              "type": "string"
+            }
+          },
+          "output": {
+            "type": "array",
+            "description": "The expected output parameters of the action",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "auth_login_body": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "name@email.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "secure_password"
+          }
+        }
+      },
+      "inline_response_200": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+          }
+        }
+      },
+      "auth_register_body": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/auth_login_body"
+          }
+        }
+      },
+      "SyncModel_discordData": {
+        "type": "object",
+        "properties": {
+          "someField": {
+            "type": "string"
+          }
+        },
+        "nullable": true
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
