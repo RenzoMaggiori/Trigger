@@ -63,9 +63,11 @@ export class TriggersService {
     }
 
     static async addTrigger(trigger: any) {
+        const baseUrl = this.getBaseUrl();
+        const token = await AsyncStorage.getItem('token');
+        console.log('token:', token);
+        console.log('trigger:', JSON.stringify(trigger));
         try {
-            const baseUrl = this.getBaseUrl();
-            const token = await AsyncStorage.getItem('token');
             const response = await fetch(`${baseUrl}/workspace/add`, {
                 method: 'POST',
                 headers: {
@@ -76,7 +78,6 @@ export class TriggersService {
             });
             if (response.status !== 201 && response.status !== 200) {
                 console.log('add trigger failed', response.status);
-                throw new Error(`Failed to add trigger. Status: ${response.status}`);
             }
             const data = await response.json();
             console.log('[add trigger] success:', data);
@@ -195,6 +196,29 @@ export class TriggersService {
             return data;
         } catch (error) {
             console.error("Catched Delete Trigger Error:", error);
+            throw error;
+        }
+    }
+
+    static async getTemplates() {
+        try {
+            const baseUrl = await this.getBaseUrl();
+            const response = await fetch(`${baseUrl}/workspace/templates`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (response.status !== 200) {
+                console.log('get templates failed', response.status);
+                throw new Error('Something went wrong.');
+            }
+            const data = await response.json();
+            console.log('[get templates] success:', data);
+            return data;
+        } catch (error) {
+            console.error("Catched Get Templates Error:", error);
             throw error;
         }
     }
