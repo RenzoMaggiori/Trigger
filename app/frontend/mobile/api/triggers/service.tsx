@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export class TriggersService {
     static async getBaseUrl() {
-        return `http://${Env.IPV4}:${Env.ACTION_PORT}/api`;
+        return `${Env.NGROK}/api`;
     }
 
     static async getActions() {
@@ -64,9 +64,9 @@ export class TriggersService {
 
     static async addTrigger(trigger: any) {
         try {
-            // const baseUrl = this.getBaseUrl();
+            const baseUrl = this.getBaseUrl();
             const token = await AsyncStorage.getItem('token');
-            const response = await fetch(`https://ample-social-elk.ngrok-free.app/api/workspace/add`, {
+            const response = await fetch(`${baseUrl}/workspace/add`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -134,8 +134,8 @@ export class TriggersService {
 
     static async startTrigger(triggerId: string) {
         try {
-            // const baseUrl = await this.getBaseUrl();
-            const response = await fetch(`https://ample-social-elk.ngrok-free.app/api/workspace/start/id/${triggerId}`, {
+            const baseUrl = await this.getBaseUrl();
+            const response = await fetch(`${baseUrl}/workspace/start/id/${triggerId}`, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
@@ -156,8 +156,8 @@ export class TriggersService {
 
     static async stopTrigger(triggerId: string) {
         try {
-            // const baseUrl = await this.getBaseUrl();
-            const response = await fetch(`https://ample-social-elk.ngrok-free.app/api/workspace/stop/id/${triggerId}`, {
+            const baseUrl = await this.getBaseUrl();
+            const response = await fetch(`${baseUrl}/workspace/stop/id/${triggerId}`, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
@@ -178,8 +178,8 @@ export class TriggersService {
 
     static async deleteTrigger(triggerId: string) {
         try {
-            // const baseUrl = await this.getBaseUrl();
-            const response = await fetch(`https://ample-social-elk.ngrok-free.app/api/workspace/delete/id/${triggerId}`, {
+            const baseUrl = await this.getBaseUrl();
+            const response = await fetch(`${baseUrl}/workspace/delete/id/${triggerId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,

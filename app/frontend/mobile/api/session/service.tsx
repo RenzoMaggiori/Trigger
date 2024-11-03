@@ -1,10 +1,8 @@
 import { Env } from "@/lib/env";
 
-const BASE_URL = `http://${Env.IPV4}:${Env.SESSION_PORT}`;
-
 export class SessionService {
     static async getBaseUrl() {
-        return `${BASE_URL}/api/session`;
+        return `${Env.NGROK}/api/session`;
     }
 
     static async getSessionByAccessToken(accessToken: string) {
