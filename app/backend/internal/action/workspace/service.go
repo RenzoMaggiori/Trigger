@@ -705,7 +705,7 @@ func (m Model) Templates(ctx context.Context) ([]AddWorkspaceModel, error) {
 		return nil, err
 	}
 
-	twitchChannelFollow, _, err := action.GetByActionNameRequest(accessToken, "channel_follow")
+	twitchChannelFollow, _, err := action.GetByActionNameRequest(accessToken, "watch_channel_follow")
 	if err != nil {
 		return nil, err
 	}
