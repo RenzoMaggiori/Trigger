@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export class TriggersService {
     static async getBaseUrl() {
-        return `http://${Env.IPV4}:${Env.ACTION_PORT}/api`;
+        return `${Env.NGROK}/api`;
     }
 
     static async getActions() {
@@ -63,10 +63,12 @@ export class TriggersService {
     }
 
     static async addTrigger(trigger: any) {
+        const baseUrl = this.getBaseUrl();
+        const token = await AsyncStorage.getItem('token');
+        console.log('token:', token);
+        console.log('trigger:', JSON.stringify(trigger));
         try {
-            // const baseUrl = this.getBaseUrl();
-            const token = await AsyncStorage.getItem('token');
-            const response = await fetch(`https://ample-social-elk.ngrok-free.app/api/workspace/add`, {
+            const response = await fetch(`${baseUrl}/workspace/add`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -76,13 +78,147 @@ export class TriggersService {
             });
             if (response.status !== 201 && response.status !== 200) {
                 console.log('add trigger failed', response.status);
-                throw new Error(`Failed to add trigger. Status: ${response.status}`);
             }
             const data = await response.json();
             console.log('[add trigger] success:', data);
             return data;
         } catch (error) {
             console.error("Catched Add Trigger Error:", error);
+            throw error;
+        }
+    }
+
+    static async getTriggers() {
+        try {
+            const baseUrl = await this.getBaseUrl();
+            const response = await fetch(`${baseUrl}/workspace/me`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (response.status !== 200) {
+                console.log('get triggers failed', response.status);
+                throw new Error('Something went wrong.');
+            }
+            const data = await response.json();
+            // console.log('[get triggers] success: ', data);
+            return data;
+        } catch (error) {
+            console.error("Catched Get Triggers Error:", error);
+            throw error;
+        }
+    }
+
+    static async getActionById(actionId: string) {
+        try {
+            const baseUrl = await this.getBaseUrl();
+            const response = await fetch(`${baseUrl}/action/id/${actionId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (response.status !== 200) {
+                console.log('get action by id failed', response.status);
+                throw new Error('Something went wrong.');
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error("Catched Get Action By Id Error:", error);
+            throw error;
+        }
+    }
+
+    static async startTrigger(triggerId: string) {
+        try {
+            const baseUrl = await this.getBaseUrl();
+            const response = await fetch(`${baseUrl}/workspace/start/id/${triggerId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (response.status !== 200) {
+                console.log('start trigger failed', response.status);
+                throw new Error('Something went wrong.');
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error("Catched Start Trigger Error:", error);
+            throw error;
+        }
+    }
+
+    static async stopTrigger(triggerId: string) {
+        try {
+            const baseUrl = await this.getBaseUrl();
+            const response = await fetch(`${baseUrl}/workspace/stop/id/${triggerId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (response.status !== 200) {
+                console.log('stop trigger failed', response.status);
+                throw new Error('Something went wrong.');
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error("Catched Stop Trigger Error:", error);
+            throw error;
+        }
+    }
+
+    static async deleteTrigger(triggerId: string) {
+        try {
+            const baseUrl = await this.getBaseUrl();
+            const response = await fetch(`${baseUrl}/workspace/delete/id/${triggerId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (response.status !== 204) {
+                console.log('delete trigger failed', response.status);
+                throw new Error('Something went wrong.');
+            }
+            const data = await response.json();
+            console.log('[delete trigger] success:', data);
+            return data;
+        } catch (error) {
+            console.error("Catched Delete Trigger Error:", error);
+            throw error;
+        }
+    }
+
+    static async getTemplates() {
+        try {
+            const baseUrl = await this.getBaseUrl();
+            const response = await fetch(`${baseUrl}/workspace/templates`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (response.status !== 200) {
+                console.log('get templates failed', response.status);
+                throw new Error('Something went wrong.');
+            }
+            const data = await response.json();
+            console.log('[get templates] success:', data);
+            return data;
+        } catch (error) {
+            console.error("Catched Get Templates Error:", error);
             throw error;
         }
     }

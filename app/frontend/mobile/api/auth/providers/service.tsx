@@ -39,4 +39,25 @@ export class ProvidersService {
             throw error;
         }
     }
+
+    static async disconnectOAuth(provider: string) {
+        try {
+            const baseUrl = `${Env.NGROK}/api/oauth2/logout`;
+            const response = await fetch(baseUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (response.status !== 200) {
+                console.log('disconnect failed', response.status);
+                throw new Error('Something went wrong.');
+            }
+            await AsyncStorage.setItem(provider, 'false');
+        } catch (error) {
+            console.error("Catched Disconnect Error:", error);
+            throw error;
+        }
+    }
 }

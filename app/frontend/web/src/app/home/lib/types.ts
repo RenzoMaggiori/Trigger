@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const triggerSchema = z.object({
   id: z.string(),
+  name: z.string(),
   nodes: z.array(
     z.object({
       node_id: z.string(),
@@ -18,7 +19,8 @@ export const triggerSchema = z.object({
 });
 
 export const workspaces = z.array(triggerSchema.pick({
-  id: true
+  id: true,
+  name: true,
 }))
 
 export type TriggerSchemaType = z.infer<typeof triggerSchema>;

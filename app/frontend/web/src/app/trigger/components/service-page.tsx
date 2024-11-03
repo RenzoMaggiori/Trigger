@@ -10,6 +10,7 @@ import { useMutation } from "@tanstack/react-query";
 import { send_workspace } from "@/app/trigger/lib/send-workspace";
 import { toast } from "sonner";
 import { deployWorkspace } from "../lib/deploy-workspace";
+import { Input } from "@/components/ui/input";
 
 interface ServicesProps {
   services: Service[];
@@ -54,31 +55,32 @@ export const ServicesComponent: React.FC<ServicesProps> = ({
           fields: n.input || {},
           parent_ids: n.parents,
           child_ids: n.children,
+          status: n.status,
           x_pos: n.x_pos,
           y_pos: n.y_pos,
         };
       }
-      setTriggerWorkspace({ id: data.id, nodes });
+      setTriggerWorkspace({ id: data.id, name: data.name, nodes });
       setLoading(false);
-      toast("Workspace saved successfully", action)
+      toast("Workspace saved successfully", action);
     },
     onError: () => {
       setLoading(false);
-      toast("Error while saving the workspace", action)
-    }
+      toast("Error while saving the workspace", action);
+    },
   });
 
   const deployWorkspaceMutation = useMutation({
     mutationFn: deployWorkspace,
     onSuccess: () => {
       setLoadingDeploy(false);
-      window.location.href = "/home"
+      window.location.href = "/home";
     },
     onError: () => {
       setLoading(false);
-      toast("Error while deploying the workspace", action)
-    }
-  })
+      toast("Error while deploying the workspace", action);
+    },
+  });
 
   const handleOnClick = () => {
     if (!triggerWorkspace) return;
@@ -87,15 +89,22 @@ export const ServicesComponent: React.FC<ServicesProps> = ({
 
   const handleDeploy = () => {
     if (!triggerWorkspace) return;
-    deployWorkspaceMutation.mutate({id: triggerWorkspace.id});
-  }
+    deployWorkspaceMutation.mutate({ id: triggerWorkspace.id });
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!triggerWorkspace) return
+    setTriggerWorkspace({ ...triggerWorkspace, name: e.target.value });
+  };
 
   return (
-    <div className="w-auto p-5">
+    <div className="flex flex-col w-auto p-5 gap-y-2">
+      <Card className="flex items-center justify-center">
+          <Input placeholder="workspace name" value={triggerWorkspace?.name} onChange={handleNameChange}/>
+      </Card>
       <Card className="h-full overflow-hidden">
         <p className="font-bold text-2xl p-3">Services</p>
         <CardContent className="flex flex-col items-center justify-start h-full py-5 gap-4">
-
           {services.map((item, key) => (
             <div
               key={key}
@@ -127,6 +136,7 @@ export const ServicesComponent: React.FC<ServicesProps> = ({
             }}
             disabled={loadingDeploy}
           >
+            {loadingDeploy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Deploy Workspace
           </Button>
         </CardContent>

@@ -4,11 +4,12 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialIcons } from '@expo/vector-icons';
 import HomeScreen from './HomeScreen';
 import TriggersScreen from './TriggersScreen';
-import CommunityScreen from './CommunityScreen';
+import TemplatesScreen from './TemplatesScreen';
 import { Menu, Divider, Provider } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/Colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { CredentialsService } from '@/api/auth/credentials/service';
 
 const Tab = createBottomTabNavigator();
 
@@ -22,6 +23,7 @@ export default function TabLayout() {
   const router = useRouter();
 
   const handleLogout = async () => {
+    CredentialsService.logout();
     for (const key of await AsyncStorage.getAllKeys()) {
       await AsyncStorage.removeItem(key);
     }
@@ -84,14 +86,13 @@ export default function TabLayout() {
       <Tab.Navigator
         screenOptions={({ route }) => ({
           tabBarIcon: ({ color, size }) => {
-            let iconName: 'home' | 'link' | 'people' = 'home';
-
+            let iconName: 'home' | 'link' | 'dataset-linked' = 'home';
             if (route.name === 'Home') {
               iconName = 'home';
             } else if (route.name === 'Triggers') {
               iconName = 'link';
-            } else if (route.name === 'Community') {
-              iconName = 'people';
+            } else if (route.name === 'Templates') {
+              iconName = 'dataset-linked';
             }
 
             return <MaterialIcons name={iconName} size={size} color={color} />;
@@ -123,7 +124,7 @@ export default function TabLayout() {
           }}
         />
 
-        <Tab.Screen name="Community" component={CommunityScreen} />
+        <Tab.Screen name="Templates" component={TemplatesScreen} />
       </Tab.Navigator>
     </Provider>
   );

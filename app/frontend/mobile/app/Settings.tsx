@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, Switch, ScrollView, Modal, TouchableOpacity, TouchableNativeFeedback } from 'react-native';
-import { FontAwesome5, Ionicons, FontAwesome } from '@expo/vector-icons';
+import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import Button from '@/components/Button';
-import { ProvidersService } from '@/api/auth/providers/service';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SettingsService } from '@/api/settings/service';
 import { SyncService } from '@/api/sync/service';
+import { ProvidersService } from '@/api/auth/providers/service';
 
 const providers = [
     { name: 'google', icon: <Ionicons name="logo-google" size={30} color={Colors.light.google} /> },
@@ -13,15 +14,13 @@ const providers = [
     { name: 'discord', icon: <FontAwesome5 name="discord" size={30} color={Colors.light.discord} /> },
     { name: 'spotify', icon: <FontAwesome5 name="spotify" size={30} color={Colors.light.spotify} /> },
     { name: 'github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
-    // { name: 'slack', icon: <FontAwesome name="slack" size={30} color={Colors.light.slack} /> },
-    // { name: 'outlook', icon: <Ionicons name="logo-microsoft" size={30} color={Colors.light.outlook} /> },
 ];
 
 export default function Settings() {
     return (
         <SafeAreaView style={styles.safeArea}>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
-                <UserInfoCard/>
+                <UserInfoCard />
                 {providers.map((tech, index) => (
                     <ProviderItem key={index} provider={tech} />
                 ))}
@@ -71,8 +70,10 @@ function ProviderItem({ provider }: { provider: Provider }) {
     useEffect(() => {
         const fetchConnectionStatus = async () => {
             try {
-                const connectionStatus = await AsyncStorage.getItem(provider.name);
-                setIsConnected(connectionStatus === 'true');
+                const settings = await SettingsService.getSettings();
+                const providerStatus = settings.find((item: any) => item.providerName === provider.name);
+
+                setIsConnected(providerStatus?.active === true);
             } catch (error) {
                 console.error(`Error fetching connection status for ${provider.name}:`, error);
             }
@@ -94,9 +95,8 @@ function ProviderItem({ provider }: { provider: Provider }) {
 
     const handleSignOut = async () => {
         try {
-            // await ProvidersService.disconnect(provider.name); // TO DO
+            await ProvidersService.disconnectOAuth(provider.name);
             setIsConnected(false);
-            await AsyncStorage.setItem(provider.name, 'false');
         } catch (error) {
             console.error(`Error disconnecting from ${provider.name}:`, error);
         }

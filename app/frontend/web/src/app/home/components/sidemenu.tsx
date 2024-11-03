@@ -8,19 +8,19 @@ import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button";
 import { newTrigger } from "@/app/home/lib/new-trigger";
 
-export const SideMenu = () => {
+export const SideMenu = ({workspaceLen}: {workspaceLen: number}) => {
   const [loading, setLoading] = React.useState<boolean>(false);
   const links = [
     {
       name: "Templates",
-      href: "/",
+      href: "/templates",
       icon: (
         <GrDocumentImage className="text-neutral-700 dark:text-neutral-200 mr-2 w-5 h-5" />
       ),
     },
     {
       name: "Triggers",
-      href: "/",
+      href: "/home",
       icon: (
         <SiGooglegemini className="text-neutral-700 dark:text-neutral-200 mr-2 w-5 h-5" />
       ),
@@ -36,7 +36,7 @@ export const SideMenu = () => {
 
   const handleClick = () => {
     setLoading(true)
-    mutation.mutate();
+    mutation.mutate({name: `Workspace ${workspaceLen}`, nodes: []});
   };
 
   return (

@@ -15,6 +15,7 @@ import { FaDiscord } from "react-icons/fa";
 import { IoLogoGithub } from "react-icons/io";
 import { FaSpotify } from "react-icons/fa";
 import { FaTwitch } from "react-icons/fa";
+import { FaBitbucket } from "react-icons/fa6";
 
 import { Card, CardHeader } from "@/components/ui/card";
 import { Footer } from "@/components/ui/footer";
@@ -32,6 +33,7 @@ export default function Home() {
     { name: "Github", icon: <IoLogoGithub className="mr-2 hidden md:block" /> },
     { name: "Spotify", icon: <FaSpotify className="mr-2 hidden md:block" /> },
     { name: "Twitch", icon: <FaTwitch className="mr-2 hidden md:block" /> },
+    { name: "BitBucket", icon: <FaBitbucket className="mr-2 hidden md:block" /> },
   ];
 
   // TODO: Add href to start with google
@@ -58,7 +60,7 @@ export default function Home() {
             asChild
           >
             <Link
-              href={`${env.NEXT_PUBLIC_SERVER_URL}/api/oauth2/login?provider=google&redirect=${env.NEXT_PUBLIC_WEB_URL}/home`}
+              href={`${env.NEXT_PUBLIC_SERVER_URL}/api/oauth2/login?provider=google&redirect=${env.NEXT_PUBLIC_WEB_URL}/auth/token`}
               className="flex items-center"
             >
               <FcGoogle className="mr-2 text-2xl" /> Start with Google

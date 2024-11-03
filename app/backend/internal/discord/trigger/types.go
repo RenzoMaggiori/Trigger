@@ -50,7 +50,6 @@ type DiscordSessionModel struct {
 	UserId  string `json:"user_id" bson:"user_id"`
 	ChannelId string `json:"channel_id" bson:"channel_id"`
 	ActionId string `json:"action_id" bson:"action_id"`
-	Token string `json:"token" bson:"token"`
 	DiscordData *discordgo.User `json:"discord_data"`
 	NodeId string `json:"node_id" bson:"node_id"`
 }

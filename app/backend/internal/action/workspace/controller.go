@@ -260,3 +260,17 @@ func (h *Handler) DeleteById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (h *Handler) GetTemplates(w http.ResponseWriter, r *http.Request) {
+	templates, err := h.Service.Templates(r.Context())
+	if err != nil {
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+
+	if err = encode.Json(w, templates); err != nil {
+		log.Print(err)
+		customerror.Send(w, err, errors.ErrCodes)
+		return
+	}
+}

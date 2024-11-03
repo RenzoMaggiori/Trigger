@@ -17,6 +17,7 @@ export async function send_workspace(triggerWorkspace: TriggerWorkspace) {
         Authorization: `Bearer ${access_token}`,
       },
       body: JSON.stringify({
+        name: triggerWorkspace.name,
         nodes: Object.keys(triggerWorkspace.nodes).map((k) => ({
           node_id: k,
           action_id: triggerWorkspace.nodes[k].action_id,

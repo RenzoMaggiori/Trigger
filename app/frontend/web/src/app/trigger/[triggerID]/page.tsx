@@ -16,6 +16,7 @@ import { ReactFlowComponent } from "@/app/trigger/components/react-flow";
 import { getWorkspace } from "@/app/trigger/lib/get-workspace";
 import { getActions } from "../lib/get-actions";
 import { IoMdStopwatch } from "react-icons/io";
+import { FaBitbucket } from "react-icons/fa6";
 
 const services: Service[] = [
   {
@@ -42,6 +43,11 @@ const services: Service[] = [
     icon: <FaTwitch className="w-5 h-5 mr-2 text-violet-500" />,
     name: "Twitch",
     settings: "twitch",
+  },
+  {
+    icon: <FaBitbucket className="w-5 h-5 mr-2 text-blue-500" />,
+    name: "Bitbucket",
+    settings: "bitbucket",
   },
   {
     icon: <IoMdStopwatch className="w-5 h-5 mr-2" />,
@@ -86,6 +92,7 @@ export default function Page({ params }: { params: { triggerID: string } }) {
 
     setTriggerWorkspace({
       id: data.workspace.id,
+      name: data.workspace.name,
       nodes: data.workspace.nodes.reduce((acc, n) => {
         acc[n.node_id] = {
           id: n.node_id,
@@ -93,6 +100,7 @@ export default function Page({ params }: { params: { triggerID: string } }) {
           fields: n.input || {},
           parent_ids: n.parents || [],
           child_ids: n.children || [],
+          status: n.status,
           x_pos: n.x_pos || 0,
           y_pos: n.y_pos || 0,
         };
@@ -123,7 +131,12 @@ export default function Page({ params }: { params: { triggerID: string } }) {
           ),
           settings: service?.settings,
         },
-        style: { border: "1px solid #ccc", padding: 10 },
+        style: {
+          border: `1px solid ${
+            n.status === "completed" ? "#90ee90" : n.status === "active" ? "purple" : "#ccc"
+          }`,
+          padding: 10
+        },
         parents: n.parents || [],
         children: n.children || [],
       };
@@ -150,7 +163,7 @@ export default function Page({ params }: { params: { triggerID: string } }) {
     setParentNodes(parentNodes);
   };
 
-  const handleNodeClick = (event: React.MouseEvent, node: CustomNode) => {
+  const handleNodeClick = (_event: React.MouseEvent, node: CustomNode) => {
     if (node.data?.settings) {
       setSettings(node.data.settings);
       updateParentNodes(node.id);

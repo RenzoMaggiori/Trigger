@@ -176,6 +176,16 @@ func (m Model) updateNodeById(ctx context.Context, workspaceId primitive.ObjectI
 }
 
 func (m Model) UpdateById(ctx context.Context, workspaceId primitive.ObjectID, update *UpdateWorkspaceModel) (*WorkspaceModel, error) {
+	if update.Name != nil {
+		_, err := m.Collection.UpdateOne(ctx, bson.M{"_id": workspaceId}, bson.M{
+			"$set": bson.M{
+				"name": *update.Name,
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	for _, node := range update.Nodes {
 		_, err := m.updateNodeById(ctx, workspaceId, node)
@@ -269,6 +279,7 @@ func (m Model) Add(ctx context.Context, add *AddWorkspaceModel) (*WorkspaceModel
 	newWorkspace := WorkspaceModel{
 		Id:     primitive.NewObjectID(),
 		UserId: session.UserId,
+		Name:   add.Name,
 		Nodes:  make([]ActionNodeModel, 0),
 	}
 
@@ -656,4 +667,213 @@ func (m Model) DeleteById(ctx context.Context, id primitive.ObjectID) error {
 
 	//	TODO: call action stop functions
 	return nil
+}
+
+func (m Model) Templates(ctx context.Context) ([]AddWorkspaceModel, error) {
+	accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
+	if !ok {
+		return nil, errors.ErrAccessTokenCtx
+	}
+
+	gmailWatch, _, err := action.GetByActionNameRequest(accessToken, "watch")
+	if err != nil {
+		return nil, err
+	}
+
+	gmailSend, _, err := action.GetByActionNameRequest(accessToken, "send_email")
+	if err != nil {
+		return nil, err
+	}
+
+	githubWatchPush, _, err := action.GetByActionNameRequest(accessToken, "watch_push")
+	if err != nil {
+		return nil, err
+	}
+
+	githubCreateIssue, _, err := action.GetByActionNameRequest(accessToken, "create_issue")
+	if err != nil {
+		return nil, err
+	}
+
+	spotifyWatchFollowers, _, err := action.GetByActionNameRequest(accessToken, "watch_followers")
+	if err != nil {
+		return nil, err
+	}
+
+	spotifyPlayMusic, _, err := action.GetByActionNameRequest(accessToken, "play_music")
+	if err != nil {
+		return nil, err
+	}
+
+	twitchChannelFollow, _, err := action.GetByActionNameRequest(accessToken, "watch_channel_follow")
+	if err != nil {
+		return nil, err
+	}
+
+	twitchSendChatMessage, _, err := action.GetByActionNameRequest(accessToken, "send_chat_message")
+	if err != nil {
+		return nil, err
+	}
+
+	discordWatchChannelMessage, _, err := action.GetByActionNameRequest(accessToken, "watch_channel_message")
+	if err != nil {
+		return nil, err
+	}
+
+	discordSendChannelMessage, _, err := action.GetByActionNameRequest(accessToken, "send_channel_message")
+	if err != nil {
+		return nil, err
+	}
+
+	bitbucketWatchIssueCreated, _, err := action.GetByActionNameRequest(accessToken, "watch_issue_created")
+	if err != nil {
+		return nil, err
+	}
+
+	bitbucketCreatePullRequest, _, err := action.GetByActionNameRequest(accessToken, "create_pull_request")
+	if err != nil {
+		return nil, err
+	}
+
+	templates := []AddWorkspaceModel{
+		{
+			Name: "gmail",
+			Nodes: []AddActionNodeModel{
+				{
+					NodeId:   "Gmail-0",
+					ActionId: gmailWatch.Id,
+					Input:    map[string]string{},
+					Parents:  make([]string, 0),
+					Children: []string{"Gmail-1"},
+					XPos:     100,
+					YPos:     100,
+				},
+				{
+					NodeId:   "Gmail-1",
+					ActionId: gmailSend.Id,
+					Input:    map[string]string{},
+					Parents:  []string{"Gmail-0"},
+					Children: make([]string, 0),
+					XPos:     100,
+					YPos:     200,
+				},
+			},
+		},
+		{
+			Name: "github",
+			Nodes: []AddActionNodeModel{
+				{
+					NodeId:   "Github-0",
+					ActionId: githubWatchPush.Id,
+					Input:    map[string]string{},
+					Parents:  make([]string, 0),
+					Children: []string{"Github-1"},
+					XPos:     100,
+					YPos:     100,
+				},
+				{
+					NodeId:   "Github-1",
+					ActionId: githubCreateIssue.Id,
+					Input:    map[string]string{},
+					Parents:  []string{"Github-0"},
+					Children: make([]string, 0),
+					XPos:     100,
+					YPos:     200,
+				},
+			},
+		},
+		{
+			Name: "spotify",
+			Nodes: []AddActionNodeModel{
+				{
+					NodeId:   "Spotify-0",
+					ActionId: spotifyWatchFollowers.Id,
+					Input:    map[string]string{},
+					Parents:  make([]string, 0),
+					Children: []string{"Spotify-1"},
+					XPos:     100,
+					YPos:     100,
+				},
+				{
+					NodeId:   "Spotify-1",
+					ActionId: spotifyPlayMusic.Id,
+					Input:    map[string]string{},
+					Parents:  []string{"Spotify-0"},
+					Children: make([]string, 0),
+					XPos:     100,
+					YPos:     200,
+				},
+			},
+		},
+		{
+			Name: "twitch",
+			Nodes: []AddActionNodeModel{
+				{
+					NodeId:   "Twitch-0",
+					ActionId: twitchChannelFollow.Id,
+					Input:    map[string]string{},
+					Parents:  make([]string, 0),
+					Children: []string{"Twitch-1"},
+					XPos:     100,
+					YPos:     100,
+				},
+				{
+					NodeId:   "Twitch-1",
+					ActionId: twitchSendChatMessage.Id,
+					Input:    map[string]string{},
+					Parents:  []string{"Twitch-0"},
+					Children: make([]string, 0),
+					XPos:     100,
+					YPos:     200,
+				},
+			},
+		},
+		{
+			Name: "discord",
+			Nodes: []AddActionNodeModel{
+				{
+					NodeId:   "Discord-0",
+					ActionId: discordWatchChannelMessage.Id,
+					Input:    map[string]string{},
+					Parents:  make([]string, 0),
+					Children: []string{"Discord-1"},
+					XPos:     100,
+					YPos:     100,
+				},
+				{
+					NodeId:   "Discord-1",
+					ActionId: discordSendChannelMessage.Id,
+					Input:    map[string]string{},
+					Parents:  []string{"Discord-0"},
+					Children: make([]string, 0),
+					XPos:     100,
+					YPos:     200,
+				},
+			},
+		},
+		{
+			Name: "bitbucket",
+			Nodes: []AddActionNodeModel{
+				{
+					NodeId:   "Bitbucket-0",
+					ActionId: bitbucketWatchIssueCreated.Id,
+					Input:    map[string]string{},
+					Parents:  make([]string, 0),
+					Children: []string{"Bitbucket-1"},
+					XPos:     100,
+					YPos:     100,
+				},
+				{
+					NodeId:   "Bitbucket-1",
+					ActionId: bitbucketCreatePullRequest.Id,
+					Input:    map[string]string{},
+					Parents:  []string{"Bitbucket-0"},
+					Children: make([]string, 0),
+					XPos:     100,
+					YPos:     200,
+				},
+			},
+		},
+	}
+	return templates, nil
 }
