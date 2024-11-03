@@ -132,10 +132,10 @@ export class TriggersService {
         }
     }
 
-    static async startAction(actionId: string) {
+    static async startTrigger(triggerId: string) {
         try {
-            const baseUrl = await this.getBaseUrl();
-            const response = await fetch(`https://ample-social-elk.ngrok-free.app/api/workspace/start/id/${actionId}`, {
+            // const baseUrl = await this.getBaseUrl();
+            const response = await fetch(`https://ample-social-elk.ngrok-free.app/api/workspace/start/id/${triggerId}`, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
@@ -143,22 +143,21 @@ export class TriggersService {
                 }
             });
             if (response.status !== 200) {
-                console.log('start action failed', response.status);
+                console.log('start trigger failed', response.status);
                 throw new Error('Something went wrong.');
             }
             const data = await response.json();
-            // console.log('[start action] success:', data);
             return data;
         } catch (error) {
-            console.error("Catched Start Action Error:", error);
+            console.error("Catched Start Trigger Error:", error);
             throw error;
         }
     }
 
-    static async stopAction(actionId: string) {
+    static async stopTrigger(triggerId: string) {
         try {
             // const baseUrl = await this.getBaseUrl();
-            const response = await fetch(`https://ample-social-elk.ngrok-free.app/api/workspace/stop/id/${actionId}`, {
+            const response = await fetch(`https://ample-social-elk.ngrok-free.app/api/workspace/stop/id/${triggerId}`, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
@@ -166,14 +165,13 @@ export class TriggersService {
                 }
             });
             if (response.status !== 200) {
-                console.log('stop action failed', response.status);
+                console.log('stop trigger failed', response.status);
                 throw new Error('Something went wrong.');
             }
             const data = await response.json();
-            // console.log('[stop action] success:', data);
             return data;
         } catch (error) {
-            console.error("Catched Stop Action Error:", error);
+            console.error("Catched Stop Trigger Error:", error);
             throw error;
         }
     }
@@ -181,14 +179,14 @@ export class TriggersService {
     static async deleteTrigger(triggerId: string) {
         try {
             // const baseUrl = await this.getBaseUrl();
-            const response = await fetch(`https://ample-social-elk.ngrok-free.app/api/workspace/workspace/delete/id/${triggerId}`, {
+            const response = await fetch(`https://ample-social-elk.ngrok-free.app/api/workspace/delete/id/${triggerId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
                     'Content-Type': 'application/json'
                 }
             });
-            if (response.status !== 200) {
+            if (response.status !== 204) {
                 console.log('delete trigger failed', response.status);
                 throw new Error('Something went wrong.');
             }

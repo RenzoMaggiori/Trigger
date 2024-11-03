@@ -37,7 +37,7 @@ export default function HomeScreen() {
 
                     setWorkspaces(updatedWorkspaces);
                 } catch (error) {
-                    console.error('Failed to load workspaces:', error);
+                    console.error('Failed to load triggers:', error);
                 }
             };
 
@@ -100,17 +100,29 @@ function TriggerList({ workspaces, setWorkspaces }: { workspaces: Workspace[], s
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null);
 
-    const handleAction = async (node: any) => {
+    const handleTriggerAction = async (workspaceId: string, isActive: boolean) => {
         try {
-            if (node.status === 'active') {
-                await TriggersService.stopAction(node.action_id);
-                console.log(`Stopped action with ID: ${node.action_id}`);
+            if (isActive) {
+                await TriggersService.stopTrigger(workspaceId);
+                console.log(`Stopped trigger for workspace ID: ${workspaceId}`);
             } else {
-                await TriggersService.startAction(node.action_id);
-                console.log(`Started action with ID: ${node.action_id}`);
+                await TriggersService.startTrigger(workspaceId);
+                console.log(`Started trigger for workspace ID: ${workspaceId}`);
             }
+            setWorkspaces(prev => prev.map(workspace => {
+                if (workspace.id === workspaceId) {
+                    return {
+                        ...workspace,
+                        nodes: workspace.nodes.map(node => ({
+                            ...node,
+                            status: isActive ? 'inactive' : 'active',
+                        })),
+                    };
+                }
+                return workspace;
+            }));
         } catch (error) {
-            console.error("Error handling action:", error);
+            console.error("Error handling trigger action:", error);
         }
     };
 
@@ -119,9 +131,9 @@ function TriggerList({ workspaces, setWorkspaces }: { workspaces: Workspace[], s
             try {
                 await TriggersService.deleteTrigger(selectedWorkspaceId);
                 setWorkspaces(prev => prev.filter(workspace => workspace.id !== selectedWorkspaceId));
-                console.log(`Deleted workspace with ID: ${selectedWorkspaceId}`);
+                console.log(`Deleted trigger with ID: ${selectedWorkspaceId}`);
             } catch (error) {
-                console.error("Error deleting workspace:", error);
+                console.error("Error deleting trigger:", error);
             } finally {
                 setModalVisible(false);
             }
@@ -135,11 +147,11 @@ function TriggerList({ workspaces, setWorkspaces }: { workspaces: Workspace[], s
 
     return (
         <View style={styles.triggerListContainer}>
-            <Text style={styles.title}>Your Workspaces</Text>
+            <Text style={styles.title}>Your Triggers</Text>
             {workspaces.length > 0 ? (
                 workspaces.map((workspace) => (
                     <View key={workspace.id} style={styles.workspaceCard}>
-                        <Text style={styles.workspaceTitle}>Workspace ID: {workspace.id}</Text>
+                        <Text style={styles.workspaceTitle}>Trigger ID: {workspace.id}</Text>
                         <View style={styles.nodesContainer}>
                             {workspace.nodes.map((node) => {
                                 const isTrigger = node.actionDetails?.type === 'trigger';
@@ -198,44 +210,34 @@ function TriggerList({ workspaces, setWorkspaces }: { workspaces: Workspace[], s
                                                 >
                                                     {node.status === 'active' ? 'Active' : 'Inactive'}
                                                 </Text>
-                                                <TouchableOpacity
-                                                    style={[
-                                                        styles.actionButton,
-                                                        isTrigger && styles.invertedActionButton,
-                                                    ]}
-                                                    onPress={() => handleAction(node)}
-                                                >
-                                                    <MaterialIcons
-                                                        name={node.status === 'active' ? 'pause' : 'play-arrow'}
-                                                        size={16}
-                                                        color={isTrigger ? Colors.light.tintDark : '#fff'}
-                                                    />
-                                                    <Text
-                                                        style={[
-                                                            styles.actionButtonTxt,
-                                                            isTrigger && styles.invertedActionButtonTxt,
-                                                        ]}
-                                                    >
-                                                        {node.status === 'active' ? 'Stop' : 'Start'}
-                                                    </Text>
-                                                </TouchableOpacity>
                                             </View>
                                         </View>
                                     </View>
                                 );
                             })}
                         </View>
-                        <Button
-                            title='Delete Workspace'
-                            onPress={() => openDeleteModal(workspace.id)}
-                            backgroundColor={Colors.light.tint}
-                            textColor='#FFFFFF'
-                            paddingV={10}
-                        />
+                        <View style={styles.buttonRow}>
+                            <Button
+                                title='Delete Trigger'
+                                onPress={() => openDeleteModal(workspace.id)}
+                                backgroundColor='#FFFFFF'
+                                textColor={Colors.light.tintDark}
+                                paddingV={10}
+                                buttonWidth="45%"
+                            />
+                            <Button
+                                title={workspace.nodes.some(node => node.status === 'active') ? 'Stop Trigger' : 'Start Trigger'}
+                                onPress={() => handleTriggerAction(workspace.id, workspace.nodes.some(node => node.status === 'active'))}
+                                backgroundColor={Colors.light.tint}
+                                textColor='#FFFFFF'
+                                paddingV={10}
+                                buttonWidth="45%"
+                            />
+                        </View>
                     </View>
                 ))
             ) : (
-                <Text style={styles.noTriggersText}>No workspaces available.</Text>
+                <Text style={styles.noTriggersText}>No Triggers available.</Text>
             )}
 
             <Modal
@@ -246,9 +248,9 @@ function TriggerList({ workspaces, setWorkspaces }: { workspaces: Workspace[], s
             >
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Delete Workspace</Text>
+                        <Text style={styles.modalTitle}>Delete Trigger</Text>
                         <Text style={styles.modalMessage}>
-                            Are you sure you want to delete this workspace?
+                            Are you sure you want to delete this trigger?
                         </Text>
                         <View style={styles.modalButtons}>
                             <TouchableOpacity
@@ -444,5 +446,10 @@ const styles = StyleSheet.create({
     buttonText: {
         color: '#fff',
         fontWeight: 'bold',
+    },
+    buttonRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 10,
     },
 });
