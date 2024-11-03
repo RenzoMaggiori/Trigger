@@ -20,6 +20,6 @@ func Config() *oauth2.Config {
 			gothicSpotify.ScopeUserModifyPlaybackState,
 		},
 		Endpoint:    spotify.Endpoint,
-		RedirectURL: fmt.Sprintf("http://localhost:%s/api/oauth2/callback", os.Getenv("AUTH_PORT")),
+		RedirectURL: fmt.Sprintf("%s/api/oauth2/callback", os.Getenv("SERVER_BASE_URL")),
 	}
 }

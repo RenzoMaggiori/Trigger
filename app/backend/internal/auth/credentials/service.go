@@ -3,7 +3,6 @@ package credentials
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -111,7 +110,6 @@ func (m Model) Register(regsiterModel RegisterModel) (string, error) {
 
 func (m Model) VerifyToken(token string) error {
 	if err := jwt.Verify(token, os.Getenv("TOKEN_SECRET")); err == nil {
-		log.Println("VerifyToken: Token is not valid")
 		return nil
 	}
 

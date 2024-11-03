@@ -13,7 +13,7 @@ import (
 
 var (
 	errEnvNotFound      string     = "Enviroment argument %s not found"
-	enviromentArguments [20]string = [...]string{
+	enviromentArguments [22]string = [...]string{
 		"TOKEN_SECRET",
 		"ADMIN_TOKEN",
 		"USER_SERVICE_BASE_URL",
@@ -34,6 +34,8 @@ var (
 		"DISCORD_KEY",
 		"DISCORD_SECRET",
 		"SERVER_BASE_URL",
+		"BITBUCKET_KEY",
+		"BITBUCKET_SECRET",
 	}
 )
 
