@@ -22,19 +22,8 @@ This repository follows a microservice architecture for Go applications. Each mi
 /config/                 # Configuration files
 └── config.yaml          # Global or service-specific config files
 │
-/deploy/                 # Deployment-related files (Docker, Kubernetes, CI/CD)
-├── /docker/             # Docker configuration files (Dockerfiles, docker-compose)
-└── /k8s/                # Kubernetes deployment configurations
-│
-/scripts/                # Automation scripts
-└── build.sh             # Example: Script for building the project
-│
 /docs/                   # Project documentation
 └── architecture.md      # Architecture overview and documentation
-│
-/tests/                  # Unit and integration tests
-├── /service1/           # Test files for Service 1
-└── /service2/           # Test files for Service 2
 ```
 
 ## Directory Breakdown
@@ -89,27 +78,6 @@ Example:
 /config/config.yaml  # Example global configuration file
 ```
 
-`/deploy/`
-
-The deploy/ directory contains Docker, Kubernetes, and CI/CD pipeline configuration files for deploying your services. This helps in containerizing and orchestrating services for production.
-
-Example:
-
-```bash
-/deploy/docker/Dockerfile             # Dockerfile for Service 1
-/deploy/k8s/service1-deployment.yaml  # Kubernetes deployment manifest for Service 1
-```
-
-`/scripts/`
-
-Automation scripts for common tasks such as building, testing, or deploying services. This directory helps streamline the development and CI/CD process.
-
-Example:
-
-```bash
-/scripts/build.sh  # Example build script
-```
-
 `/docs/`
 
 The docs/ directory contains any project-related documentation. This is where architecture overviews, API documentation, or any other relevant docs live.
@@ -118,15 +86,5 @@ Example:
 
 ```bash
 /docs/ARCITECTURE.md  # Architecture documentation for the project
-```
-
-`/tests/`
-
-This directory contains unit and integration test files, usually separated by service. Having a dedicated tests/ folder helps to organize the test cases and test data for each service.
-
-Example:
-
-```bash
-/tests/service1/handler_test.go  # Unit tests for Service 1
 ```
 
