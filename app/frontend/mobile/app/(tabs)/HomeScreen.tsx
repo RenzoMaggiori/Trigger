@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Modal } from 'react-native';
 import ButtonIcon from '@/components/ButtonIcon';
 import Button from '@/components/Button';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
@@ -56,7 +56,7 @@ export default function HomeScreen() {
                 buttonWidth="35%"
                 paddingV={7.5}
             />
-            <TriggerList workspaces={workspaces} />
+            <TriggerList workspaces={workspaces} setWorkspaces={setWorkspaces} />
         </ScrollView>
     );
 }
@@ -96,111 +96,10 @@ interface Workspace {
     }[];
 }
 
-// function TriggerList({ workspaces }: { workspaces: Workspace[] }) {
-//     return (
-//         <View style={styles.triggerListContainer}>
-//             <Text style={styles.title}>Your Workspaces</Text>
-//             {workspaces.length > 0 ? (
-//                 workspaces.map((workspace) => (
-//                     <View key={workspace.id} style={styles.workspaceCard}>
-//                         <Text style={styles.workspaceTitle}>Workspace ID: {workspace.id}</Text>
-//                         <View style={styles.nodesContainer}>
-//                             {workspace.nodes.map((node) => {
-//                                 const isTrigger = node.actionDetails?.type === 'trigger';
+function TriggerList({ workspaces, setWorkspaces }: { workspaces: Workspace[], setWorkspaces: React.Dispatch<React.SetStateAction<Workspace[]>> }) {
+    const [modalVisible, setModalVisible] = useState(false);
+    const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null);
 
-//                                 return (
-//                                     <View
-//                                         key={node.node_id}
-//                                         style={[
-//                                             styles.nodeCard,
-//                                             isTrigger && styles.triggerNodeCard,
-//                                         ]}
-//                                     >
-//                                         <View style={styles.nodeHeader}>
-//                                             <View style={styles.nodeDetails}>
-//                                                 <Text
-//                                                     style={[
-//                                                         styles.nodeText,
-//                                                         isTrigger && styles.whiteText,
-//                                                     ]}
-//                                                 >
-//                                                     Provider: {node.actionDetails?.provider}
-//                                                 </Text>
-//                                                 <Text
-//                                                     style={[
-//                                                         styles.nodeText,
-//                                                         isTrigger && styles.whiteText,
-//                                                     ]}
-//                                                 >
-//                                                     {isTrigger ? 'Action' : 'Reaction'}: {node.actionDetails?.action}
-//                                                 </Text>
-//                                                 <View style={styles.actionDetailsContainer}>
-//                                                     <Text
-//                                                         style={[
-//                                                             styles.actionDetailText,
-//                                                             isTrigger && styles.whiteText,
-//                                                         ]}
-//                                                     >
-//                                                         Inputs: {node.actionDetails?.input.join(', ')}
-//                                                     </Text>
-//                                                     <Text
-//                                                         style={[
-//                                                             styles.actionDetailText,
-//                                                             isTrigger && styles.whiteText,
-//                                                         ]}
-//                                                     >
-//                                                         Outputs: {node.actionDetails?.output.join(', ')}
-//                                                     </Text>
-//                                                 </View>
-//                                             </View>
-//                                             <View style={styles.rightSection}>
-//                                                 <Text
-//                                                     style={[
-//                                                         styles.nodeStatus,
-//                                                         isTrigger && styles.whiteText,
-//                                                     ]}
-//                                                 >
-//                                                     {node.status === 'active' ? 'Active' : 'Inactive'}
-//                                                 </Text>
-//                                                 <TouchableOpacity
-//                                                     style={[
-//                                                         styles.actionButton,
-//                                                         isTrigger && styles.invertedActionButton,
-//                                                     ]}
-//                                                     onPress={() =>
-//                                                         console.log(`${node.status === 'active' ? 'Stop' : 'Start'} action`)
-//                                                     }
-//                                                 >
-//                                                     <MaterialIcons
-//                                                         name={node.status === 'active' ? 'pause' : 'play-arrow'}
-//                                                         size={16}
-//                                                         color={isTrigger ? Colors.light.tintDark : '#fff'}
-//                                                     />
-//                                                     <Text
-//                                                         style={[
-//                                                             styles.actionButtonTxt,
-//                                                             isTrigger && styles.invertedActionButtonTxt,
-//                                                         ]}
-//                                                     >
-//                                                         {node.status === 'active' ? 'Stop' : 'Start'}
-//                                                     </Text>
-//                                                 </TouchableOpacity>
-//                                             </View>
-//                                         </View>
-//                                     </View>
-//                                 );
-//                             })}
-//                         </View>
-//                     </View>
-//                 ))
-//             ) : (
-//                 <Text style={styles.noTriggersText}>No workspaces available.</Text>
-//             )}
-//         </View>
-//     );
-// }
-
-function TriggerList({ workspaces }: { workspaces: Workspace[] }) {
     const handleAction = async (node: any) => {
         try {
             if (node.status === 'active') {
@@ -213,6 +112,25 @@ function TriggerList({ workspaces }: { workspaces: Workspace[] }) {
         } catch (error) {
             console.error("Error handling action:", error);
         }
+    };
+
+    const handleDeleteWorkspace = async () => {
+        if (selectedWorkspaceId) {
+            try {
+                await TriggersService.deleteTrigger(selectedWorkspaceId);
+                setWorkspaces(prev => prev.filter(workspace => workspace.id !== selectedWorkspaceId));
+                console.log(`Deleted workspace with ID: ${selectedWorkspaceId}`);
+            } catch (error) {
+                console.error("Error deleting workspace:", error);
+            } finally {
+                setModalVisible(false);
+            }
+        }
+    };
+
+    const openDeleteModal = (workspaceId: string) => {
+        setSelectedWorkspaceId(workspaceId);
+        setModalVisible(true);
     };
 
     return (
@@ -307,11 +225,48 @@ function TriggerList({ workspaces }: { workspaces: Workspace[] }) {
                                 );
                             })}
                         </View>
+                        <Button
+                            title='Delete Workspace'
+                            onPress={() => openDeleteModal(workspace.id)}
+                            backgroundColor={Colors.light.tint}
+                            textColor='#FFFFFF'
+                            paddingV={10}
+                        />
                     </View>
                 ))
             ) : (
                 <Text style={styles.noTriggersText}>No workspaces available.</Text>
             )}
+
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Delete Workspace</Text>
+                        <Text style={styles.modalMessage}>
+                            Are you sure you want to delete this workspace?
+                        </Text>
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity
+                                onPress={() => setModalVisible(false)}
+                                style={styles.cancelButton}
+                            >
+                                <Text style={styles.buttonText}>CANCEL</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={handleDeleteWorkspace}
+                                style={styles.acceptButton}
+                            >
+                                <Text style={styles.buttonText}>DELETE</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -433,5 +388,61 @@ const styles = StyleSheet.create({
     noTriggersText: {
         textAlign: 'center',
         color: '#888',
+    },
+    deleteButton: {
+        backgroundColor: '#ff4d4d',
+        padding: 10,
+        borderRadius: 5,
+        alignItems: 'center',
+        marginTop: 10,
+    },
+    deleteButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    },
+    modalContent: {
+        width: 300,
+        backgroundColor: '#fff',
+        padding: 20,
+        borderRadius: 10,
+        alignItems: 'center',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 15,
+    },
+    modalMessage: {
+        fontSize: 16,
+        marginBottom: 20,
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+    cancelButton: {
+        backgroundColor: '#d3d3d3',
+        padding: 10,
+        borderRadius: 5,
+        width: '45%',
+        alignItems: 'center',
+    },
+    acceptButton: {
+        backgroundColor: Colors.light.tint,
+        padding: 10,
+        borderRadius: 5,
+        width: '45%',
+        alignItems: 'center',
+    },
+    buttonText: {
+        color: '#fff',
+        fontWeight: 'bold',
     },
 });

@@ -147,7 +147,7 @@ export class TriggersService {
                 throw new Error('Something went wrong.');
             }
             const data = await response.json();
-            console.log('[start action] success:', data);
+            // console.log('[start action] success:', data);
             return data;
         } catch (error) {
             console.error("Catched Start Action Error:", error);
@@ -157,7 +157,7 @@ export class TriggersService {
 
     static async stopAction(actionId: string) {
         try {
-            const baseUrl = await this.getBaseUrl();
+            // const baseUrl = await this.getBaseUrl();
             const response = await fetch(`https://ample-social-elk.ngrok-free.app/api/workspace/stop/id/${actionId}`, {
                 method: 'PATCH',
                 headers: {
@@ -170,10 +170,33 @@ export class TriggersService {
                 throw new Error('Something went wrong.');
             }
             const data = await response.json();
-            console.log('[stop action] success:', data);
+            // console.log('[stop action] success:', data);
             return data;
         } catch (error) {
             console.error("Catched Stop Action Error:", error);
+            throw error;
+        }
+    }
+
+    static async deleteTrigger(triggerId: string) {
+        try {
+            // const baseUrl = await this.getBaseUrl();
+            const response = await fetch(`https://ample-social-elk.ngrok-free.app/api/workspace/workspace/delete/id/${triggerId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (response.status !== 200) {
+                console.log('delete trigger failed', response.status);
+                throw new Error('Something went wrong.');
+            }
+            const data = await response.json();
+            console.log('[delete trigger] success:', data);
+            return data;
+        } catch (error) {
+            console.error("Catched Delete Trigger Error:", error);
             throw error;
         }
     }
