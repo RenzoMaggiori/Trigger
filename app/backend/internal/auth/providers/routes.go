@@ -33,7 +33,7 @@ func Router(ctx context.Context) (*router.Router, error) {
 		),
 		github.New(
 			os.Getenv("GITHUB_KEY"),
-			os.Getenv("GITHUB_AUTH_SECRET"),
+			os.Getenv("GITHUB_SECRET"),
 			callback,
 			"repo",
 			"write:repo_hook",
