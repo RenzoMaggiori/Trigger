@@ -60,50 +60,68 @@ export function ConfigMenu({ menu, parentNodes, node, actions }: ConfigMenuType)
   const { triggerWorkspace } = useMenu();
   const nodeItem = triggerWorkspace?.nodes[node?.id || ""];
 
-  const [nodeConfig, setNodeConfig] = React.useState(() => new Map<string, { configType: "trigger" | "reaction"; configState: Record<string, unknown> }>());
+
+  const nodeConfig = React.useRef(
+    new Map<string, { configType: "trigger" | "reaction"; configState: Record<string, unknown> }>()
+  );
+
+  const [currentConfig, setCurrentConfig] = React.useState<{
+    configType: "trigger" | "reaction";
+    configState: Record<string, unknown>;
+  }>(() => ({
+    configType: "trigger",
+    configState: { trigger: "Personalized" },
+  }));
+
+  React.useEffect(() => {
+    if (node && nodeItem) {
+      const initialConfigType: "trigger" | "reaction" =
+        nodeItem.fields["type"] === "reaction" ? "reaction" : "trigger";
+
+      if (!nodeConfig.current.has(node.id)) {
+        nodeConfig.current.set(node.id, {
+          configType: initialConfigType,
+          configState: { [initialConfigType]: "Personalized" },
+        });
+      }
+
+      setCurrentConfig(nodeConfig.current.get(node.id)!);
+    }
+  }, [node, nodeItem]);
 
   if (!node) return <div>{"custom node doesn't exist"}</div>;
   if (!nodeItem) return <div>could not find node</div>;
-
-  // Initialize config for the node if not already set
-  if (!nodeConfig.has(node.id)) {
-    nodeConfig.set(node.id, { configType: "trigger", configState: { trigger: "Personalized" } });
-  }
-
-  const { configType, configState } = nodeConfig.get(node.id)!;
 
   const handleStatusChange = (
     status: Status | null,
     selectedConfigType: "trigger" | "reaction"
   ) => {
     const newStatus = status?.value || "Personalized";
-    setNodeConfig((prevConfig) => {
-      const updatedConfig = new Map(prevConfig);
-      updatedConfig.set(node.id, {
-        ...updatedConfig.get(node.id)!,
-        configState: {
-          ...updatedConfig.get(node.id)!.configState,
-          [selectedConfigType]: newStatus,
-        },
-      });
-      return updatedConfig;
-    });
+    const updatedConfig = {
+      ...currentConfig,
+      configState: {
+        ...currentConfig.configState,
+        [selectedConfigType]: newStatus,
+      },
+    };
+    nodeConfig.current.set(node.id, updatedConfig);
+    setCurrentConfig(updatedConfig);
   };
 
   const handleConfigTypeChange = (selectedConfigType: "trigger" | "reaction") => {
-    setNodeConfig((prevConfig) => {
-      const updatedConfig = new Map(prevConfig);
-      updatedConfig.set(node.id, {
-        ...updatedConfig.get(node.id)!,
-        configType: selectedConfigType,
-        configState: {
-          ...updatedConfig.get(node.id)!.configState,
-          [selectedConfigType]: updatedConfig.get(node.id)!.configState[selectedConfigType] || "Personalized",
-        },
-      });
-      return updatedConfig;
-    });
+    const updatedConfig = {
+      ...currentConfig,
+      configType: selectedConfigType,
+      configState: {
+        ...currentConfig.configState,
+        [selectedConfigType]: currentConfig.configState[selectedConfigType] || "Personalized",
+      },
+    };
+    nodeConfig.current.set(node.id, updatedConfig);
+    setCurrentConfig(updatedConfig);
   };
+
+  const { configType, configState } = currentConfig;
 
   const combinedStatuses: Status[] = [
     {
@@ -125,7 +143,7 @@ export function ConfigMenu({ menu, parentNodes, node, actions }: ConfigMenuType)
     <Card className="h-full w-[500px]">
       <CardHeader>
         <CardTitle className="flex items-center justify-between text-xl font-bold">
-          <p className="flex flex-row items-center text-center"> {node?.data?.label} Settings</p>
+          <div className="flex flex-row items-center text-center"> {node?.data?.label} Settings</div>
           <Badge
             className={`${nodeItem.status === "completed" ? "bg-green-500 hover:bg-green-600" : "bg-violet-500 hover:bg-violet-600"} rounded-full text-sm`}>
               {nodeItem.status === "completed" ? nodeItem.status : "in progress"}

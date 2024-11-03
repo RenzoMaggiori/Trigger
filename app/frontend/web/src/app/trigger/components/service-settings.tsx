@@ -22,19 +22,12 @@ function GithubSettings({ node, type, actions }: { node: NodeItem, type: string,
         [node.id]: { ...node, action_id: githubTriggerAction.id },
       });
     }
-    if (node.fields?.type !== type) {
-      setFields(node.id, { ["type"]: type });
-    }
+    if (node.fields?.type !== type)
+      setFields(node.id, { ...node.fields, type });
   }, [type, actions, node, setNodes, setFields]);
 
-  const handleFieldChange = (type: string, index: string, value: string) => {
-    const currentField = node.fields["type"];
-
-    if (currentField !== null && type === currentField) {
-      setFields(node.id, { ...node.fields, [index]: value });
-    } else {
-      setFields(node.id, { ["type"]: type, [index]: value });
-    }
+  const handleFieldChange = (fieldType: string, index: string, value: string) => {
+    setFields(node.id, { ...node.fields, [index]: value, type: fieldType });
   };
 
   const triggerInputs = [
@@ -101,19 +94,12 @@ function TwitchSettings({ node, type, actions }: { node: NodeItem, type: string,
         [node.id]: { ...node, action_id: twitchTriggerAction.id },
       });
     }
-    if (node.fields?.type !== type) {
-      setFields(node.id, { ["type"]: type });
-    }
+    if (node.fields?.type !== type)
+      setFields(node.id, { ...node.fields, type });
   }, [type, actions, node, setNodes, setFields]);
 
-  const handleFieldChange = (type: string, index: string, value: string) => {
-    const currentField = node.fields["type"];
-
-    if (currentField !== null && type === currentField) {
-      setFields(node.id, { ...node.fields, [index]: value });
-    } else {
-      setFields(node.id, { ["type"]: type, [index]: value });
-    }
+  const handleFieldChange = (fieldType: string, index: string, value: string) => {
+    setFields(node.id, { ...node.fields, [index]: value, type: fieldType });
   };
 
   if (!node) return <div>No node found</div>;
@@ -147,26 +133,21 @@ function EmailSettings({ node, type, actions }: { node: NodeItem, type: string, 
     const gmailTriggerAction = actions.find(
       (action) => action.provider === "gmail" && action.type === type
     );
+
     if (!gmailTriggerAction) return;
+
     if (node.action_id !== gmailTriggerAction.id) {
       setNodes({
         [node.id]: { ...node, action_id: gmailTriggerAction.id },
       });
     }
-    if (node.fields?.type !== type) {
-      setFields(node.id, { ["type"]: type });
-    }
+
+    if (node.fields?.type !== type)
+      setFields(node.id, { ...node.fields, type });
   }, [type, actions, node, setNodes, setFields]);
 
-
-  const handleFieldChange = (type: string, index: string, value: string) => {
-    const currentField = node.fields["type"];
-
-    if (currentField !== null && type === currentField) {
-      setFields(node.id, { ...node.fields, [index]: value });
-    } else {
-      setFields(node.id, { ["type"]: type, [index]: value });
-    }
+  const handleFieldChange = (fieldType: string, index: string, value: string) => {
+    setFields(node.id, { ...node.fields, [index]: value, type: fieldType });
   };
 
   const inputs = [
@@ -187,9 +168,7 @@ function EmailSettings({ node, type, actions }: { node: NodeItem, type: string, 
               <Input
                 placeholder={item.placeholder}
                 onChange={(e) => handleFieldChange(type, item.json, e.target.value)}
-                value={node.fields["type"] !== null
-                  ? (node.fields[item.json] as string | number | undefined) || ""
-                  : ""}
+                value={(node.fields[item.json] as string | number | undefined) || ""}
                 type={item.type}
               />
             </div>
@@ -200,9 +179,7 @@ function EmailSettings({ node, type, actions }: { node: NodeItem, type: string, 
               placeholder="Hey there! Just wanted to check in and see how you’re doing..."
               className="resize-none h-[200px]"
               onChange={(e) => handleFieldChange(type, "body", e.target.value)}
-              value={node.fields["type"] !== null
-                ? (node.fields["body"] as string | number | undefined) || ""
-                : ""}
+              value={(node.fields["body"] as string | number | undefined) || ""}
             />
           </div>
         </div>
@@ -214,6 +191,7 @@ function EmailSettings({ node, type, actions }: { node: NodeItem, type: string, 
     </>
   );
 }
+
 
 function SpotifySettings({ node, type, actions }: { node: NodeItem, type: string, actions: ActionType }) {
   const { setFields, setNodes } = useMenu();
@@ -228,10 +206,10 @@ function SpotifySettings({ node, type, actions }: { node: NodeItem, type: string
         [node.id]: { ...node, action_id: spotifyTriggerAction.id },
       });
     }
-    if (node.fields?.type !== type) {
+    if (node.fields?.type !== type)
       setFields(node.id, { ["type"]: type });
-    }
   }, [type, actions, node, setNodes, setFields]);
+
 
   if (!node) return <div>No node found</div>;
 
@@ -285,7 +263,7 @@ const timerStatuses = [
 
 function TimerSettings({ node, type, actions }: { node: NodeItem, type: string, actions: ActionType }) {
   const [messageType, setMessageType] = React.useState<Status | null>(timerStatuses[0]);
-  const { setFields, setNodes } = useMenu();
+  const { setNodes } = useMenu();
 
   React.useEffect(() => {
     const timmerTriggerAction = actions.find(
@@ -297,7 +275,7 @@ function TimerSettings({ node, type, actions }: { node: NodeItem, type: string, 
         [node.id]: { ...node, action_id: timmerTriggerAction.id },
       });
     }
-  }, [type, actions, node, setNodes, setFields]);
+  }, [type, actions, node, setNodes, messageType]);
 
 
   const descriptions = {
