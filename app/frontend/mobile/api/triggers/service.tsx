@@ -67,8 +67,9 @@ export class TriggersService {
         const token = await AsyncStorage.getItem('token');
         console.log('token:', token);
         console.log('trigger:', JSON.stringify(trigger));
+        console.log('baseUrl:', baseUrl);
         try {
-            const response = await fetch(`${baseUrl}/workspace/add`, {
+            const response = await fetch(`${Env.NGROK}/api/workspace/add`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
