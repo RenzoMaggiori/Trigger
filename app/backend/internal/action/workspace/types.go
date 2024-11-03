@@ -25,6 +25,7 @@ type Service interface {
 	Start(context.Context, primitive.ObjectID) (*WorkspaceModel, error)
 	Stop(context.Context, primitive.ObjectID) (*WorkspaceModel, error)
 	DeleteById(context.Context, primitive.ObjectID) error
+	Templates(context.Context) ([]AddWorkspaceModel, error)
 }
 
 type Handler struct {

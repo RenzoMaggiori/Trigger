@@ -6,6 +6,10 @@ import { SessionService } from '@/api/session/service';
 import { UserService } from '@/api/user/service';
 
 export class SyncService {
+    static async getBaseUrl() {
+        return `${Env.NGROK}/api/sync`;
+    }
+
     static async handleSync(provider: string) {
 
         const redirectUrl = makeRedirectUri();
@@ -31,5 +35,30 @@ export class SyncService {
             throw error;
         }
         return false;
+    }
+
+    static async getSync(userId: string, provider: string) {
+        try {
+            const baseUrl = this.getBaseUrl();
+            const response = await fetch(`${baseUrl}/${userId}/${provider}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.status !== 200) {
+                console.log('get sync failed', response.status);
+                throw new Error('Something went wrong.');
+            }
+            const data = await response.json();
+            console.log('SYNC:', data);
+            console.log('SYNC[0]:', data[0]);
+            return data[0];
+        } catch (error) {
+            console.error("Catched Get Sync Error:", error);
+            throw error;
+        }
     }
 }

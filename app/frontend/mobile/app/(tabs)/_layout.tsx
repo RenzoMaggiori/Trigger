@@ -9,6 +9,7 @@ import { Menu, Divider, Provider } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/Colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { CredentialsService } from '@/api/auth/credentials/service';
 
 const Tab = createBottomTabNavigator();
 
@@ -22,6 +23,7 @@ export default function TabLayout() {
   const router = useRouter();
 
   const handleLogout = async () => {
+    CredentialsService.logout();
     for (const key of await AsyncStorage.getAllKeys()) {
       await AsyncStorage.removeItem(key);
     }

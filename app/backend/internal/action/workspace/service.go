@@ -666,3 +666,46 @@ func (m Model) DeleteById(ctx context.Context, id primitive.ObjectID) error {
 	//	TODO: call action stop functions
 	return nil
 }
+
+func (m Model) Templates(ctx context.Context) ([]AddWorkspaceModel, error) {
+	accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
+	if !ok {
+		return nil, errors.ErrAccessTokenCtx
+	}
+
+	gmailWatch, _, err := action.GetByActionNameRequest(accessToken, "watch")
+	if err != nil {
+		return nil, err
+	}
+
+	gmailSend, _, err := action.GetByActionNameRequest(accessToken, "send_email")
+	if err != nil {
+		return nil, err
+	}
+
+	templates := make([]AddWorkspaceModel, 0)
+	templates = append(templates, AddWorkspaceModel{
+		Name: "gmail",
+		Nodes: []AddActionNodeModel{
+			{
+				NodeId:   "action",
+				ActionId: gmailWatch.Id,
+				Input:    map[string]string{},
+				Parents:  make([]string, 0),
+				Children: []string{"reaction"},
+				XPos:     10,
+				YPos:     50,
+			},
+			{
+				NodeId:   "reaction",
+				ActionId: gmailSend.Id,
+				Input:    map[string]string{},
+				Parents:  []string{"action"},
+				Children: make([]string, 0),
+				XPos:     10,
+				YPos:     70,
+			},
+		},
+	})
+	return templates, nil
+}
