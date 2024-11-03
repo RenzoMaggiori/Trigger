@@ -11,7 +11,7 @@ import (
 	"trigger.com/trigger/pkg/decode"
 )
 
-func (h *Handler) WatchIssueCreated(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Watch(w http.ResponseWriter, r *http.Request) {
 	actionNode, err := decode.Json[workspace.ActionNodeModel](r.Body)
 	if err != nil {
 		customerror.Send(w, err, errors.ErrCodes)

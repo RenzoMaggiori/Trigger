@@ -725,7 +725,7 @@ func (m Model) Templates(ctx context.Context) ([]AddWorkspaceModel, error) {
 		return nil, err
 	}
 
-	bitbucketWatchIssueCreated, _, err := action.GetByActionNameRequest(accessToken, "watch_issue_created")
+	bitbucketWatchRepositoryPush, _, err := action.GetByActionNameRequest(accessToken, "watch_repo_push")
 	if err != nil {
 		return nil, err
 	}
@@ -856,7 +856,7 @@ func (m Model) Templates(ctx context.Context) ([]AddWorkspaceModel, error) {
 			Nodes: []AddActionNodeModel{
 				{
 					NodeId:   "Bitbucket-0",
-					ActionId: bitbucketWatchIssueCreated.Id,
+					ActionId: bitbucketWatchRepositoryPush.Id,
 					Input:    map[string]string{},
 					Parents:  make([]string, 0),
 					Children: []string{"Bitbucket-1"},
