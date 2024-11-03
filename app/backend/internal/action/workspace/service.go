@@ -350,8 +350,10 @@ func (m Model) initAction(ctx context.Context, workspace WorkspaceModel, actionN
 			m.ActionCompleted(ctx, *actionCompleted)
 		} else {
 			m.ActionCompleted(ctx, ActionCompletedModel{
-				ActionId: action.Id,
-				Output:   make(map[string]string),
+				ActionId:    action.Id,
+				WorkspaceId: &workspace.Id,
+				NodeId:      &actionNode.NodeId,
+				Output:      make(map[string]string),
 			})
 		}
 	}
@@ -472,7 +474,7 @@ func (m Model) processWorkspace(ctx context.Context, workspace WorkspaceModel, a
 	}
 
 	if actionCompleted.NodeId != nil {
-		filter["nodes"].(bson.M)["$elemMatch.node_id"] = actionCompleted.NodeId
+		filter["nodes"].(bson.M)["$elemMatch"].(bson.M)["node_id"] = actionCompleted.NodeId
 	}
 
 	update := bson.M{
@@ -683,29 +685,195 @@ func (m Model) Templates(ctx context.Context) ([]AddWorkspaceModel, error) {
 		return nil, err
 	}
 
-	templates := make([]AddWorkspaceModel, 0)
-	templates = append(templates, AddWorkspaceModel{
-		Name: "gmail",
-		Nodes: []AddActionNodeModel{
-			{
-				NodeId:   "Gmail-0",
-				ActionId: gmailWatch.Id,
-				Input:    map[string]string{},
-				Parents:  make([]string, 0),
-				Children: []string{"Gmail-1"},
-				XPos:     100,
-				YPos:     100,
-			},
-			{
-				NodeId:   "Gmail-1",
-				ActionId: gmailSend.Id,
-				Input:    map[string]string{},
-				Parents:  []string{"Gmail-0"},
-				Children: make([]string, 0),
-				XPos:     100,
-				YPos:     200,
+	githubWatchPush, _, err := action.GetByActionNameRequest(accessToken, "watch_push")
+	if err != nil {
+		return nil, err
+	}
+
+	githubCreateIssue, _, err := action.GetByActionNameRequest(accessToken, "create_issue")
+	if err != nil {
+		return nil, err
+	}
+
+	spotifyWatchFollowers, _, err := action.GetByActionNameRequest(accessToken, "watch_followers")
+	if err != nil {
+		return nil, err
+	}
+
+	spotifyPlayMusic, _, err := action.GetByActionNameRequest(accessToken, "play_music")
+	if err != nil {
+		return nil, err
+	}
+
+	twitchChannelFollow, _, err := action.GetByActionNameRequest(accessToken, "watch_channel_follow")
+	if err != nil {
+		return nil, err
+	}
+
+	twitchSendChatMessage, _, err := action.GetByActionNameRequest(accessToken, "send_chat_message")
+	if err != nil {
+		return nil, err
+	}
+
+	discordWatchChannelMessage, _, err := action.GetByActionNameRequest(accessToken, "watch_channel_message")
+	if err != nil {
+		return nil, err
+	}
+
+	discordSendChannelMessage, _, err := action.GetByActionNameRequest(accessToken, "send_channel_message")
+	if err != nil {
+		return nil, err
+	}
+
+	bitbucketWatchIssueCreated, _, err := action.GetByActionNameRequest(accessToken, "watch_issue_created")
+	if err != nil {
+		return nil, err
+	}
+
+	bitbucketCreatePullRequest, _, err := action.GetByActionNameRequest(accessToken, "create_pull_request")
+	if err != nil {
+		return nil, err
+	}
+
+	templates := []AddWorkspaceModel{
+		{
+			Name: "gmail",
+			Nodes: []AddActionNodeModel{
+				{
+					NodeId:   "Gmail-0",
+					ActionId: gmailWatch.Id,
+					Input:    map[string]string{},
+					Parents:  make([]string, 0),
+					Children: []string{"Gmail-1"},
+					XPos:     100,
+					YPos:     100,
+				},
+				{
+					NodeId:   "Gmail-1",
+					ActionId: gmailSend.Id,
+					Input:    map[string]string{},
+					Parents:  []string{"Gmail-0"},
+					Children: make([]string, 0),
+					XPos:     100,
+					YPos:     200,
+				},
 			},
 		},
-	})
+		{
+			Name: "github",
+			Nodes: []AddActionNodeModel{
+				{
+					NodeId:   "Github-0",
+					ActionId: githubWatchPush.Id,
+					Input:    map[string]string{},
+					Parents:  make([]string, 0),
+					Children: []string{"Github-1"},
+					XPos:     100,
+					YPos:     100,
+				},
+				{
+					NodeId:   "Github-1",
+					ActionId: githubCreateIssue.Id,
+					Input:    map[string]string{},
+					Parents:  []string{"Github-0"},
+					Children: make([]string, 0),
+					XPos:     100,
+					YPos:     200,
+				},
+			},
+		},
+		{
+			Name: "spotify",
+			Nodes: []AddActionNodeModel{
+				{
+					NodeId:   "Spotify-0",
+					ActionId: spotifyWatchFollowers.Id,
+					Input:    map[string]string{},
+					Parents:  make([]string, 0),
+					Children: []string{"Spotify-1"},
+					XPos:     100,
+					YPos:     100,
+				},
+				{
+					NodeId:   "Spotify-1",
+					ActionId: spotifyPlayMusic.Id,
+					Input:    map[string]string{},
+					Parents:  []string{"Spotify-0"},
+					Children: make([]string, 0),
+					XPos:     100,
+					YPos:     200,
+				},
+			},
+		},
+		{
+			Name: "twitch",
+			Nodes: []AddActionNodeModel{
+				{
+					NodeId:   "Twitch-0",
+					ActionId: twitchChannelFollow.Id,
+					Input:    map[string]string{},
+					Parents:  make([]string, 0),
+					Children: []string{"Twitch-1"},
+					XPos:     100,
+					YPos:     100,
+				},
+				{
+					NodeId:   "Twitch-1",
+					ActionId: twitchSendChatMessage.Id,
+					Input:    map[string]string{},
+					Parents:  []string{"Twitch-0"},
+					Children: make([]string, 0),
+					XPos:     100,
+					YPos:     200,
+				},
+			},
+		},
+		{
+			Name: "discord",
+			Nodes: []AddActionNodeModel{
+				{
+					NodeId:   "Discord-0",
+					ActionId: discordWatchChannelMessage.Id,
+					Input:    map[string]string{},
+					Parents:  make([]string, 0),
+					Children: []string{"Discord-1"},
+					XPos:     100,
+					YPos:     100,
+				},
+				{
+					NodeId:   "Discord-1",
+					ActionId: discordSendChannelMessage.Id,
+					Input:    map[string]string{},
+					Parents:  []string{"Discord-0"},
+					Children: make([]string, 0),
+					XPos:     100,
+					YPos:     200,
+				},
+			},
+		},
+		{
+			Name: "bitbucket",
+			Nodes: []AddActionNodeModel{
+				{
+					NodeId:   "Bitbucket-0",
+					ActionId: bitbucketWatchIssueCreated.Id,
+					Input:    map[string]string{},
+					Parents:  make([]string, 0),
+					Children: []string{"Bitbucket-1"},
+					XPos:     100,
+					YPos:     100,
+				},
+				{
+					NodeId:   "Bitbucket-1",
+					ActionId: bitbucketCreatePullRequest.Id,
+					Input:    map[string]string{},
+					Parents:  []string{"Bitbucket-0"},
+					Children: make([]string, 0),
+					XPos:     100,
+					YPos:     200,
+				},
+			},
+		},
+	}
 	return templates, nil
 }

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/markbates/goth/providers/bitbucket"
 	"github.com/markbates/goth/providers/discord"
 	"github.com/markbates/goth/providers/github"
 	"github.com/markbates/goth/providers/google"
@@ -61,6 +62,11 @@ func Router(ctx context.Context) (*router.Router, error) {
 			spotify.ScopeUserReadPrivate,
 			spotify.ScopeUserReadPlaybackState,
 			spotify.ScopeUserModifyPlaybackState,
+		),
+		bitbucket.New(
+			os.Getenv("BITBUCKET_KEY"),
+			os.Getenv("BITBUCKET_SECRET"),
+			callback,
 		),
 	)
 

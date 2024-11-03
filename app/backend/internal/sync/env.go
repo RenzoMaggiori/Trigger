@@ -13,7 +13,7 @@ import (
 
 var (
 	errEnvNotFound      string     = "Enviroment argument %s not found"
-	enviromentArguments [26]string = [...]string{
+	enviromentArguments [28]string = [...]string{
 		"TOKEN_SECRET",
 		"ADMIN_TOKEN",
 		"AUTH_PORT",
@@ -40,6 +40,8 @@ var (
 		"TWITCH_CLIENT_ID",
 		"TWITCH_CLIENT_SECRET",
 		"SERVER_BASE_URL",
+		"BITBUCKET_KEY",
+		"BITBUCKET_SECRET",
 	}
 )
 

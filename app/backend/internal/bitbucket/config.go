@@ -1,19 +1,19 @@
-package github
+package bitbucket
 
 import (
 	"fmt"
 	"os"
 
 	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/github"
+	"golang.org/x/oauth2/bitbucket"
 )
 
 func Config() *oauth2.Config {
 	return &oauth2.Config{
-		ClientID:     os.Getenv("GITHUB_KEY"),
-		ClientSecret: os.Getenv("GITHUB_SECRET"),
+		ClientID:     os.Getenv("BITBUCKET_KEY"),
+		ClientSecret: os.Getenv("BITBUCKET_SECRET"),
 		Scopes:       []string{},
-		Endpoint:     github.Endpoint,
+		Endpoint:     bitbucket.Endpoint,
 		RedirectURL:  fmt.Sprintf("%s/api/oauth2/callback", os.Getenv("SERVER_BASE_URL")),
 	}
 }

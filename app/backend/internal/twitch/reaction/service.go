@@ -21,12 +21,12 @@ import (
 func (m Model) MutlipleReactions(actionName string, ctx context.Context, action workspace.ActionNodeModel) error {
 	switch actionName {
 	case "send_chat_message":
-		return m.SendChannelMessage(ctx, action)
+		return m.SendChatMessage(ctx, action)
 	}
 	return nil
 }
 
-func (m Model) SendChannelMessage(ctx context.Context, actionNode workspace.ActionNodeModel) error {
+func (m Model) SendChatMessage(ctx context.Context, actionNode workspace.ActionNodeModel) error {
 	accessToken, ok := ctx.Value(middleware.TokenCtxKey).(string)
 	if !ok {
 		return errors.ErrAccessTokenCtx
