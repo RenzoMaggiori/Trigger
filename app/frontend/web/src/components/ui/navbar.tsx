@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 
 const navbarItems = [
   { name: "Home", href: "/home" },
-  { name: "Community", href: "/community" },
+  { name: "Templates", href: "/templates" },
   { name: "Settings", href: "/settings" },
 ];
 

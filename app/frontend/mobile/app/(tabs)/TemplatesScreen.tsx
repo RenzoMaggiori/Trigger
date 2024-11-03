@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-export default function CommunityScreen() {
+export default function TemplatesScreen() {
     return (
         <View style={styles.container}>
-            <Text>Community screen content</Text>
+            <Text>Templates screen content</Text>
         </View>
     );
 }

@@ -1,9 +1,9 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import HomeScreen from '../app/(tabs)/HomeScreen';
 import TriggersScreen from '../app/(tabs)/TriggersScreen';
-import CommunityScreen from '../app/(tabs)/CommunityScreen';
+import TemplatesScreen from '../app/(tabs)/TemplatesScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -29,11 +29,11 @@ export default function TabLayout() {
                 }}
             />
             <Tab.Screen
-                name="Community"
-                component={CommunityScreen}
+                name="Templates"
+                component={TemplatesScreen}
                 options={{
                     tabBarIcon: ({ color, size }) => (
-                        <MaterialIcons name="people" color={color} size={size} />
+                        <MaterialCommunityIcons name="file-tree" color={color} size={size} />
                     )
                 }}
             />
