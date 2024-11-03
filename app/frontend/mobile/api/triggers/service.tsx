@@ -131,4 +131,50 @@ export class TriggersService {
             throw error;
         }
     }
+
+    static async startAction(actionId: string) {
+        try {
+            const baseUrl = await this.getBaseUrl();
+            const response = await fetch(`https://ample-social-elk.ngrok-free.app/api/workspace/start/id/${actionId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (response.status !== 200) {
+                console.log('start action failed', response.status);
+                throw new Error('Something went wrong.');
+            }
+            const data = await response.json();
+            console.log('[start action] success:', data);
+            return data;
+        } catch (error) {
+            console.error("Catched Start Action Error:", error);
+            throw error;
+        }
+    }
+
+    static async stopAction(actionId: string) {
+        try {
+            const baseUrl = await this.getBaseUrl();
+            const response = await fetch(`https://ample-social-elk.ngrok-free.app/api/workspace/stop/id/${actionId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (response.status !== 200) {
+                console.log('stop action failed', response.status);
+                throw new Error('Something went wrong.');
+            }
+            const data = await response.json();
+            console.log('[stop action] success:', data);
+            return data;
+        } catch (error) {
+            console.error("Catched Stop Action Error:", error);
+            throw error;
+        }
+    }
 }

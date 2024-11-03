@@ -96,7 +96,125 @@ interface Workspace {
     }[];
 }
 
+// function TriggerList({ workspaces }: { workspaces: Workspace[] }) {
+//     return (
+//         <View style={styles.triggerListContainer}>
+//             <Text style={styles.title}>Your Workspaces</Text>
+//             {workspaces.length > 0 ? (
+//                 workspaces.map((workspace) => (
+//                     <View key={workspace.id} style={styles.workspaceCard}>
+//                         <Text style={styles.workspaceTitle}>Workspace ID: {workspace.id}</Text>
+//                         <View style={styles.nodesContainer}>
+//                             {workspace.nodes.map((node) => {
+//                                 const isTrigger = node.actionDetails?.type === 'trigger';
+
+//                                 return (
+//                                     <View
+//                                         key={node.node_id}
+//                                         style={[
+//                                             styles.nodeCard,
+//                                             isTrigger && styles.triggerNodeCard,
+//                                         ]}
+//                                     >
+//                                         <View style={styles.nodeHeader}>
+//                                             <View style={styles.nodeDetails}>
+//                                                 <Text
+//                                                     style={[
+//                                                         styles.nodeText,
+//                                                         isTrigger && styles.whiteText,
+//                                                     ]}
+//                                                 >
+//                                                     Provider: {node.actionDetails?.provider}
+//                                                 </Text>
+//                                                 <Text
+//                                                     style={[
+//                                                         styles.nodeText,
+//                                                         isTrigger && styles.whiteText,
+//                                                     ]}
+//                                                 >
+//                                                     {isTrigger ? 'Action' : 'Reaction'}: {node.actionDetails?.action}
+//                                                 </Text>
+//                                                 <View style={styles.actionDetailsContainer}>
+//                                                     <Text
+//                                                         style={[
+//                                                             styles.actionDetailText,
+//                                                             isTrigger && styles.whiteText,
+//                                                         ]}
+//                                                     >
+//                                                         Inputs: {node.actionDetails?.input.join(', ')}
+//                                                     </Text>
+//                                                     <Text
+//                                                         style={[
+//                                                             styles.actionDetailText,
+//                                                             isTrigger && styles.whiteText,
+//                                                         ]}
+//                                                     >
+//                                                         Outputs: {node.actionDetails?.output.join(', ')}
+//                                                     </Text>
+//                                                 </View>
+//                                             </View>
+//                                             <View style={styles.rightSection}>
+//                                                 <Text
+//                                                     style={[
+//                                                         styles.nodeStatus,
+//                                                         isTrigger && styles.whiteText,
+//                                                     ]}
+//                                                 >
+//                                                     {node.status === 'active' ? 'Active' : 'Inactive'}
+//                                                 </Text>
+//                                                 <TouchableOpacity
+//                                                     style={[
+//                                                         styles.actionButton,
+//                                                         isTrigger && styles.invertedActionButton,
+//                                                     ]}
+//                                                     onPress={() =>
+//                                                         console.log(`${node.status === 'active' ? 'Stop' : 'Start'} action`)
+//                                                     }
+//                                                 >
+//                                                     <MaterialIcons
+//                                                         name={node.status === 'active' ? 'pause' : 'play-arrow'}
+//                                                         size={16}
+//                                                         color={isTrigger ? Colors.light.tintDark : '#fff'}
+//                                                     />
+//                                                     <Text
+//                                                         style={[
+//                                                             styles.actionButtonTxt,
+//                                                             isTrigger && styles.invertedActionButtonTxt,
+//                                                         ]}
+//                                                     >
+//                                                         {node.status === 'active' ? 'Stop' : 'Start'}
+//                                                     </Text>
+//                                                 </TouchableOpacity>
+//                                             </View>
+//                                         </View>
+//                                     </View>
+//                                 );
+//                             })}
+//                         </View>
+//                     </View>
+//                 ))
+//             ) : (
+//                 <Text style={styles.noTriggersText}>No workspaces available.</Text>
+//             )}
+//         </View>
+//     );
+// }
+
 function TriggerList({ workspaces }: { workspaces: Workspace[] }) {
+    const handleAction = async (node: any) => {
+        try {
+            if (node.status === 'active') {
+                await TriggersService.stopAction(node.action_id);
+                console.log(`Stopped action with ID: ${node.action_id}`);
+            } else {
+                await TriggersService.startAction(node.action_id);
+                console.log(`Started action with ID: ${node.action_id}`);
+            }
+        } catch (error) {
+            console.error("Error handling action:", error);
+        }
+    };
+
     return (
         <View style={styles.triggerListContainer}>
             <Text style={styles.title}>Your Workspaces</Text>
@@ -167,9 +285,7 @@ function TriggerList({ workspaces }: { workspaces: Workspace[] }) {
                                                         styles.actionButton,
                                                         isTrigger && styles.invertedActionButton,
                                                     ]}
-                                                    onPress={() =>
-                                                        console.log(`${node.status === 'active' ? 'Stop' : 'Start'} action`)
-                                                    }
+                                                    onPress={() => handleAction(node)}
                                                 >
                                                     <MaterialIcons
                                                         name={node.status === 'active' ? 'pause' : 'play-arrow'}
