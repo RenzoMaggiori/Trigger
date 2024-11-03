@@ -166,7 +166,7 @@ func getUserAccessToken(userId string) (*UserTokens, error) {
 	if err != nil {
 		return nil, err
 	}
-	if session == nil || len(session) == 0 {
+	if len(session) == 0 {
 		return nil, errSessionNotFound
 	}
 

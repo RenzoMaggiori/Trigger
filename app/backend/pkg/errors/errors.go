@@ -85,6 +85,9 @@ var (
 	// Spotify Errors
 	ErrSpotifyBadStatus error = errors.New("invalid response status from spotify")
 
+	// Spotify Errors
+	ErrBitbucketBadStatus error = errors.New("invalid response status from bitbucket")
+
 	// Webhook
 	ErrBadWebhookData error = errors.New("could not parse the webhook data")
 
@@ -401,6 +404,10 @@ var (
 		},
 		ErrTwitchWatch: {
 			Message: ErrTwitchWatch.Error(),
+			Code:    http.StatusInternalServerError,
+		},
+		ErrBitbucketBadStatus: {
+			Message: ErrBitbucketBadStatus.Error(),
 			Code:    http.StatusInternalServerError,
 		},
 	}

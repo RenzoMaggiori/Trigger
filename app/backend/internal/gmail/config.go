@@ -18,6 +18,6 @@ func Config() *oauth2.Config {
 			"email",
 		},
 		Endpoint:    google.Endpoint,
-		RedirectURL: fmt.Sprintf("http://localhost:%s/api/oauth2/callback", os.Getenv("AUTH_PORT")),
+		RedirectURL: fmt.Sprintf("%s/api/oauth2/callback", os.Getenv("SERVER_BASE_URL")),
 	}
 }

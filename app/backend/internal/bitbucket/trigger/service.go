@@ -1,23 +1,22 @@
 package trigger
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 
-	githubClient "github.com/google/go-github/v66/github"
 	"trigger.com/trigger/internal/action/action"
 	"trigger.com/trigger/internal/action/workspace"
-	"trigger.com/trigger/internal/github"
+	"trigger.com/trigger/internal/bitbucket"
 	"trigger.com/trigger/internal/session"
 	"trigger.com/trigger/internal/sync"
 	"trigger.com/trigger/pkg/auth/oaclient"
 	"trigger.com/trigger/pkg/errors"
+	"trigger.com/trigger/pkg/fetch"
 	"trigger.com/trigger/pkg/middleware"
-)
-
-const (
-	githuBaseUrl string = "https://api.github.com"
 )
 
 func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) error {
@@ -31,50 +30,59 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 		return err
 	}
 
-	syncModel, _, err := sync.GetSyncAccessTokenRequest(accessToken, session.UserId.Hex(), "github")
+	syncModel, _, err := sync.GetSyncAccessTokenRequest(accessToken, session.UserId.Hex(), "bitbucket")
 	if err != nil {
 		return err
 	}
 
-	client, err := oaclient.New(ctx, github.Config(), syncModel)
+	client, err := oaclient.New(ctx, bitbucket.Config(), syncModel)
 	if err != nil {
 		return err
 	}
 
-	ghClient := githubClient.NewClient(client)
-	owner, ok := actionNode.Input["owner"]
+	workspace, ok := actionNode.Input["workspace"]
+	if !ok {
+		return errors.ErrInvalidReactionInput
+	}
+	repository, ok := actionNode.Input["repository"]
 	if !ok {
 		return errors.ErrInvalidReactionInput
 	}
 
-	repo, ok := actionNode.Input["repo"]
-	if !ok {
-		return errors.ErrInvalidReactionInput
+	watchBody := WatchBody{
+		Description: "This is a watch",
+		URL: fmt.Sprintf("%s/api/bitbucket/trigger/webhook?user_id=%s",
+			os.Getenv("SERVER_BASE_URL"),
+			session.UserId.Hex()),
+		Active: true,
+		Secret: os.Getenv("BITBUCKET_SECRET"),
+		Events: []string{"issue:created", "repo:push"},
 	}
 
-	name := "web"
-	active := true
-	url := fmt.Sprintf("%s/api/github/trigger/webhook?userId=%s", os.Getenv("SERVER_BASE_URL"), syncModel.UserId.Hex())
-	contentType := "json"
-	insecureSSL := "0"
-	_, _, err = ghClient.Repositories.CreateHook(
-		ctx,
-		owner,
-		repo,
-		&githubClient.Hook{
-			Name:   &name,
-			Active: &active,
-			Events: []string{"push"},
-			Config: &githubClient.HookConfig{
-				URL:         &url,
-				ContentType: &contentType,
-				InsecureSSL: &insecureSSL,
-			},
-		},
+	body, err := json.Marshal(watchBody)
+	if err != nil {
+		return err
+	}
+
+	res, err := fetch.Fetch(
+		client,
+		fetch.NewFetchRequest(
+			http.MethodPost,
+			fmt.Sprintf("https://api.bitbucket.org/2.0/repositories/%s/%s/hooks", workspace, repository),
+			bytes.NewReader(body),
+			nil,
+		),
 	)
+
 	if err != nil {
 		return err
 	}
+
+	defer res.Body.Close()
+	if res.StatusCode >= 400 {
+		return errors.ErrBitbucketBadStatus
+	}
+
 	return nil
 }
 
@@ -84,7 +92,8 @@ func (m Model) Webhook(ctx context.Context) error {
 		return errors.ErrBadUserId
 	}
 
-	commit, ok := ctx.Value(GithubCommitCtxKey).(githubClient.PushEvent)
+	webhookRequest, ok := ctx.Value(WebhookEventCtxKey).(WebhookRequest)
+
 	if !ok {
 		return errors.ErrGithubCommitData
 	}
@@ -97,27 +106,16 @@ func (m Model) Webhook(ctx context.Context) error {
 		return errors.ErrSessionNotFound
 	}
 
-	action, _, err := action.GetByActionNameRequest(session[0].AccessToken, "watch_push")
+	action, _, err := action.GetByActionNameRequest(session[0].AccessToken, "watch_issue_created")
 	if err != nil {
 		return err
-	}
-
-	author := ""
-	message := ""
-	if len(commit.Commits) != 0 {
-		if commit.Commits[0].Author != nil && commit.Commits[0].Author.Name != nil {
-			author = *commit.Commits[0].Author.Name
-		}
-		if commit.Commits[0].Message != nil {
-			message = *commit.Commits[0].Message
-		}
 	}
 
 	update := workspace.ActionCompletedModel{
 		ActionId: action.Id,
 		Output: map[string]string{
-			"author":  author,
-			"message": message,
+			"title":   webhookRequest.Issue.Title,
+			"content": webhookRequest.Issue.Content.Raw,
 		},
 	}
 	_, err = workspace.ActionCompletedRequest(session[0].AccessToken, update)

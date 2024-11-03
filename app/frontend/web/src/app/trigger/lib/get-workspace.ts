@@ -23,7 +23,8 @@ export async function getWorkspace({id}: {id: string}) {
   if (!res.ok)
     throw new Error(`invalid status code: ${res.status}`);
 
-  const { data, error } = triggerSchema.safeParse(await res.json());
+  const body = await res.json();
+  const { data, error } = triggerSchema.safeParse(body);
   if (error) {
     console.error(error);
     throw new Error("could not parse api response");

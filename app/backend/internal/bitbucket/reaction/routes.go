@@ -9,6 +9,7 @@ import (
 )
 
 func Router(ctx context.Context) (*router.Router, error) {
+
 	server := http.NewServeMux()
 	middlewares := middleware.Create(
 		middleware.Auth,
@@ -17,7 +18,7 @@ func Router(ctx context.Context) (*router.Router, error) {
 		Service: Model{},
 	}
 
-	server.Handle("POST /send_chat_message", middlewares(http.HandlerFunc(handler.SendChatMessage)))
+	server.Handle("POST /create_pull_request", middlewares(http.HandlerFunc(handler.CreatePullRequest)))
 
-	return router.NewRouter("/api/twitch/reaction", server), nil
+	return router.NewRouter("/api/bitbucket/reaction", server), nil
 }

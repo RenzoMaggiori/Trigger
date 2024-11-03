@@ -17,6 +17,7 @@ export interface CustomNode extends Node {
 
 export type TriggerWorkspace = {
   id: string;
+  name: string;
   nodes: Record<string, NodeItem>;
 };
 
@@ -26,6 +27,7 @@ export type NodeItem = {
   fields: Record<string, unknown>;
   parent_ids: Array<string>;
   child_ids: Array<string>;
+  status: string,
   x_pos: number;
   y_pos: number;
 };
