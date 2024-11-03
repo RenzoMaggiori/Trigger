@@ -136,8 +136,7 @@ export class TriggersService {
 
     static async startTrigger(triggerId: string) {
         try {
-            const baseUrl = await this.getBaseUrl();
-            const response = await fetch(`${baseUrl}/workspace/start/id/${triggerId}`, {
+            const response = await fetch(`${Env.NGROK}/api/workspace/start/id/${triggerId}`, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
@@ -158,8 +157,7 @@ export class TriggersService {
 
     static async stopTrigger(triggerId: string) {
         try {
-            const baseUrl = await this.getBaseUrl();
-            const response = await fetch(`${baseUrl}/workspace/stop/id/${triggerId}`, {
+            const response = await fetch(`${Env.NGROK}/api/workspace/stop/id/${triggerId}`, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
@@ -180,15 +178,14 @@ export class TriggersService {
 
     static async deleteTrigger(triggerId: string) {
         try {
-            const baseUrl = await this.getBaseUrl();
-            const response = await fetch(`${baseUrl}/workspace/delete/id/${triggerId}`, {
+            const response = await fetch(`${Env.NGROK}/api/workspace/id/${triggerId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
                     'Content-Type': 'application/json'
                 }
             });
-            if (response.status !== 204) {
+            if (response.status !== 200) {
                 console.log('delete trigger failed', response.status);
                 throw new Error('Something went wrong.');
             }
