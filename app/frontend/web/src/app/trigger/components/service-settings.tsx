@@ -230,8 +230,66 @@ function SpotifySettings({ node, type, actions }: { node: NodeItem, type: string
 }
 
 
-function DiscordSettings({ }: { node: NodeItem, type: string }) {
-  return <div></div>;
+function DiscordSettings({ node, type, actions }: { node: NodeItem, type: string, actions: ActionType }) {
+  const { setFields, setNodes } = useMenu();
+
+  React.useEffect(() => {
+    const discordTriggerAction = actions.find(
+      (action) => action.provider === "discord" && action.type === type
+    );
+
+    if (!discordTriggerAction) return;
+
+    if (node.action_id !== discordTriggerAction.id) {
+      setNodes({
+        [node.id]: { ...node, action_id: discordTriggerAction.id },
+      });
+    }
+
+    if (node.fields?.type !== type)
+      setFields(node.id, { ...node.fields, type });
+  }, [type, actions, node, setNodes, setFields]);
+
+  const handleFieldChange = (fieldType: string, index: string, value: string) => {
+    setFields(node.id, { ...node.fields, [index]: value, type: fieldType });
+  };
+
+  if (!node) return <div>No node found</div>;
+
+  return (
+    <>
+      {type === "reaction" ? (
+        <div className="flex flex-col gap-y-4">
+          <p className="text-zinc-500">Sends an message to the desired discord channel.</p>
+          <Label>Channel ID</Label>
+          <Input
+            placeholder="1234567890"
+            onChange={(e) => handleFieldChange(type, "channel_id", e.target.value)}
+            value={(node.fields["channel_id"] as string | number | undefined) || ""}
+          />
+          <div>
+            <Label>Message to send</Label>
+            <Textarea
+              placeholder="This is an example mesagge"
+              className="resize-none h-[200px]"
+              onChange={(e) => handleFieldChange(type, "content", e.target.value)}
+              value={(node.fields["content"] as string | number | undefined) || ""}
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-y-4">
+          <p className="text-zinc-500">Waits for a message to be sent on a discord channel.</p>
+          <Label>Channel ID</Label>
+          <Input
+            placeholder="1234567890"
+            onChange={(e) => handleFieldChange(type, "channel_id", e.target.value)}
+            value={(node.fields["channel_id"] as string | number | undefined) || ""}
+          />
+        </div>
+      )}
+    </>
+  );
 }
 
 const timerStatuses = [
