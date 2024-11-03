@@ -11,7 +11,7 @@
 ## Services
 
 > **_WARINNG:_**
-> - The `base` services should not be **_modified_**.
+> - The `base` services should be with **_care_**.
 > - If you would like to add more `providers` please read [this](##Provider)
 
 - _Base:_
@@ -41,6 +41,32 @@
 
 ## Provider
 
+### Auth Workflow
+
+> **_NOTE:_**
+> To add a new auth provider both the `auth` and `sync` microservices must be _modified_
+
+1. Add your provider to the following files `internal/auth/providers/routes.go` and `internal/sync/routes.go`
+    - It should looks something like the following:<br>
+    ```go
+    CreateProvider(
+        PROVIDER.New(
+            os.Getenv("PROVIDER_ID"),
+            os.Getenv("PROVIDER_SECRET"),
+            callback,
+            "scopes"
+        ),
+    )
+    ```
+2. Add your enviroment variables to the following files `internal/auth/env.go` and `internal/sync/env.go`
+3. Finally don't forget to configure the `docker-compose.yml` so it builds correctly
+
+<br>
+
+![Auth Workflow](./auth-workflow.png)
+
+### Provider Automation
+
 > **_NOTE:_**
 > All providers must implement this in order to work with the `action` microservice
 
@@ -56,7 +82,8 @@ type Reaction interface {
 }
 ```
 
-### Provider Automation
+> **_NOTE:_**
+> Make sure you when you add a new provider that you modify the `docker-compose.yml`
 
 > **_NOTE:_**
 > There are 3 ways to handle workflow automation in **Trigger**
@@ -67,11 +94,15 @@ type Reaction interface {
     3. `Stop` should notify your provider to stop the subscription
     4. The `Reaction` will be called internally by the `Action` service
 2. Websocket
-    1. Set up a worker that listens on a `socket` for new information
+    1. Set up a worker that listens on a `Socket` for new information
     2. Apply the steps from the `Webhook`
     3. Query the `Action` service to notify your service of new information
 3. Polling
-    1. Set up a worker on a `cron job` and check for new information
+    1. Set up a worker on a `Cron Job` and check for new information
     2. Apply the steps from the `Webhook`
     3. Query the `Action` service to notify your service of new information
+
+<br>
+
+![Trigger Workflow](./trigger-workflow.png)
 
