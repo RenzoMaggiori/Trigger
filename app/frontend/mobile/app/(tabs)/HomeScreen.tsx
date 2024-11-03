@@ -48,14 +48,6 @@ export default function HomeScreen() {
     return (
         <ScrollView style={styles.container}>
             <PromoItem />
-            <Button
-                title='Templates'
-                onPress={() => console.log('Templates')}
-                backgroundColor={Colors.light.tint}
-                textColor='#FFFFFF'
-                buttonWidth="35%"
-                paddingV={7.5}
-            />
             <TriggerList workspaces={workspaces} setWorkspaces={setWorkspaces} />
         </ScrollView>
     );

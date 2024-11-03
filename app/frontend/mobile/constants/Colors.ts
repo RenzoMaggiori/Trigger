@@ -27,6 +27,8 @@ export const Colors = {
     outlook: '#0072C6',
     spotify: '#1DB954',
     twitch: '#6441A4',
+    timer: '#FFD700',
+    bitbucket: '#0052CC',
     grey: '#d6dbdf',
   },
   dark: {

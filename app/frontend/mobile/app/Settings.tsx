@@ -14,6 +14,7 @@ const providers = [
     { name: 'discord', icon: <FontAwesome5 name="discord" size={30} color={Colors.light.discord} /> },
     { name: 'spotify', icon: <FontAwesome5 name="spotify" size={30} color={Colors.light.spotify} /> },
     { name: 'github', icon: <Ionicons name="logo-github" size={30} color={Colors.light.github} /> },
+    { name: 'bitbucket', icon: <FontAwesome5 name="bitbucket" size={30} color={Colors.light.bitbucket} /> },
 ];
 
 export default function Settings() {
@@ -74,6 +75,11 @@ function ProviderItem({ provider }: { provider: Provider }) {
                 const providerStatus = settings.find((item: any) => item.providerName === provider.name);
 
                 setIsConnected(providerStatus?.active === true);
+
+                const storedStatus = await AsyncStorage.getItem(provider.name);
+                if (storedStatus === 'true') {
+                    setIsConnected(true);
+                }
             } catch (error) {
                 console.error(`Error fetching connection status for ${provider.name}:`, error);
             }
