@@ -19,7 +19,7 @@ func fetchWebhook(w workspace.WorkspaceModel, triggerName string, triggerType tr
 	if err != nil {
 		return err
 	}
-	if session == nil || len(session) == 0 {
+	if len(session) == 0 {
 		return errSessionNotFound
 	}
 

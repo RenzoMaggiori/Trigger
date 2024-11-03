@@ -350,8 +350,10 @@ func (m Model) initAction(ctx context.Context, workspace WorkspaceModel, actionN
 			m.ActionCompleted(ctx, *actionCompleted)
 		} else {
 			m.ActionCompleted(ctx, ActionCompletedModel{
-				ActionId: action.Id,
-				Output:   make(map[string]string),
+				ActionId:    action.Id,
+				WorkspaceId: &workspace.Id,
+				NodeId:      &actionNode.NodeId,
+				Output:      make(map[string]string),
 			})
 		}
 	}

@@ -103,6 +103,20 @@ var (
 			Input:    []string{"channel_id", "content"},
 			Output:   []string{},
 		},
+		{
+			Provider: "bitbucket",
+			Type:     "trigger",
+			Action:   "watch_issue_created",
+			Input:    []string{"workspace", "repository"},
+			Output:   []string{"title", "content"},
+		},
+		{
+			Provider: "bitbucket",
+			Type:     "reaction",
+			Action:   "create_pull_request",
+			Input:    []string{"workspace", "repository", "title", "source_branch", "destination_branch"},
+			Output:   []string{},
+		},
 	}
 )
 
