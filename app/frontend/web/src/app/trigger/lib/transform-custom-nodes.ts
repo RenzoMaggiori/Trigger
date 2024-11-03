@@ -7,7 +7,7 @@ export function transformCustomNodes(customNodes: CustomNode[], edges: Edge[], e
   for (const node of customNodes) {
     nodes[node.id] = {
       id: node.id,
-      status: (existingNodes && existingNodes[node.id]) ? existingNodes[node.id]?.action_id : "inactive",
+      status: (existingNodes && existingNodes[node.id]) ? existingNodes[node.id]?.status : "inactive",
       action_id:  (existingNodes && existingNodes[node.id]) ? existingNodes[node.id]?.action_id : "default",
       fields: {},
       parent_ids: edges
