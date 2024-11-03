@@ -199,4 +199,27 @@ export class TriggersService {
             throw error;
         }
     }
+
+    static async getTemplates() {
+        try {
+            const baseUrl = await this.getBaseUrl();
+            const response = await fetch(`${baseUrl}/action/workspace/templates`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (response.status !== 200) {
+                console.log('get templates failed', response.status);
+                throw new Error('Something went wrong.');
+            }
+            const data = await response.json();
+            console.log('[get templates] success:', data);
+            return data;
+        } catch (error) {
+            console.error("Catched Get Templates Error:", error);
+            throw error;
+        }
+    }
 }
