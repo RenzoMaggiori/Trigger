@@ -1,27 +1,30 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, Text, Image } from 'react-native';
 import ButtonIcon from '@/components/ButtonIcon';
 import Button from '@/components/Button';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { TriggersService } from '@/api/triggers/service';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function HomeScreen() {
     const [workspaces, setWorkspaces] = useState([]);
 
-    useEffect(() => {
-        const loadWorkspaces = async () => {
-            try {
-                const fetchedWorkspaces = await TriggersService.getTriggers();
-                console.log('fetchedWorkspaces:', fetchedWorkspaces);
-                setWorkspaces(fetchedWorkspaces);
-            } catch (error) {
-                console.error('Failed to load workspaces:', error);
-            }
-        };
+    useFocusEffect(
+        useCallback(() => {
+            const loadWorkspaces = async () => {
+                try {
+                    const fetchedWorkspaces = await TriggersService.getTriggers();
+                    console.log('fetchedWorkspaces:', fetchedWorkspaces);
+                    setWorkspaces(fetchedWorkspaces);
+                } catch (error) {
+                    console.error('Failed to load workspaces:', error);
+                }
+            };
 
-        loadWorkspaces();
-    }, []);
+            loadWorkspaces();
+        }, [])
+    );
 
     return (
         <ScrollView style={styles.container}>
