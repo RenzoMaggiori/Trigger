@@ -75,6 +75,11 @@ function ProviderItem({ provider }: { provider: Provider }) {
                 const providerStatus = settings.find((item: any) => item.providerName === provider.name);
 
                 setIsConnected(providerStatus?.active === true);
+
+                const storedStatus = await AsyncStorage.getItem(provider.name);
+                if (storedStatus === 'true') {
+                    setIsConnected(true);
+                }
             } catch (error) {
                 console.error(`Error fetching connection status for ${provider.name}:`, error);
             }
