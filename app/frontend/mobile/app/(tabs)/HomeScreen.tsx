@@ -1,22 +1,41 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, Text, Image } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
 import ButtonIcon from '@/components/ButtonIcon';
 import Button from '@/components/Button';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { TriggersService } from '@/api/triggers/service';
 import { useFocusEffect } from '@react-navigation/native';
 
 export default function HomeScreen() {
-    const [workspaces, setWorkspaces] = useState([]);
+    const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
 
     useFocusEffect(
         useCallback(() => {
             const loadWorkspaces = async () => {
                 try {
                     const fetchedWorkspaces = await TriggersService.getTriggers();
-                    console.log('fetchedWorkspaces:', fetchedWorkspaces);
-                    setWorkspaces(fetchedWorkspaces);
+                    // console.log('fetchedWorkspaces:', fetchedWorkspaces);
+
+                    const updatedWorkspaces = await Promise.all(
+                        fetchedWorkspaces.map(async (workspace: Workspace) => {
+                            const nodesWithDetails = await Promise.all(
+                                workspace.nodes.map(async (node) => {
+                                    const actionDetails = await TriggersService.getActionById(node.action_id);
+                                    return {
+                                        ...node,
+                                        actionDetails,
+                                    };
+                                })
+                            );
+                            return {
+                                ...workspace,
+                                nodes: nodesWithDetails,
+                            };
+                        })
+                    );
+
+                    setWorkspaces(updatedWorkspaces);
                 } catch (error) {
                     console.error('Failed to load workspaces:', error);
                 }
@@ -66,6 +85,14 @@ interface Workspace {
         node_id: string;
         action_id: string;
         status: string;
+        actionDetails: {
+            id: string;
+            input: string[];
+            output: string[];
+            provider: string;
+            type: string;
+            action: string;
+        };
     }[];
 }
 
@@ -74,18 +101,95 @@ function TriggerList({ workspaces }: { workspaces: Workspace[] }) {
         <View style={styles.triggerListContainer}>
             <Text style={styles.title}>Your Workspaces</Text>
             {workspaces.length > 0 ? (
-                workspaces.map(workspace => (
-                    <View key={workspace.id} style={styles.card}>
-                        <Text style={styles.cardTitle}>Workspace ID: {workspace.id}</Text>
-                        <Text style={styles.cardSubtitle}>User ID: {workspace.user_id}</Text>
+                workspaces.map((workspace) => (
+                    <View key={workspace.id} style={styles.workspaceCard}>
+                        <Text style={styles.workspaceTitle}>Workspace ID: {workspace.id}</Text>
                         <View style={styles.nodesContainer}>
-                            {workspace.nodes.map((node, index) => (
-                                <View key={node.node_id} style={styles.nodeItem}>
-                                    <Text style={styles.nodeText}>
-                                        {index + 1}. {node.node_id} - {node.action_id} (Status: {node.status})
-                                    </Text>
-                                </View>
-                            ))}
+                            {workspace.nodes.map((node) => {
+                                const isTrigger = node.actionDetails?.type === 'trigger';
+
+                                return (
+                                    <View
+                                        key={node.node_id}
+                                        style={[
+                                            styles.nodeCard,
+                                            isTrigger && styles.triggerNodeCard,
+                                        ]}
+                                    >
+                                        <View style={styles.nodeHeader}>
+                                            <View style={styles.nodeDetails}>
+                                                <Text
+                                                    style={[
+                                                        styles.nodeText,
+                                                        isTrigger && styles.whiteText,
+                                                    ]}
+                                                >
+                                                    Provider: {node.actionDetails?.provider}
+                                                </Text>
+                                                <Text
+                                                    style={[
+                                                        styles.nodeText,
+                                                        isTrigger && styles.whiteText,
+                                                    ]}
+                                                >
+                                                    {isTrigger ? 'Action' : 'Reaction'}: {node.actionDetails?.action}
+                                                </Text>
+                                                <View style={styles.actionDetailsContainer}>
+                                                    <Text
+                                                        style={[
+                                                            styles.actionDetailText,
+                                                            isTrigger && styles.whiteText,
+                                                        ]}
+                                                    >
+                                                        Inputs: {node.actionDetails?.input.join(', ')}
+                                                    </Text>
+                                                    <Text
+                                                        style={[
+                                                            styles.actionDetailText,
+                                                            isTrigger && styles.whiteText,
+                                                        ]}
+                                                    >
+                                                        Outputs: {node.actionDetails?.output.join(', ')}
+                                                    </Text>
+                                                </View>
+                                            </View>
+                                            <View style={styles.rightSection}>
+                                                <Text
+                                                    style={[
+                                                        styles.nodeStatus,
+                                                        isTrigger && styles.whiteText,
+                                                    ]}
+                                                >
+                                                    {node.status === 'active' ? 'Active' : 'Inactive'}
+                                                </Text>
+                                                <TouchableOpacity
+                                                    style={[
+                                                        styles.actionButton,
+                                                        isTrigger && styles.invertedActionButton,
+                                                    ]}
+                                                    onPress={() =>
+                                                        console.log(`${node.status === 'active' ? 'Stop' : 'Start'} action`)
+                                                    }
+                                                >
+                                                    <MaterialIcons
+                                                        name={node.status === 'active' ? 'pause' : 'play-arrow'}
+                                                        size={16}
+                                                        color={isTrigger ? Colors.light.tintDark : '#fff'}
+                                                    />
+                                                    <Text
+                                                        style={[
+                                                            styles.actionButtonTxt,
+                                                            isTrigger && styles.invertedActionButtonTxt,
+                                                        ]}
+                                                    >
+                                                        {node.status === 'active' ? 'Stop' : 'Start'}
+                                                    </Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                        </View>
+                                    </View>
+                                );
+                            })}
                         </View>
                     </View>
                 ))
@@ -128,8 +232,8 @@ const styles = StyleSheet.create({
         marginBottom: 16,
         textAlign: 'center',
     },
-    card: {
-        backgroundColor: '#fff',
+    workspaceCard: {
+        backgroundColor: Colors.light.tintLight,
         borderRadius: 10,
         marginBottom: 20,
         padding: 16,
@@ -138,160 +242,80 @@ const styles = StyleSheet.create({
         shadowRadius: 5,
         shadowOffset: { width: 0, height: 2 },
     },
-    cardTitle: {
+    workspaceTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        marginBottom: 5,
-    },
-    cardSubtitle: {
-        fontSize: 14,
-        color: '#666',
         marginBottom: 10,
     },
     nodesContainer: {
-        marginTop: 10,
+        marginBottom: 10,
     },
-    nodeItem: {
-        marginBottom: 5,
+    nodeCard: {
+        backgroundColor: '#f9f9f9',
+        borderRadius: 8,
+        padding: 10,
+        marginBottom: 10,
+        shadowColor: '#000',
+        shadowOpacity: 0.05,
+        shadowRadius: 3,
+        shadowOffset: { width: 0, height: 1 },
+    },
+    triggerNodeCard: {
+        backgroundColor: Colors.light.tintDark,
+    },
+    nodeHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+    },
+    nodeDetails: {
+        flex: 1,
+    },
+    rightSection: {
+        flexDirection: 'column',
+        alignItems: 'flex-end',
     },
     nodeText: {
         fontSize: 14,
-        color: '#333',
+        fontWeight: 'bold',
+        color: Colors.light.tintDark,
+    },
+    whiteText: {
+        color: '#fff',
+    },
+    actionDetailsContainer: {
+        marginTop: 5,
+    },
+    actionDetailText: {
+        fontSize: 12,
+    },
+    nodeStatus: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#666',
+        marginBottom: 5,
+    },
+    actionButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.light.tint,
+        paddingVertical: 4,
+        paddingHorizontal: 8,
+        borderRadius: 20,
+        marginTop: 5,
+    },
+    invertedActionButton: {
+        backgroundColor: '#fff',
+    },
+    actionButtonTxt: {
+        color: '#fff',
+        marginLeft: 5,
+    },
+    invertedActionButtonTxt: {
+        color: Colors.light.tintDark,
     },
     noTriggersText: {
         textAlign: 'center',
-        fontSize: 16,
         color: '#888',
     },
 });
-
-// import React from 'react';
-// import { View, StyleSheet, ScrollView, Text, Image } from 'react-native';
-// import ButtonIcon from '@/components/ButtonIcon';
-// import Button from '@/components/Button';
-// import { MaterialCommunityIcons } from '@expo/vector-icons';
-// import { Colors } from '@/constants/Colors';
-// import { TriggersService } from '@/api/triggers/service';
-
-// export default function HomeScreen() {
-
-//     return (
-//         <ScrollView style={styles.container}>
-//             <PromoItem />
-//             <Button
-//                 title='Templates'
-//                 onPress={() => console.log('Templates')}
-//                 backgroundColor={Colors.light.tint}
-//                 textColor='#FFFFFF'
-//                 buttonWidth="35%"
-//                 paddingV={7.5}
-//             />
-//             <TriggerList />
-//         </ScrollView>
-//     );
-// }
-
-// function PromoItem() {
-//     return (
-//         <View style={styles.promoContainer}>
-//             <View style={styles.promoBox}>
-//                 <Text style={styles.promoText}>Try Trigger for 30 days free</Text>
-//                 <ButtonIcon
-//                     onPress={() => console.log('Start free trial')}
-//                     title="Start free trial"
-//                     icon={<MaterialCommunityIcons name="star-shooting" size={24} color={Colors.light.tint} />}
-//                     backgroundColor="#FFFFFF"
-//                     textColor={Colors.light.tint}
-//                 />
-//             </View>
-//         </View>
-//     );
-// }
-
-// function TriggerList() {
-//     const triggers = [
-//         { id: 1, title: 'Trigger One', imageUrl: require('@/assets/images/image_placeholder.png') },
-//         { id: 2, title: 'Trigger Two', imageUrl: require('@/assets/images/image_placeholder.png') },
-//         { id: 3, title: 'Trigger Three', imageUrl: require('@/assets/images/image_placeholder.png') },
-//     ];
-
-//     console.log('triggers:', TriggersService.getTriggers());
-
-//     return (
-//         <View style={styles.triggerListContainer}>
-//             <Text style={styles.title}>Your Triggers</Text>
-//             {triggers.map(trigger => (
-//                 <View key={trigger.id} style={styles.card}>
-//                     <Image style={styles.cardImage} source={trigger.imageUrl} />
-//                     <Text style={styles.cardTitle}>{trigger.title}</Text>
-//                 </View>
-//             ))}
-//         </View>
-//     );
-// }
-
-// const styles = StyleSheet.create({
-//     container: {
-//         flex: 1,
-//         padding: 16,
-//     },
-//     // promo
-//     promoContainer: {
-//         alignItems: 'center',
-//         marginBottom: 10,
-//     },
-//     promoBox: {
-//         width: '100%',
-//         backgroundColor: Colors.light.tint,
-//         padding: 10,
-//         borderRadius: 10,
-//         alignItems: 'center',
-//     },
-//     promoText: {
-//         color: '#fff',
-//         fontSize: 18,
-//         marginBottom: 10,
-//         textAlign: 'center',
-//     },
-//     promoButton: {
-//         backgroundColor: '#fff',
-//         paddingVertical: 10,
-//         paddingHorizontal: 20,
-//         borderRadius: 5,
-//     },
-//     promoButtonText: {
-//         color: Colors.light.tint,
-//         fontWeight: 'bold',
-//     },
-//     // trigger list
-//     triggerListContainer: {
-//         marginTop: 10,
-//         marginBottom: 30,
-//     },
-//     title: {
-//         fontSize: 22,
-//         fontWeight: 'bold',
-//         marginBottom: 16,
-//     },
-//     card: {
-//         backgroundColor: '#fff',
-//         borderRadius: 10,
-//         marginBottom: 20,
-//         padding: 16,
-//         shadowColor: '#000',
-//         shadowOpacity: 0.1,
-//         shadowRadius: 5,
-//         shadowOffset: { width: 0, height: 2 },
-//         alignItems: 'center',
-//     },
-//     cardImage: {
-//         width: 300,
-//         height: 200,
-//         marginBottom: 10,
-//         borderRadius: 10,
-//     },
-//     cardTitle: {
-//         fontSize: 16,
-//         fontWeight: 'bold',
-//     },
-// });
