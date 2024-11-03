@@ -203,7 +203,7 @@ export class TriggersService {
     static async getTemplates() {
         try {
             const baseUrl = await this.getBaseUrl();
-            const response = await fetch(`${baseUrl}/action/workspace/templates`, {
+            const response = await fetch(`${baseUrl}/workspace/templates`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${await AsyncStorage.getItem('token')}`,
