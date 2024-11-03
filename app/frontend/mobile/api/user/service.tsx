@@ -1,8 +1,6 @@
 import { Env } from "@/lib/env";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// const BASE_URL = `http://${Env.IPV4}:${Env.USER_PORT}`;
-
 export class UserService {
     static async getBaseUrl() {
         return `${Env.NGROK}/api/user`;
