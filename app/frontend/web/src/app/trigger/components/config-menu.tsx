@@ -12,6 +12,7 @@ import { SiGooglegemini } from "react-icons/si";
 import { useMenu } from "@/app/trigger/components/MenuProvider";
 import { ActionType, CustomNode } from "@/app/trigger/lib/types";
 import {
+  BitBucketSettings,
   DiscordSettings,
   EmailSettings,
   GithubSettings,
@@ -36,6 +37,7 @@ const settingsComponentMap = {
   spotify: SpotifySettings,
   twitch: TwitchSettings,
   timer: TimerSettings,
+  bitbucket: BitBucketSettings,
 };
 
 const configOptions = [
