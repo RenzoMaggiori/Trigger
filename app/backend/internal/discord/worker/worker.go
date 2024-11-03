@@ -2,23 +2,25 @@ package worker
 
 import (
 	"bytes"
-	// "context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
-	// "sync"
 
 	"github.com/bwmarrin/discordgo"
 	"trigger.com/trigger/internal/discord/trigger"
+	"trigger.com/trigger/internal/session"
 	myErrors "trigger.com/trigger/pkg/errors"
 	"trigger.com/trigger/pkg/fetch"
+	userSync "trigger.com/trigger/internal/sync"
 )
 
 var (
 	errWebhookBadStatus   error = errors.New("webhook returned a bad status")
+	errSyncModelNull      error = errors.New("the sync models type is null")
+	errSessionNotFound    error = errors.New("could not find user session")
 )
 
 func (m *Model) FetchDiscordWebhook(accessToken string, data trigger.ActionBody) error {
@@ -69,11 +71,13 @@ func (m *Model) HandleNewMessage(s *discordgo.Session, msg *discordgo.MessageCre
 	for _, ds := range discord_sessions {
 		if ds.ChannelId == msg.ChannelID {
 			log.Printf("-------------------------\n\n")
-			log.Printf("Message received in  ChannelID: %s\n", msg.ChannelID)
-			log.Printf("Message from %s: %s\n", msg.Author.Username, msg.Content)
+			log.Printf("Message received in ChannelID: %s\n", msg.ChannelID)
+			log.Printf("Message from [%s]: %s\n", msg.Author.Username, msg.Content)
 			log.Printf("-------------------------\n\n")
 
-			err := m.FetchDiscordWebhook(ds.Token, trigger.ActionBody{
+			userTokens, err := getUserAccessToken(ds.UserId)
+
+			err = m.FetchDiscordWebhook(userTokens.session.AccessToken, trigger.ActionBody{
 				Type: "watch_channel_message",
 				Data: trigger.MsgInfo{
 					Content: msg.Content,
@@ -108,4 +112,28 @@ func (m *Model) InitBot() error {
 
 	log.Println("-------------------------\n\nBot started and running...\n\n-------------------------")
 	return nil
+}
+
+func getUserAccessToken(userId string) (*UserTokens, error) {
+	session, _, err := session.GetSessionByUserIdRequest(os.Getenv("ADMIN_TOKEN"), userId)
+	if err != nil {
+		return nil, err
+	}
+	if session == nil || len(session) == 0 {
+		return nil, errSessionNotFound
+	}
+
+	userTokens := UserTokens{
+		session: session[0],
+	}
+	syncModel, _, err := userSync.GetSyncAccessTokenRequest(userTokens.session.AccessToken, userId, "discord")
+	if err != nil {
+		return nil, err
+	}
+	if syncModel == nil {
+		return nil, errSyncModelNull
+	}
+
+	userTokens.sync = *syncModel
+	return &userTokens, nil
 }
