@@ -63,12 +63,8 @@ export class TriggersService {
     }
 
     static async addTrigger(trigger: any) {
-        const baseUrl = this.getBaseUrl();
-        const token = await AsyncStorage.getItem('token');
-        console.log('token:', token);
-        console.log('trigger:', JSON.stringify(trigger));
-        console.log('baseUrl:', baseUrl);
         try {
+            const token = await AsyncStorage.getItem('token');
             const response = await fetch(`${Env.NGROK}/api/workspace/add`, {
                 method: 'POST',
                 headers: {
@@ -190,7 +186,7 @@ export class TriggersService {
                 throw new Error('Something went wrong.');
             }
             const data = await response.json();
-            console.log('[delete trigger] success:', data);
+            // console.log('[delete trigger] success:', data);
             return data;
         } catch (error) {
             console.error("Catched Delete Trigger Error:", error);
@@ -213,7 +209,7 @@ export class TriggersService {
                 throw new Error('Something went wrong.');
             }
             const data = await response.json();
-            console.log('[get templates] success:', data);
+            // console.log('[get templates] success:', data);
             return data;
         } catch (error) {
             console.error("Catched Get Templates Error:", error);
