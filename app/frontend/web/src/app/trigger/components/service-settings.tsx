@@ -10,6 +10,7 @@ import { Combox, Status } from "@/components/ui/combox";
 import { BsHourglassTop, BsHourglassBottom, BsHourglassSplit } from "react-icons/bs";
 import { AiOutlineIssuesClose } from "react-icons/ai";
 import { FaCodeCommit } from "react-icons/fa6";
+import { FaCodePullRequest } from "react-icons/fa6";
 
 function GithubSettings({ node, type, actions }: { node: NodeItem, type: string, actions: ActionType }) {
   const { setFields, setNodes } = useMenu();
@@ -38,7 +39,6 @@ function GithubSettings({ node, type, actions }: { node: NodeItem, type: string,
   ];
 
   const reactionInputs = [
-    { label: "Owner", json: "owner", placeholder: "John Doe" },
     { label: "Repository", json: "repo", placeholder: "example_repository" },
     { label: "Title", json: "title", placeholder: "Example title" },
     { label: "Description", json: "description", placeholder: "This is a new issue" },
@@ -301,7 +301,7 @@ const bitbucketStatuses = [
         <AiOutlineIssuesClose className="mr-2 w-5 h-5" />
         <p className="font-bold">New issue</p>
       </div>,
-    value: "new_issue"
+    value: "watch_issue_created"
   },
   {
     label:
@@ -309,7 +309,15 @@ const bitbucketStatuses = [
         <FaCodeCommit className="mr-2 w-5 h-5" />
         <p className="font-bold">New commit</p>
       </div>,
-    value: "new_commit"
+    value: "watch_repo_push"
+  },
+  {
+    label:
+      <div className="flex flex-row">
+        <FaCodePullRequest className="mr-2 w-5 h-5" />
+        <p className="font-bold">Pull request</p>
+      </div>,
+    value: "watch_pull_request_created"
   },
 ];
 
@@ -319,7 +327,7 @@ function BitBucketSettings({ node, type, actions }: { node: NodeItem, type: stri
 
   React.useEffect(() => {
     const bitbucketTriggerAction = actions.find(
-      (action) => action.provider === "bitbucket" && action.type === type
+      (action) => action.provider === "bitbucket" && action.type === type && (action.type === "trigger" ? action.action === messageType?.value : true)
     );
 
     if (!bitbucketTriggerAction) return;
@@ -332,7 +340,7 @@ function BitBucketSettings({ node, type, actions }: { node: NodeItem, type: stri
 
     if (node.fields?.type !== type)
       setFields(node.id, { ...node.fields, type });
-  }, [type, actions, node, setNodes, setFields]);
+  }, [type, actions, node, setNodes, setFields, messageType]);
 
   const handleFieldChange = (fieldType: string, index: string, value: string) => {
     setFields(node.id, { ...node.fields, [index]: value, type: fieldType });

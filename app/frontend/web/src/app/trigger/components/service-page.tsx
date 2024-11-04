@@ -77,7 +77,7 @@ export const ServicesComponent: React.FC<ServicesProps> = ({
       window.location.href = "/home";
     },
     onError: () => {
-      setLoading(false);
+      setLoadingDeploy(false);
       toast("Error while deploying the workspace", action);
     },
   });

@@ -55,18 +55,18 @@ func (m *Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel)
 	}
 
 	newSession := &DiscordSessionModel{
-		UserId:    userId,
-		ChannelId: channel_id,
-		ActionId:  actionId,
+		UserId:      userId,
+		ChannelId:   channel_id,
+		ActionId:    actionId,
 		DiscordData: discord_me,
-		NodeId:     actionNode.NodeId,
+		NodeId:      actionNode.NodeId,
 	}
 	err = m.AddSession(newSession)
 	if err != nil {
 		log.Printf("Error adding session [%s]: %v", newSession.ChannelId, err)
 		return err
 	}
-    return nil
+	return nil
 }
 
 func (m *Model) Webhook(ctx context.Context) error {
@@ -99,11 +99,10 @@ func (m *Model) Webhook(ctx context.Context) error {
 		_, err := workspace.ActionCompletedRequest(token, workspace.ActionCompletedModel{
 			ActionId: action.Id,
 			Output: map[string]string{
-                "content": msgInfo.Content,
-				"author_id": msgInfo.AuthorId,
-				"author_username":  msgInfo.AuthorUsername,
-            },
-			NodeId: &msgInfo.NodeId,
+				"content":         msgInfo.Content,
+				"author_id":       msgInfo.AuthorId,
+				"author_username": msgInfo.AuthorUsername,
+			},
 		})
 		return err
 	}
@@ -111,7 +110,7 @@ func (m *Model) Webhook(ctx context.Context) error {
 }
 
 func (m *Model) Stop(ctx context.Context) error {
-    return nil
+	return nil
 }
 
 func (m *Model) GetMe(syncDiscordToken string) (*discordgo.User, error) {
@@ -148,9 +147,9 @@ func (m *Model) GetMe(syncDiscordToken string) (*discordgo.User, error) {
 func (m *Model) AddSession(data *DiscordSessionModel) error {
 	ctx := context.TODO()
 	newSync := DiscordSessionModel{
-		UserId:    data.UserId,
-		ChannelId: data.ChannelId,
-		ActionId:  data.ActionId,
+		UserId:      data.UserId,
+		ChannelId:   data.ChannelId,
+		ActionId:    data.ActionId,
 		DiscordData: data.DiscordData,
 	}
 
@@ -178,7 +177,7 @@ func (m *Model) GetAllSessions() ([]DiscordSessionModel, error) {
 	ctx := context.TODO()
 	cursor, err := m.Collection.Find(ctx, bson.M{})
 	if err != nil {
-		return nil, errors.ErrDiscordUserSessionNotFound
+		return nil, fmt.Errorf("%w: %v", errors.ErrDiscordUserSessionNotFound, err)
 	}
 
 	var discordSessions []DiscordSessionModel
