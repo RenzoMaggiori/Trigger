@@ -57,7 +57,7 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 	url := fmt.Sprintf("%s/api/github/trigger/webhook?userId=%s", os.Getenv("SERVER_BASE_URL"), syncModel.UserId.Hex())
 	contentType := "json"
 	insecureSSL := "0"
-	_, _, err = ghClient.Repositories.CreateHook(
+	_, githubRes, err := ghClient.Repositories.CreateHook(
 		ctx,
 		owner,
 		repo,
@@ -72,6 +72,11 @@ func (m Model) Watch(ctx context.Context, actionNode workspace.ActionNodeModel) 
 			},
 		},
 	)
+
+	if githubRes != nil && githubRes.StatusCode == 422 {
+		return nil
+	}
+
 	if err != nil {
 		return err
 	}
