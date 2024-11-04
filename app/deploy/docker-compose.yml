@@ -448,6 +448,8 @@ services:
       - trigger
     volumes:
       - shared_volume:/shared
+    environment:
+      NGROK: ${NGROK}
 
   client_web:
     container_name: trigger-web-instance
