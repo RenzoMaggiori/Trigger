@@ -8,20 +8,16 @@ import ButtonIcon from '@/components/ButtonIcon';
 import { MaterialIcons } from '@expo/vector-icons';
 import { TriggersService } from '@/api/triggers/service';
 
-function transformFlowItemToApiFormat(flowItem: {
-    provider: string,
-    action: { id: string, name: string },
-    reactions: { id: string, provider: string, name: string }[]
-}) {
+function transformFlowItemToApiFormat(flowItem: { action: { id: string, name: string }, reactions: { id: string, name: string }[] }, inputValues: any) {
     const nodeNames = [];
     const nodes = [];
 
-    // trigger node
+    // Trigger node
     nodes.push({
         node_id: "action1",
         action_id: flowItem.action.id,
         name: flowItem.action.name,
-        input: {},
+        input: inputValues,
         output: {},
         parents: [],
         children: flowItem.reactions.length > 0 ? ["action2"] : [],
@@ -30,15 +26,14 @@ function transformFlowItemToApiFormat(flowItem: {
     });
     nodeNames.push(flowItem.action.name);
 
-    // reaction nodes
+    // Reaction nodes
     flowItem.reactions.forEach((reaction, index) => {
         const nodeIndex = index + 2;
-
         nodes.push({
             node_id: `action${nodeIndex}`,
             action_id: reaction.id,
             name: reaction.name,
-            input: {},
+            input: inputValues,
             output: {},
             parents: [`action${nodeIndex - 1}`],
             children: index < flowItem.reactions.length - 1 ? [`action${nodeIndex + 1}`] : [],
@@ -47,18 +42,18 @@ function transformFlowItemToApiFormat(flowItem: {
         });
         nodeNames.push(reaction.name);
     });
-    const name = nodeNames.join(' > ');
 
+    const name = nodeNames.join(' > ');
     return { name, nodes };
 }
 
 export default function TriggerScreen() {
-    const [flow, setFlow] = useState<{ provider: string, action: { id: string, name: string }, reactions: { id: string, provider: string, name: string }[] }[]>([]);
-    const [modalVisible, setModalVisible] = useState<boolean>(false);
+    const [flow, setFlow] = useState<{ provider: string; action: { id: string; name: string }; reactions: { provider: string; id: string; name: string }[] }[]>([]);
+    const [modalVisible, setModalVisible] = useState(false);
     const [selectedActionIndex, setSelectedActionIndex] = useState<number | null>(null);
-    const [isAddingAction, setIsAddingAction] = useState<boolean>(false);
+    const [isAddingAction, setIsAddingAction] = useState(false);
     const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
-    const [showActionSelector, setShowActionSelector] = useState<boolean>(false);
+    const [showActionSelector, setShowActionSelector] = useState(false);
 
     const addAction = (action: { id: string; name: string }) => {
         if (selectedProvider) {
@@ -100,9 +95,9 @@ export default function TriggerScreen() {
         setFlow(prevFlow => prevFlow.filter((_, index) => index !== actionIndex));
     };
 
-    const saveTrigger = (actionIndex: number) => {
+    const saveTrigger = (actionIndex: number, inputValues: any) => {
         const flowItem = flow[actionIndex];
-        const formattedData = transformFlowItemToApiFormat(flowItem);
+        const formattedData = transformFlowItemToApiFormat(flowItem, inputValues);
         TriggersService.addTrigger(formattedData);
         removeAction(actionIndex);
     };
@@ -124,7 +119,6 @@ export default function TriggerScreen() {
                     textColor="#FFFFFF"
                 />
             </View>
-
             <FlowChartArea
                 flow={flow}
                 onAddReaction={openReactionSelector}

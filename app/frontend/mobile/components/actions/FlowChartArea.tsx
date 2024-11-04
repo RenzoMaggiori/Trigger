@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { MaterialIcons, Entypo } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 
@@ -11,7 +11,7 @@ interface FlowChartAreaProps {
     }[];
     onAddReaction: (actionIndex: number) => void;
     onRemoveAction: (actionIndex: number) => void;
-    onSaveTrigger: (actionIndex: number) => void;
+    onSaveTrigger: (actionIndex: number, inputValues: { [key: string]: string }) => void;
 }
 
 export default function FlowChartArea({ flow, onAddReaction, onRemoveAction, onSaveTrigger }: FlowChartAreaProps) {
@@ -20,6 +20,8 @@ export default function FlowChartArea({ flow, onAddReaction, onRemoveAction, onS
         actionIndex: null,
         reactionIndex: null,
     });
+
+    const [inputValues, setInputValues] = useState<{ [key: string]: string }>({});
 
     const handleSelectAction = (actionIndex: number) => {
         setSelectedItem(prevState => ({
@@ -35,6 +37,154 @@ export default function FlowChartArea({ flow, onAddReaction, onRemoveAction, onS
             actionIndex,
             reactionIndex: prevState.reactionIndex === reactionIndex ? null : reactionIndex,
         }));
+    };
+
+    const handleInputChange = (key: string, value: string) => {
+        setInputValues(prevValues => ({
+            ...prevValues,
+            [key]: value,
+        }));
+    };
+
+    const handleSaveTrigger = (actionIndex: number) => {
+        onSaveTrigger(actionIndex, inputValues);
+    };
+
+    const renderInputs = (type: 'action' | 'reaction', provider: string, index: number) => {
+        const baseKey = `${type}-${provider}-${index}`;
+
+        if (type === 'action') {
+            switch (provider) {
+                case 'gmail':
+                    return (
+                        <>
+                            <Text style={styles.inputLabel}>From:</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="example@example.com"
+                                value={inputValues[`${baseKey}-destination`] || ''}
+                                onChangeText={(text) => handleInputChange(`${baseKey}-destination`, text)}
+                            />
+                        </>
+                    );
+                case 'github':
+                    return (
+                        <>
+                            <Text style={styles.inputLabel}>Repository Owner:</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Enter owner name"
+                                value={inputValues[`${baseKey}-owner`] || ''}
+                                onChangeText={(text) => handleInputChange(`${baseKey}-owner`, text)}
+                            />
+                            <Text style={styles.inputLabel}>Repository Name:</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Enter repository name"
+                                value={inputValues[`${baseKey}-repo`] || ''}
+                                onChangeText={(text) => handleInputChange(`${baseKey}-repo`, text)}
+                            />
+                        </>
+                    );
+                case 'twitch':
+                    return (
+                        <>
+                            <Text style={styles.inputLabel}>Channel Name:</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Enter channel name"
+                                value={inputValues[`${baseKey}-channel`] || ''}
+                                onChangeText={(text) => handleInputChange(`${baseKey}-channel`, text)}
+                            />
+                        </>
+                    );
+                case 'spotify':
+                    return (
+                        <>
+                            <Text style={styles.inputLabel}>Playlist ID:</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Enter playlist ID"
+                                value={inputValues[`${baseKey}-playlistId`] || ''}
+                                onChangeText={(text) => handleInputChange(`${baseKey}-playlistId`, text)}
+                            />
+                        </>
+                    );
+                default:
+                    return <Text style={styles.noInputsText}>No specific inputs for this provider.</Text>;
+            }
+        } else if (type === 'reaction') {
+            switch (provider) {
+                case 'Slack':
+                    return (
+                        <>
+                            <Text style={styles.inputLabel}>Channel ID:</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Enter channel ID"
+                                value={inputValues[`${baseKey}-channelId`] || ''}
+                                onChangeText={(text) => handleInputChange(`${baseKey}-channelId`, text)}
+                            />
+                            <Text style={styles.inputLabel}>Message:</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Enter message"
+                                value={inputValues[`${baseKey}-message`] || ''}
+                                onChangeText={(text) => handleInputChange(`${baseKey}-message`, text)}
+                            />
+                        </>
+                    );
+                case 'Discord':
+                    return (
+                        <>
+                            <Text style={styles.inputLabel}>Channel ID:</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="1234567890"
+                                value={inputValues[`${baseKey}-discordChannelId`] || ''}
+                                onChangeText={(text) => handleInputChange(`${baseKey}-discordChannelId`, text)}
+                            />
+                            <Text style={styles.inputLabel}>Message Content:</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Enter message content"
+                                value={inputValues[`${baseKey}-content`] || ''}
+                                onChangeText={(text) => handleInputChange(`${baseKey}-content`, text)}
+                            />
+                        </>
+                    );
+                case 'gmail':
+                    return (
+                        <>
+                            <Text style={styles.inputLabel}>Recipient Email:</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Enter recipient email"
+                                value={inputValues[`${baseKey}-recipient`] || ''}
+                                onChangeText={(text) => handleInputChange(`${baseKey}-recipient`, text)}
+                            />
+                            <Text style={styles.inputLabel}>Email Subject:</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Enter email subject"
+                                value={inputValues[`${baseKey}-subject`] || ''}
+                                onChangeText={(text) => handleInputChange(`${baseKey}-subject`, text)}
+                            />
+                            <Text style={styles.inputLabel}>Email Body:</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Enter email body"
+                                value={inputValues[`${baseKey}-body`] || ''}
+                                onChangeText={(text) => handleInputChange(`${baseKey}-body`, text)}
+                                multiline
+                            />
+                        </>
+                    );
+                default:
+                    return <Text style={styles.noInputsText}>No specific inputs for this reaction provider.</Text>;
+            }
+        }
+        return null;
     };
 
     return (
@@ -61,6 +211,7 @@ export default function FlowChartArea({ flow, onAddReaction, onRemoveAction, onS
                         <View style={styles.infoCard}>
                             <Text style={styles.infoText}>Provider: {flowItem.provider}</Text>
                             <Text style={styles.infoText}>Action: {flowItem.action.name}</Text>
+                            {renderInputs('action', flowItem.provider, actionIndex)}
                         </View>
                     )}
 
@@ -68,6 +219,7 @@ export default function FlowChartArea({ flow, onAddReaction, onRemoveAction, onS
                         <View style={styles.infoCard}>
                             <Text style={styles.infoText}>Reaction Selected</Text>
                             <Text>{flowItem.reactions[selectedItem.reactionIndex!].provider}: {flowItem.reactions[selectedItem.reactionIndex!].name}</Text>
+                            {renderInputs('reaction', flowItem.reactions[selectedItem.reactionIndex!].provider, selectedItem.reactionIndex!)}
                         </View>
                     )}
 
@@ -81,7 +233,7 @@ export default function FlowChartArea({ flow, onAddReaction, onRemoveAction, onS
                                 <Entypo name="cross" size={24} color="#fff" />
                                 <Text style={styles.actionButtonTxt}>Remove</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.actionButton} onPress={() => onSaveTrigger(actionIndex)}>
+                            <TouchableOpacity style={styles.actionButton} onPress={() => handleSaveTrigger(actionIndex)}>
                                 <MaterialIcons name="save-alt" size={24} color="#fff" />
                                 <Text style={styles.actionButtonTxt}>Save</Text>
                             </TouchableOpacity>
@@ -153,5 +305,23 @@ const styles = StyleSheet.create({
     infoText: {
         fontWeight: 'bold',
         color: Colors.light.tint,
+    },
+    inputLabel: {
+        fontWeight: 'bold',
+        color: Colors.light.tintDark,
+        marginTop: 10,
+    },
+    input: {
+        backgroundColor: '#fff',
+        borderRadius: 5,
+        padding: 8,
+        marginTop: 5,
+        borderWidth: 1,
+        borderColor: '#ddd',
+    },
+    noInputsText: {
+        color: Colors.light.tintDark,
+        fontStyle: 'italic',
+        marginTop: 10,
     },
 });

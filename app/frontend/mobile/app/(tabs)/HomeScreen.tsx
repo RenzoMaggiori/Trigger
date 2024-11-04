@@ -102,18 +102,20 @@ function TriggerList({ workspaces, setWorkspaces }: { workspaces: Workspace[], s
                 await TriggersService.startTrigger(workspaceId);
                 console.log(`Started trigger for workspace ID: ${workspaceId}`);
             }
-            setWorkspaces(prev => prev.map(workspace => {
-                if (workspace.id === workspaceId) {
-                    return {
-                        ...workspace,
-                        nodes: workspace.nodes.map(node => ({
-                            ...node,
-                            status: isActive ? 'inactive' : 'active',
-                        })),
-                    };
-                }
-                return workspace;
-            }));
+            setWorkspaces(prev =>
+                prev.map(workspace => {
+                    if (workspace.id === workspaceId) {
+                        return {
+                            ...workspace,
+                            nodes: workspace.nodes.map(node => ({
+                                ...node,
+                                status: isActive ? 'inactive' : 'active',
+                            })),
+                        };
+                    }
+                    return workspace;
+                })
+            );
         } catch (error) {
             console.error("Error handling trigger action:", error);
         }
@@ -142,12 +144,11 @@ function TriggerList({ workspaces, setWorkspaces }: { workspaces: Workspace[], s
         <View style={styles.triggerListContainer}>
             <Text style={styles.title}>Your Triggers</Text>
             {workspaces.length > 0 ? (
-                workspaces.map((workspace) => (
+                workspaces.map(workspace => (
                     <View key={workspace.id} style={styles.workspaceCard}>
-                        {/* <Text style={styles.workspaceTitle}>Trigger ID: {workspace.id}</Text> */}
                         <Text style={styles.workspaceTitle}>{workspace.name}</Text>
                         <View style={styles.nodesContainer}>
-                            {workspace.nodes.map((node) => {
+                            {workspace.nodes.map(node => {
                                 const isTrigger = node.actionDetails?.type === 'trigger';
 
                                 return (
@@ -177,14 +178,17 @@ function TriggerList({ workspaces, setWorkspaces }: { workspaces: Workspace[], s
                                                     {isTrigger ? 'Action' : 'Reaction'}: {node.actionDetails?.action}
                                                 </Text>
                                                 <View style={styles.actionDetailsContainer}>
-                                                    <Text
-                                                        style={[
-                                                            styles.actionDetailText,
-                                                            isTrigger && styles.whiteText,
-                                                        ]}
-                                                    >
-                                                        Inputs: {node.actionDetails?.input.join(', ')}
-                                                    </Text>
+                                                    {Object.entries(node || {}).map(([key, value]) => (
+                                                        <Text
+                                                            key={key}
+                                                            style={[
+                                                                styles.actionDetailText,
+                                                                isTrigger && styles.whiteText,
+                                                            ]}
+                                                        >
+                                                            {key}: {String(value)}
+                                                        </Text>
+                                                    ))}
                                                     <Text
                                                         style={[
                                                             styles.actionDetailText,
@@ -221,7 +225,9 @@ function TriggerList({ workspaces, setWorkspaces }: { workspaces: Workspace[], s
                             />
                             <Button
                                 title={workspace.nodes.some(node => node.status === 'active') ? 'Stop Trigger' : 'Start Trigger'}
-                                onPress={() => handleTriggerAction(workspace.id, workspace.nodes.some(node => node.status === 'active'))}
+                                onPress={() =>
+                                    handleTriggerAction(workspace.id, workspace.nodes.some(node => node.status === 'active'))
+                                }
                                 backgroundColor={Colors.light.tint}
                                 textColor='#FFFFFF'
                                 paddingV={10}
