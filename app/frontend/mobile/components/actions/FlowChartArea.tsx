@@ -54,65 +54,65 @@ export default function FlowChartArea({ flow, onAddReaction, onRemoveAction, onS
         const baseKey = `${type}-${provider}-${index}`;
 
         if (type === 'action') {
-            switch (provider) {
-                case 'gmail':
-                    return (
-                        <>
-                            <Text style={styles.inputLabel}>From:</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="example@example.com"
-                                value={inputValues[`${baseKey}-destination`] || ''}
-                                onChangeText={(text) => handleInputChange(`${baseKey}-destination`, text)}
-                            />
-                        </>
-                    );
-                case 'github':
-                    return (
-                        <>
-                            <Text style={styles.inputLabel}>Repository Owner:</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Enter owner name"
-                                value={inputValues[`${baseKey}-owner`] || ''}
-                                onChangeText={(text) => handleInputChange(`${baseKey}-owner`, text)}
-                            />
-                            <Text style={styles.inputLabel}>Repository Name:</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Enter repository name"
-                                value={inputValues[`${baseKey}-repo`] || ''}
-                                onChangeText={(text) => handleInputChange(`${baseKey}-repo`, text)}
-                            />
-                        </>
-                    );
-                case 'twitch':
-                    return (
-                        <>
-                            <Text style={styles.inputLabel}>Channel Name:</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Enter channel name"
-                                value={inputValues[`${baseKey}-channel`] || ''}
-                                onChangeText={(text) => handleInputChange(`${baseKey}-channel`, text)}
-                            />
-                        </>
-                    );
-                case 'spotify':
-                    return (
-                        <>
-                            <Text style={styles.inputLabel}>Playlist ID:</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Enter playlist ID"
-                                value={inputValues[`${baseKey}-playlistId`] || ''}
-                                onChangeText={(text) => handleInputChange(`${baseKey}-playlistId`, text)}
-                            />
-                        </>
-                    );
-                default:
-                    return <Text style={styles.noInputsText}>No specific inputs for this provider.</Text>;
-            }
+            // switch (provider) {
+                // case 'gmail':
+                //     return (
+                //         <>
+                //             <Text style={styles.inputLabel}>From:</Text>
+                //             <TextInput
+                //                 style={styles.input}
+                //                 placeholder="example@example.com"
+                //                 value={inputValues[`${baseKey}-destination`] || ''}
+                //                 onChangeText={(text) => handleInputChange(`${baseKey}-destination`, text)}
+                //             />
+                //         </>
+                //     );
+                // case 'github':
+                //     return (
+                //         <>
+                //             <Text style={styles.inputLabel}>Repository Owner:</Text>
+                //             <TextInput
+                //                 style={styles.input}
+                //                 placeholder="Enter owner name"
+                //                 value={inputValues[`${baseKey}-owner`] || ''}
+                //                 onChangeText={(text) => handleInputChange(`${baseKey}-owner`, text)}
+                //             />
+                //             <Text style={styles.inputLabel}>Repository Name:</Text>
+                //             <TextInput
+                //                 style={styles.input}
+                //                 placeholder="Enter repository name"
+                //                 value={inputValues[`${baseKey}-repo`] || ''}
+                //                 onChangeText={(text) => handleInputChange(`${baseKey}-repo`, text)}
+                //             />
+                //         </>
+                //     );
+                // case 'twitch':
+                //     return (
+                //         <>
+                //             <Text style={styles.inputLabel}>Channel Name:</Text>
+                //             <TextInput
+                //                 style={styles.input}
+                //                 placeholder="Enter channel name"
+                //                 value={inputValues[`${baseKey}-channel`] || ''}
+                //                 onChangeText={(text) => handleInputChange(`${baseKey}-channel`, text)}
+                //             />
+                //         </>
+                //     );
+                // case 'spotify':
+                //     return (
+                //         <>
+                //             <Text style={styles.inputLabel}>Playlist ID:</Text>
+                //             <TextInput
+                //                 style={styles.input}
+                //                 placeholder="Enter playlist ID"
+                //                 value={inputValues[`${baseKey}-playlistId`] || ''}
+                //                 onChangeText={(text) => handleInputChange(`${baseKey}-playlistId`, text)}
+                //             />
+                //         </>
+                //     );
+                // default:
+                return <Text style={styles.noInputsText}>No specific inputs for this provider.</Text>;
+            // }
         } else if (type === 'reaction') {
             switch (provider) {
                 case 'Slack':
