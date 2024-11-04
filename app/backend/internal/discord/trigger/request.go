@@ -18,7 +18,7 @@ func GetAllDiscordSessions() ([]DiscordSessionModel, error) {
 		nil,
 	))
 	if err != nil {
-		return nil, errors.New("could not fetch discord sessions")
+		return nil, err
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
