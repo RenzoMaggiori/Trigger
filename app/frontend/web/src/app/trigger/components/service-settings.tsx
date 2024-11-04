@@ -39,7 +39,6 @@ function GithubSettings({ node, type, actions }: { node: NodeItem, type: string,
   ];
 
   const reactionInputs = [
-    { label: "Owner", json: "owner", placeholder: "John Doe" },
     { label: "Repository", json: "repo", placeholder: "example_repository" },
     { label: "Title", json: "title", placeholder: "Example title" },
     { label: "Description", json: "description", placeholder: "This is a new issue" },
