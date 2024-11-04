@@ -85,7 +85,7 @@ const Combox: React.FC<ComboxProps> = ({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0" align="start">
+      <PopoverContent className="w-[250px] p-0" align="start">
         <StatusList
           setOpen={setOpen}
           setSelectedStatus={setSelectedStatus}
