@@ -328,7 +328,7 @@ function BitBucketSettings({ node, type, actions }: { node: NodeItem, type: stri
 
   React.useEffect(() => {
     const bitbucketTriggerAction = actions.find(
-      (action) => action.provider === "bitbucket" && action.type === type && action.action === messageType?.value
+      (action) => action.provider === "bitbucket" && action.type === type && (action.type === "trigger" ? action.action === messageType?.value : true)
     );
 
     if (!bitbucketTriggerAction) return;
