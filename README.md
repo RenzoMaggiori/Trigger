@@ -1,7 +1,7 @@
-
-ADD LOGO
----
-
+<div align="center">
+  <img alt="Logo" src="./app/frontend/mobile/assets/images/logo.png" >
+</div>
+<br>
 <p align="center">
   <a href="https://www.typescriptlang.org/docs/">
   <img alt="Typescript" src="https://img.shields.io/badge/-TypeScript-black?style=for-the-badge&logoColor=white&logo=typescript&color=2F73BF">
@@ -23,21 +23,43 @@ ADD LOGO
   </a>
 </p>
 
-<!-- [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/RenzoMaggiori/Soul-Connection/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/aimeos/Soul-Connection/?branch=master) -->
-
-<div align="center">
-
-add description
-
-</div>
-
-
 
 # 📖 Getting Started
 
+This project is designed to **automate** workflows by connecting various apps and services. It enables users to create custom **triggers** and actions, streamlining repetitive tasks and improving **efficiency**.
+
+The platform leverages a *microservices* architecture to ensure scalability and maintainability, with services written in modern technologies like `Go` and `TypeScript`, and a responsive frontend built on `Next.js` and `React`.
+
+## 🔑 Key Features
+
+- Action-Reaction Framework: Create custom workflows by linking triggers (events) from one app to actions in another.
+
+- Integration with Popular Platforms: Connect to apps like Google, GitHub, Discord, Spotify, Twitch, and Bitbucket, among others.
+
+- Secure Authentication: OAuth2-based authentication for seamless and secure integrations.
+
+- Real-time Syncing: Sync data between services with minimal latency.
+
+- Scalable Infrastructure: Built using Docker to handle high traffic and demand.
+
+- Customizable: Define workflows tailored to your specific needs, with fine-grained control over triggers and actions.
+
+## 🖥️ Core Technologies
+
+- Frontend: Next.js and React for a modern, responsive, and user-friendly interface.
+
+- Backend: Microservices written in Go for high performance and scalability.
+
+- Database: MongoDB for flexible and scalable data storage.
+
+- Containerization: Docker ensures consistent deployment across environments.
+
+- Integration: Supports a wide range of third-party services with robust APIs.
+
+
 ## 📝 Prerequisites
 
-#### Install Docker
+### Install Docker
 For the **Docker**, you can download it [here](https://go.dev/doc/install) directly or use the command line:
 
 1. Download and Install Docker:
@@ -191,13 +213,13 @@ BITBUCKET_SYNC_SECRET=<token>
     ``` bash
     docker compose logs client_web
     ```
-4. If the **Frontend** is running correctly, you should see an output showing the url similar to the following:
+4. If the **Frontend** is running correctly, you should see the following on your browser:
 
-ADD IMAGE
+![Home Page](./app/frontend/web/public/landing.png)
 
 # 📜 License
 
-ADD LICENSE
+The license can be found [here](./LICENSE)
 
 # 👥 Authors
 
