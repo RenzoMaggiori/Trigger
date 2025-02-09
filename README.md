@@ -32,29 +32,29 @@ The platform leverages a *microservices* architecture to ensure scalability and 
 
 ## 🔑 Key Features
 
-- Action-Reaction Framework: Create custom workflows by linking triggers (events) from one app to actions in another.
+- **Action-Reaction Framework**: Create custom workflows by linking *triggers* (events) from one app to actions in another.
 
-- Integration with Popular Platforms: Connect to apps like Google, GitHub, Discord, Spotify, Twitch, and Bitbucket, among others.
+- **Integration with Popular Platforms**: Connect to apps like *Google*, *GitHub*, *Discord*, *Spotify*, *Twitch*, and *Bitbucket*, among others.
 
-- Secure Authentication: OAuth2-based authentication for seamless and secure integrations.
+- **Secure Authentication**: OAuth2-based authentication for seamless and secure integrations.
 
-- Real-time Syncing: Sync data between services with minimal latency.
+- **Real-time Syncing**: Sync data between services with minimal latency.
 
-- Scalable Infrastructure: Built using Docker to handle high traffic and demand.
+- **Scalable Infrastructure**: Built using Docker to handle high traffic and demand.
 
-- Customizable: Define workflows tailored to your specific needs, with fine-grained control over triggers and actions.
+- **Customizable**: Define workflows tailored to your specific needs, with fine-grained control over triggers and actions.
 
 ## 🖥️ Core Technologies
 
-- Frontend: Next.js and React for a modern, responsive, and user-friendly interface.
+- **Frontend**: `Next.js` and `React` for a modern, responsive, and user-friendly interface.
 
-- Backend: Microservices written in Go for high performance and scalability.
+- **Backend**: Microservices written in `Go` for high performance and scalability.
 
-- Database: MongoDB for flexible and scalable data storage.
+- **Database**: `MongoDB` for flexible and scalable data storage.
 
-- Containerization: Docker ensures consistent deployment across environments.
+- **Containerization**: `Docker` ensures consistent deployment across environments.
 
-- Integration: Supports a wide range of third-party services with robust APIs.
+- **Integration**: Supports a wide range of third-party services with robust APIs.
 
 
 ## 📝 Prerequisites
